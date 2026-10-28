@@ -139,9 +139,10 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
     Speech goes out a sentence at a time. A question waits for the reply to end; if the reply calls a tool, the
     question and anything after it are dropped, so the agent never asks something and then answers it from the
     result without waiting. A sentence already said this turn (seen), or one close to a line said before the tool
-    call, isn't said again."""
+    call, isn't said again. After an unsupported number the reply goes quiet, but its tool calls still go through;
+    the fallback line is said only if there were none (the reply after the tool result speaks instead)."""
     audio_tags = AUDIO_TAGS if audio_tags is None else audio_tags
-    pending, held, tool_called, spoken = '', [], False, False
+    pending, held, tool_called, spoken, blocked = '', [], False, False, False
     said = [] if said is None else said
     seen = set() if seen is None else seen
     earlier = list(seen)  # Said in this turn before a tool call.
@@ -160,7 +161,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
                 (len(words) <= 5 and set(words) <= set(re.findall(r"[a-z'’]+", before))))
 
     def speak(pieces):
-        """The text to yield for these sentences, minus word-for-word repeats; True if a number nobody supplied appears."""
+        """The text to yield for these sentences, minus repeats, up to any number nobody supplied (then True)."""
         nonlocal spoken
         out = []
         for piece in pieces:
@@ -168,7 +169,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
             if len(key) >= 8 and key in seen: continue
             if not re.search(r'\d', key) and any(close(key, e) for e in earlier): continue
             seen.add(key)
-            if numbers(piece) - allowed: return out + [(' ' if spoken else '') + UNSUPPORTED], True
+            if numbers(piece) - allowed: return out, True
             spoken = True
             said.append(piece)
             out.append(piece if audio_tags else AUDIO_TAG.sub('', piece))
@@ -184,15 +185,17 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
                 if chunk.delta: chunk.delta.content = None
                 yield chunk  # Tool calls and usage records go straight to the framework.
             if not text: continue
+        if blocked: continue
         pending += text
         complete, pending = split_ready(pending)
         out, blocked = speak(take(complete))
         if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
         for piece in out: yield piece
-        if blocked: return
-    out, blocked = speak(take(pending) + ([] if tool_called else held))
-    if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
-    for piece in out: yield piece
+    if not blocked:
+        out, blocked = speak(take(pending) + ([] if tool_called else held))
+        if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
+        for piece in out: yield piece
+    if blocked and not tool_called: yield (' ' if spoken else '') + UNSUPPORTED
 
 
 async def display_text(text):

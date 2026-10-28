@@ -143,6 +143,9 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(out, "I've recorded it. ")  # Close to, or the same as, the line before the tool call.
         out, _ = await self.speak(["I'm sorry. ", "You're all set. ", 'The reference is H, D, S, 1, 2, 3, 4.'], allowed={'1', '2', '3', '4'}, seen=seen)
         self.assertEqual(out, "You're all set. The reference is H, D, S, 1, 2, 3, 4.")
+        out, chunks = await self.speak(['Sure, I can help with all 3. ', 'Let me check.', call])
+        self.assertEqual((out, chunks[0].delta.tool_calls[0].name), ('', 'record_hardship_notice'))  # The tool still runs.
+        self.assertEqual(self.events[-1], {'type': 'guard', 'reason': 'unsupported_number'})
         out, _ = await self.speak(['Is that the home loan? ', 'It was $9,999 last month.'])
         self.assertTrue(out.endswith(__import__("live_agent").UNSUPPORTED) and '9,999' not in out)
 
