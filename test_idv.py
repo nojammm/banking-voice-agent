@@ -442,6 +442,38 @@ class VolunteeredNameTests(unittest.TestCase):
         self.assertIsNone(run(v.take_volunteered_name("It's Emily Carter.")))  # Only before any answer.
 
 
+class DobAcrossTurnsTests(unittest.TestCase):
+    """A date of birth given in two turns ("November 1978", then "the 2nd") is joined, like the address."""
+    def make(self):
+        v = idv.Verification(CUSTOMERS, config(), None, TODAY)
+        v.begin('tool')
+        run(v.answer('Arjun Raghavan'))
+        return v
+
+    def test_parts_from_two_turns_are_joined(self):
+        for first, second in [('November 1978', 'the 2nd'), ('the 2nd of November', '1978'), ('1978', 'the second of November'),
+                              ('November', 'the 2nd, 1978')]:
+            with self.subTest(first=first, second=second):
+                v = self.make()
+                self.assertEqual(run(v.answer(first)).outcome, 'incomplete')
+                self.assertEqual(run(v.answer(second)).outcome, 'pass')
+                self.assertEqual((v.step, v.steps['dob']['attempts']), ('address', 0))
+
+    def test_joined_wrong_date_fails_and_the_carry_is_cleared(self):
+        v = self.make()
+        run(v.answer('November 1978'))
+        self.assertEqual(v.note(v.last).count('day'), 1)
+        self.assertEqual(run(v.answer('the 3rd')).outcome, 'fail')
+        self.assertEqual(v.dob_carry, {})
+        self.assertEqual(run(v.answer('the 2nd')).outcome, 'incomplete')  # Nothing left to join with.
+
+    def test_a_question_neither_joins_nor_clears_the_parts(self):
+        v = self.make()
+        run(v.answer('November 1978'))
+        self.assertEqual(run(v.answer('Is it the 2nd you have?')).outcome, 'no_answer')
+        self.assertEqual(run(v.answer('the 2nd')).outcome, 'pass')
+
+
 EMILY_ANSWERS = ['Emily Carter', '14 March 1991', 'unit 4 56 Harbour Street Wollongong NSW 2500']
 
 

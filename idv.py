@@ -410,6 +410,7 @@ class DobParse:
     value: str | None = None
     candidates: list = field(default_factory=list)
     missing: list = field(default_factory=list)
+    parts: dict = field(default_factory=dict)  # For an incomplete date: the parts that were clear.
 
 
 def _year(text, today, pivot):
@@ -475,10 +476,12 @@ def parse_dob(text, today, pivot=8):
                 if value: found.append(((k == 1) + (len(group) - k == 1) + 0.5 * group[0].ordinal, value))
         if (best := _best(found)): return DobParse('ok' if len(best) == 1 else 'ambiguous', best[0] if len(best) == 1 else None, best)
         group = before or after
-        if not nums: return DobParse('incomplete', missing=['day', 'year'])
+        if not nums: return DobParse('incomplete', missing=['day', 'year'], parts={'month': month})
         if len(nums) == 1:
             value = nums[0].digits
-            return DobParse('incomplete', missing=['year'] if len(value) <= 2 and int(value) <= 31 else ['day'])
+            if len(value) <= 2 and int(value) <= 31: return DobParse('incomplete', missing=['year'], parts={'month': month, 'day': int(value)})
+            year = _year(value, today, pivot)
+            return DobParse('incomplete', missing=['day'], parts={'month': month, 'year': year} if year else {})
         return DobParse('unparsed')
     candidates = _partitions(nums, today, pivot)
     if not candidates and any(len(n.digits) > 4 for n in nums):
@@ -486,9 +489,17 @@ def parse_dob(text, today, pivot=8):
         candidates = _partitions(singles, today, pivot)
     if len(candidates) == 1: return DobParse('ok', candidates[0], candidates)
     if candidates: return DobParse('ambiguous', candidates=candidates)
+    if len(nums) == 2:  # "the 2nd, 1978": a day said as an ordinal and a year, no month.
+        day, year = sorted(nums, key=lambda n: len(n.digits))
+        if day.ordinal and int(day.digits) <= 31 and len(year.digits) == 4 and _year(year.digits, today, pivot):
+            return DobParse('incomplete', missing=['month'], parts={'day': int(day.digits), 'year': int(year.digits)})
     digits = sum(len(n.digits) for n in nums)
     if digits <= 4 and len(nums) <= 2:
-        return DobParse('incomplete', missing=['year'] if len(nums) == 2 else ['month', 'year'])
+        if len(nums) == 1 and len(nums[0].digits) == 4 and _year(nums[0].digits, today, pivot):
+            return DobParse('incomplete', missing=['day', 'month'], parts={'year': int(nums[0].digits)})
+        clear = len(nums) == 1 and 1 <= int(nums[0].digits) <= 31  # A lone small number is the day ("the 2nd").
+        return DobParse('incomplete', missing=['year'] if len(nums) == 2 else ['month', 'year'],
+                        parts={'day': int(nums[0].digits)} if clear else {})
     return DobParse('unparsed')
 
 
@@ -506,14 +517,26 @@ def _valid_llm_date(response, today, candidates):
     return ('complete', value)
 
 
-async def match_dob(text, stored, cfg, judge=None, today=None):
+def _combine(parsed, carry, today):
+    """Join an incomplete answer with the parts given in earlier turns ("November 1978", then "the 2nd")."""
+    parts = {**carry, **parsed.parts}
+    if set(parts) != {'day', 'month', 'year'}:
+        return DobParse('incomplete', missing=[p for p in ('day', 'month', 'year') if p not in parts], parts=parts)
+    value = make_date(str(parts['day']), str(parts['month']), str(parts['year']), today, 0)
+    return DobParse('ok', value, [value]) if value else DobParse('unparsed')
+
+
+async def match_dob(text, stored, cfg, judge=None, today=None, carry=None):
+    """Parts of an incomplete answer carry over in components['_carry'], so the next turn can finish the date."""
     today = today or date.today()
     parsed = parse_dob(text, today, cfg['two_digit_year_pivot'])
+    if parsed.status == 'incomplete' and carry and not is_question(text):
+        parsed = _combine(parsed, carry, today)
     # A question counts only if it holds a whole date ("is it 14 March 1991?"); otherwise it's not an answer.
     if parsed.status == 'no_answer' or (parsed.status not in ('ok', 'ambiguous') and is_question(text)):
         return FieldResult('dob', 'no_answer', 'none')
     if parsed.status == 'incomplete':
-        return FieldResult('dob', 'incomplete', 'deterministic', missing=parsed.missing)
+        return FieldResult('dob', 'incomplete', 'deterministic', missing=parsed.missing, components={'_carry': parsed.parts})
     if parsed.status == 'ok':
         return FieldResult('dob', 'pass' if parsed.value == stored else 'fail', 'exact', normalized=parsed.value)
     result = FieldResult('dob', 'uncertain', 'llm', components={'candidates': parsed.candidates})
@@ -696,7 +719,7 @@ class Verification:
         self.status, self.step, self.customer_id, self.last = 'not_started', None, None, None
         self.steps = {s: {'status': 'pending', 'attempts': 0, 'incomplete': 0, 'uncertain': 0, 'asked': False, 'activated_by': None}
                       for s in self.cfg['steps']}
-        self.address_carry, self.history, self.non_answers, self.paused_by = {}, [], 0, None
+        self.address_carry, self.dob_carry, self.history, self.non_answers, self.paused_by = {}, {}, [], 0, None
 
     @property
     def verified(self):
@@ -779,7 +802,8 @@ class Verification:
         if step == 'full_name':
             result = await match_name(text, self.customers, cfg, self.judge)
         elif step == 'dob':
-            result = await match_dob(text, self.customer()['dob'], cfg, self.judge, today)
+            result = await match_dob(text, self.customer()['dob'], cfg, self.judge, today, self.dob_carry)
+            if result.outcome != 'no_answer': self.dob_carry = result.components.pop('_carry', {})
         else:
             result = await match_address(text, self.customer()['address'], cfg, self.judge, self.address_carry)
             self.address_carry = result.components.pop('_carry', self.address_carry)
