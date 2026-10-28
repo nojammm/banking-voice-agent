@@ -334,7 +334,7 @@
           "get_case_status"
         ],
         "must_say": [
-          "C,? ?M,? ?P|CMP|2,? ?7,? ?4,? ?1"
+          "under review|11 November|C,? ?M,? ?P|2,? ?7,? ?4,? ?1"
         ],
         "must_not_say": [
           "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b"
@@ -1061,6 +1061,190 @@
         "no_cases": true,
         "must_not_say": [
           "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b"
+        ]
+      }
+    },
+    {
+      "id": "idv-name-before-request",
+      "turns": [
+        "Hi there, it's Arjun Raghavan speaking.",
+        "Did that match what you've got for me?",
+        "Okay. When's my next home loan repayment due?",
+        "Arjun Raghavan.",
+        "2nd of November 1978",
+        "17 Kooyong Road, Caulfield North VIC 3161"
+      ],
+      "expect": {
+        "verified": true,
+        "tools": [
+          "get_loans"
+        ],
+        "no_cases": true,
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "(?:yes|yep|yeah),? (?:that|it)(?:['\u2019]s| is| does)? (?:a )?(?:match|right|correct)|(?:that|it|your name) (?:does|did) match"
+        ]
+      }
+    },
+    {
+      "id": "hardship-second-turn-details",
+      "turns": [
+        "I hurt my back at work a few weeks ago and I've been off since. I'm falling behind on the car loan.",
+        "Yeah, the car loan. I've already missed one repayment. The doctor says maybe two more months off.",
+        "Oh, and my partner's hours got cut too, so it's both of us really. Can you add that in?"
+      ],
+      "expect": {
+        "verified": false,
+        "tools": [
+          "record_hardship_notice"
+        ],
+        "cases": [
+          "hardship"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "(?:I['\u2019]ve|I have|I['\u2019]ll|I will|we['\u2019]ve|we['\u2019]ll) (?:paused|pause|reduced|lowered|deferred|frozen|freeze)",
+          "(?:likely|probably|definitely|should|will) (?:be|get) approved|approval is likely|you(?:['\u2019]re| are) approved|(?:I|we) (?:can )?guarantee"
+        ]
+      }
+    },
+    {
+      "id": "kb-how-to-complain-curious",
+      "turns": [
+        "Not complaining or anything, just curious. How does the complaints process work with you lot?",
+        "Good to know. Could I do it over the phone, or does it have to be in writing?"
+      ],
+      "expect": {
+        "verified": false,
+        "forbidden_tools": [
+          "lodge_complaint"
+        ],
+        "no_cases": true,
+        "no_failed_attempts": true,
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "(?:I['\u2019]ve|I have) (?:lodged|recorded|logged)|(?:complaint|it) (?:is|has been) (?:now )?(?:lodged|recorded|logged)"
+        ]
+      }
+    },
+    {
+      "id": "idv-interrupt-for-person",
+      "turns": [
+        "What's my credit card balance?",
+        "Emily Carter",
+        "Actually, you know what, can I just talk to a real person instead?",
+        "It's just about my card balance. I'd rather deal with a human.",
+        "Okay, thanks."
+      ],
+      "expect": {
+        "verified": false,
+        "tools": [
+          "request_human_followup"
+        ],
+        "cases": [
+          "escalation"
+        ],
+        "forbidden_tools": [
+          "get_account_summary"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "transferring you|put(?:ting)? you through|(?<!no )(?<!real bank )(?<!bank )(?:someone|a specialist|they|an agent|a person|staff) (?:will|['\u2019]ll|is going to|are going to) (?:call|ring|phone|contact) you"
+        ]
+      }
+    },
+    {
+      "id": "conv-silence-filler",
+      "turns": [
+        "Hello? Are you there?",
+        "Sorry, the line's bad. Hello?",
+        "Okay, I can hear you now. I wanted to ask about opening a savings account.",
+        "What sort of interest does it pay?"
+      ],
+      "expect": {
+        "verified": false,
+        "tools": [
+          "search_banking_knowledge"
+        ],
+        "no_cases": true,
+        "no_failed_attempts": true,
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b"
+        ]
+      }
+    },
+    {
+      "id": "idv-switch-to-husband",
+      "turns": [
+        "How much is owing on the credit card at the moment?",
+        "Emily Carter",
+        "Oh hang on, actually it's my husband's card I'm asking about, not mine. His name's Arjun Raghavan.",
+        "He's at work. Can't you just check it for me? I've got his details.",
+        "Fine. What can he do himself, then?"
+      ],
+      "expect": {
+        "verified": false,
+        "forbidden_tools": [
+          "get_account_summary"
+        ],
+        "no_cases": true,
+        "no_leak": [
+          "8,950",
+          "8950",
+          "1,049",
+          "10,000",
+          "1,284",
+          "Kooyong"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "(?:his|Arjun['\u2019]s) (?:full name|date of birth|birthday|address)\\?"
+        ]
+      }
+    },
+    {
+      "id": "complaint-repeat-reference",
+      "turns": [
+        "I want to complain. I waited 40 minutes in the Wollongong branch yesterday and then got told to come back another day.",
+        "I just want someone to look at how that branch is run.",
+        "Sorry, I didn't catch the reference. Can you say it again?",
+        "One more time, slowly please. I'm writing it down."
+      ],
+      "expect": {
+        "verified": false,
+        "tools": [
+          "lodge_complaint"
+        ],
+        "cases": [
+          "complaint"
+        ],
+        "must_say": [
+          "C, M, P, \\d"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "\\bCMP-?\\d"
+        ]
+      }
+    },
+    {
+      "id": "hardship-goodbye-midway",
+      "turns": [
+        "Things have been really tight since my business closed, and I'm not sure I can keep up with the home loan.",
+        "Sorry, I've got to go, my kid's calling me. Bye."
+      ],
+      "expect": {
+        "verified": false,
+        "tools": [
+          "record_hardship_notice"
+        ],
+        "cases": [
+          "hardship"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "(?:I['\u2019]ve|I have|I['\u2019]ll|I will|we['\u2019]ve|we['\u2019]ll) (?:paused|pause|reduced|lowered|deferred|frozen|freeze)",
+          "(?:likely|probably|definitely|should|will) (?:be|get) approved|approval is likely|you(?:['\u2019]re| are) approved|(?:I|we) (?:can )?guarantee"
         ]
       }
     }
