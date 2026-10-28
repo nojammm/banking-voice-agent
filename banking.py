@@ -38,6 +38,7 @@ class Workflow:
         self.session_id, self.conn, self.idv = session_id, conn, verification
         self.publish = publish
         self.forms, self.created, self.facts, self.hardship_ref = {}, [], set(), None
+        self.turn, self.shown = None, {}  # Caller turns (set by the voice agent) and when each transaction was first shown.
         verification.on_event = self.audit
         bank.save_session(conn, session_id, self.snapshot())
 
@@ -48,6 +49,13 @@ class Workflow:
         return cls(session_id, conn, idv.Verification(bank.identity_records(conn), config, judge, today), publish)
 
     # ------------------------------------------------------------ state, audit and UI events
+
+    def new_turn(self):
+        """The caller finished a turn. A transaction found in this turn hasn't been confirmed by them yet."""
+        self.turn = (self.turn or 0) + 1
+
+    def _shown(self, *ids):
+        for t in ids: self.shown.setdefault(t, self.turn)
 
     def snapshot(self):
         return {'idv': self.idv.snapshot(), 'verified_customer': self.idv.customer_id if self.idv.verified else None,
@@ -142,6 +150,7 @@ class Workflow:
         if (blocked := self._guard('get_recent_transactions')): await self.auth_changed(); return blocked
         limit = max(1, min(int(limit or 5), 10))
         rows = bank.transactions(self.conn, self.idv.customer_id, account_id or None, (search or '').strip()[:40] or None, limit)
+        self._shown(*(t['id'] for t in rows))
         return {'transactions': [{'transaction_id': t['id'], 'date': t['posted'], 'description': t['description'],
                                   'amount': money(t['amount']), 'status': t['status'], 'account_id': t['account_id']} for t in rows]}
 
@@ -149,6 +158,7 @@ class Workflow:
         if (blocked := self._guard('get_transaction_details')): await self.auth_changed(); return blocked
         t = bank.transaction(self.conn, self.idv.customer_id, transaction_id)
         if not t: return {'error': 'not_found', 'next': 'Check the transaction with get_recent_transactions.'}
+        self._shown(t['id'])
         twins = [o for o in bank.transactions(self.conn, self.idv.customer_id, t['account_id'], limit=50)
                  if o['id'] != t['id'] and o['description'] == t['description'] and o['amount'] == t['amount'] and o['posted'] == t['posted']]
         disputes = [c['ref'] for c in bank.cases(self.conn, self.idv.customer_id) if c['details'].get('transaction_id') == t['id']]
@@ -184,6 +194,9 @@ class Workflow:
         existing = [c['ref'] for c in bank.cases(self.conn, self.idv.customer_id)
                     if c['details'].get('transaction_id') == t['id'] and c['type'] in ('dispute', 'fraud')]
         if existing: return {'error': 'already_lodged', 'reference': existing[0], 'next': 'Give the existing reference and its status.'}
+        if self.turn is not None and self.shown.get(t['id'], self.turn) >= self.turn:
+            return {'error': 'not_confirmed', 'next': "The caller hasn't confirmed this transaction yet. Describe it briefly (merchant, "
+                                                      "amount, date) and ask if it's the one; lodge it once they say yes."}
         details = {'transaction_id': t['id'], 'merchant': t['description'], 'amount': money(t['amount']),
                    'dispute_type': dispute_type, 'customer_account': (description or '')[:500]}
         if dispute_type in FRAUD_TYPES:

@@ -243,6 +243,7 @@ class VoiceAgent(Agent):
         raw = ' '.join(self.raw_finals).strip() or new_message.text_content or ''
         self.raw_finals.clear()
         self.seen.add(new_message.id)
+        self.workflow.new_turn()
         verification = self.workflow.idv
         # A name said before verification starts counts if a tool starts verification in this same turn.
         self.opening = (new_message.id, raw) if verification.status == 'not_started' else None

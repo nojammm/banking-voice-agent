@@ -124,6 +124,21 @@ class AccessControlTests(TempDB):
 
 
 class CaseWorkflowTests(TempDB):
+    def test_a_dispute_waits_for_the_caller_to_confirm_the_transaction(self):
+        wf = self.workflow()
+        self.verify(wf)
+        wf.new_turn()  # The turn that finished verification: the agent finds the payment.
+        run(wf.call('get_recent_transactions', search='paypal'))
+        early = run(wf.call('lodge_dispute', transaction_id='TXN-1003-04', dispute_type='unauthorised', description='Not me'))
+        self.assertEqual(early['error'], 'not_confirmed')
+        self.assertIn('ask', early['next'])
+        self.assertEqual(wf.created, [])
+        self.assertEqual(run(wf.call('lodge_dispute', transaction_id='TXN-1001-04', dispute_type='duplicate', description='x'))['error'],
+                         'not_confirmed')  # Never shown to the caller at all.
+        wf.new_turn()  # "Yes, that's the one."
+        self.assertEqual(run(wf.call('lodge_dispute', transaction_id='TXN-1003-04', dispute_type='unauthorised', description='Not me'))['route'],
+                         'fraud')
+
     def test_dispute_versus_fraud_routes(self):
         wf = self.workflow()
         self.verify(wf)
