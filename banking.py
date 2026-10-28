@@ -232,7 +232,7 @@ class Workflow:
             bank.update_case(self.conn, self.hardship_ref, details)
             self.audit('case_updated', {'ref': self.hardship_ref, 'type': 'hardship'})
             return {'reference': self.hardship_ref, 'say_reference': spoken(self.hardship_ref), 'status': 'updated',
-                    'next': 'The existing notice now has these details; the reference is unchanged.'}
+                    'next': 'The existing notice now has these details. Say so in a few words; the reference is unchanged, so don\'t read it again.'}
         ref, customer = await self._record('hardship', f"Hardship notice: {cause.replace('_', ' ')}", details, priority='high',
                                            status='Received - assessment pending')
         self.hardship_ref = ref

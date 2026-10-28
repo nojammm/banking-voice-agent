@@ -369,7 +369,7 @@ class VoiceAgent(Agent):
                                      cause: Literal['job_loss', 'reduced_income', 'illness_or_injury', 'relationship_breakdown',
                                                     'natural_disaster', 'family_or_carer', 'other'],
                                      situation: str, affected_products: str, expected_duration: str, support_wanted: str) -> str:
-        """Record a financial hardship notice. Works before verification.
+        """Record a financial hardship notice. Calling it again updates this call's notice. Works before verification.
 
         Args:
             cause: The main cause.
