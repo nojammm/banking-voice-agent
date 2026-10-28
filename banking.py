@@ -135,7 +135,8 @@ class Workflow:
             else:
                 item.update(balance=money(a['balance']), available=money(a['available']))
             out.append(item)
-        return {'accounts': out}
+        return {'accounts': out, 'next': 'Keep each figure with its own label: balance and available, '
+                                         'or owing and available credit, are different amounts.'}
 
     async def get_recent_transactions(self, account_id='', search='', limit=5):
         if (blocked := self._guard('get_recent_transactions')): await self.auth_changed(); return blocked
