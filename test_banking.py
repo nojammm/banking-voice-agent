@@ -213,6 +213,18 @@ class CaseWorkflowTests(TempDB):
                          ('Overdrawn fee of 15 dollars for a few cents', 'Fee refunded'))
         self.assertEqual([e['kind'] for e in self.ui if e['type'] == 'case'], ['complaint'])
 
+    def test_one_follow_up_per_call_and_the_demo_disclaimer_once(self):
+        wf = self.workflow()
+        first = run(wf.call('request_human_followup', reason='other', summary='Wants a person'))
+        self.assertIn(banking.MOCK, first['next'])
+        second = run(wf.call('request_human_followup', reason='other', summary='Wants a person about a complicated home loan'))
+        self.assertEqual((second['reference'], second['status']), (first['reference'], 'updated'))
+        rows = [c for c in bank.cases(self.conn, session_id=wf.session_id) if c['type'] == 'escalation']
+        self.assertEqual((len(rows), rows[0]['summary']), (1, 'Wants a person about a complicated home loan'))
+        complaint = run(wf.call('lodge_complaint', category='service', summary='Nobody called back'))
+        self.assertNotIn(banking.MOCK, complaint['next'])
+        self.assertIn(banking.MOCK_GIVEN, complaint['next'])
+
     def test_hardship_and_complaints_work_before_verification(self):
         wf = self.workflow()
         hardship = run(wf.call('record_hardship_notice', cause='reduced_income', situation='Hours cut in half',

@@ -18,7 +18,8 @@ COMPLAINT_CATEGORIES = {'fees_and_charges', 'service', 'delay', 'product', 'deci
 FOLLOWUP_REASONS = {'lending_decision', 'complex_dispute', 'hardship_assessment', 'fraud_or_security', 'formal_complaint',
                     'unsupported_request', 'verification_failed', 'other'}
 LOAN_PURPOSES = {'home_loan', 'refinance', 'personal_loan', 'car_loan', 'other'}
-MOCK = 'Demo record only: no real bank staff will act on it. Say so plainly if the caller expects contact.'
+MOCK = "Demo record only: no real bank staff will act on it. Say so plainly, once, if the caller expects contact; if you've just said it, don't say it again."
+MOCK_GIVEN = "The caller has been told records are demo only; don't repeat it unless they ask about contact."
 
 
 def money(value):
@@ -64,6 +65,7 @@ class Workflow:
         self.session_id, self.conn, self.idv = session_id, conn, verification
         self.publish = publish
         self.forms, self.created, self.facts, self.hardship_ref, self.complaint_ref = {}, [], set(), None, None
+        self.followup_ref, self.mock_given = None, False
         self.turn, self.shown = None, {}  # Caller turns (set by the voice agent) and when each transaction was first shown.
         verification.on_event = self.audit
         bank.save_session(conn, session_id, self.snapshot())
@@ -107,6 +109,12 @@ class Workflow:
         if self.created:
             lines.append('Records created this call: ' + ', '.join(f"{c['type']} {c['ref']}" for c in self.created) + '.')
         return '\n\n'.join(lines)
+
+    def _mock(self):
+        """The demo disclaimer goes with the first record of the call only; it isn't repeated every turn."""
+        if self.mock_given: return MOCK_GIVEN
+        self.mock_given = True
+        return MOCK
 
     def _date(self, value):
         """Dates go to the model ready to say. The current year may still be said, though it's left out."""
@@ -240,11 +248,11 @@ class Workflow:
             guidance = kb.document('scams-security')
             return {'reference': ref, 'say_reference': spoken(ref), 'route': 'fraud', 'escalation_reference': esc,
                     'security_guidance': guidance['text'],
-                    'next': 'Give the security guidance now, especially locking the card. Explain the fraud team reviews it; never promise a refund. ' + MOCK}
+                    'next': 'Give the security guidance now, especially locking the card. Explain the fraud team reviews it; never promise a refund. ' + self._mock()}
         ref, _ = await self._record('dispute', f"{dispute_type.replace('_', ' ').capitalize()}: {t['description']} {money(t['amount'])}", details,
                                     status='Investigating')
         return {'reference': ref, 'say_reference': spoken(ref), 'route': 'dispute', 'typical_investigation': 'up to 45 days',
-                'next': 'Explain the investigation; never promise a refund or outcome. ' + MOCK}
+                'next': 'Explain the investigation; never promise a refund or outcome. ' + self._mock()}
 
     # ------------------------------------------------------------ available before verification
 
@@ -284,7 +292,7 @@ class Workflow:
                                            status='Received - assessment pending')
         self.hardship_ref = ref
         result = {'reference': ref, 'say_reference': spoken(ref), 'response_due_days': 21,
-                  'next': 'Give the reference. A hardship specialist assesses options; nothing is approved on this call. Offer a specialist follow-up. ' + MOCK}
+                  'next': 'Give the reference. A hardship specialist assesses options; nothing is approved on this call. Offer a specialist follow-up. ' + self._mock()}
         if not customer:
             result['identity'] = 'Not verified, so the notice is not yet linked to accounts. The caller can verify now, or a specialist will confirm identity first.'
         return result
@@ -301,14 +309,21 @@ class Workflow:
         ref, _ = await self._record('complaint', summary[:300], details, status='Received')
         self.complaint_ref = ref
         return {'reference': ref, 'say_reference': spoken(ref), 'final_response_within_days': days,
-                'next': 'Give the reference and the timeframe; mention AFCA only if they ask what happens if they stay unhappy. ' + MOCK}
+                'next': 'Give the reference and the timeframe; mention AFCA only if they ask what happens if they stay unhappy. ' + self._mock()}
 
     async def request_human_followup(self, reason, summary, urgency='normal'):
         if reason not in FOLLOWUP_REASONS: return {'error': 'invalid_reason', 'allowed': sorted(FOLLOWUP_REASONS)}
-        ref, _ = await self._record('escalation', summary[:300], {'reason': reason, 'identity': self.idv.status},
+        details = {'reason': reason, 'identity': self.idv.status}
+        if self.followup_ref:  # One follow-up request per call: later details update it.
+            bank.update_case(self.conn, self.followup_ref, details, summary[:300])
+            self.audit('case_updated', {'ref': self.followup_ref, 'type': 'escalation'})
+            return {'reference': self.followup_ref, 'say_reference': spoken(self.followup_ref), 'status': 'updated',
+                    'next': "The existing follow-up request now has these details. Say so in a few words; the reference is unchanged, so don't read it again."}
+        ref, _ = await self._record('escalation', summary[:300], details,
                                     priority='urgent' if urgency == 'urgent' else 'normal', status='Queued')
+        self.followup_ref = ref
         return {'reference': ref, 'say_reference': spoken(ref),
-                'next': 'Tell the caller a follow-up request was recorded. No live transfer happened. ' + MOCK}
+                'next': 'Tell the caller a follow-up request was recorded. No live transfer happened. ' + self._mock()}
 
     async def open_callback_form(self, purpose):
         if purpose not in LOAN_PURPOSES: return {'error': 'invalid_purpose', 'allowed': sorted(LOAN_PURPOSES)}

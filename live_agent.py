@@ -468,7 +468,7 @@ class VoiceAgent(Agent):
                                      reason: Literal['lending_decision', 'complex_dispute', 'hardship_assessment', 'fraud_or_security',
                                                      'formal_complaint', 'unsupported_request', 'verification_failed', 'other'],
                                      summary: str, urgency: Literal['normal', 'urgent'] = 'normal') -> str:
-        """Record a request for a human to follow up, after the caller agrees. No live transfer happens.
+        """Record a request for a human to follow up, after the caller agrees. Calling it again updates this call's request. No live transfer happens.
 
         Args:
             reason: Why a person is needed.
