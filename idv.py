@@ -326,13 +326,29 @@ def name_decision(score, parts, cfg):
     return 'llm' if score >= cfg['low_threshold'] else 'fail'
 
 
-async def match_name(text, customers, cfg, judge=None):
-    if '?' in text or re.search(r'\d', text): return FieldResult('full_name', 'no_answer', 'none')
+# Someone else's name ("my wife, Emily Carter, wants…") must never be picked out of a longer turn.
+THIRD_PARTY = re.compile(r"\b(?:wife|husband|partner|mum|mom|mother|dad|father|son|daughter|brother|sister|friend|"
+                         r"customer|client|she|shes|he|hes|her|his|their|behalf)\b")
+
+
+def _name_like(text):
     spoken = name_tokens(text)
     common = [t for t in spoken if t in COMMON]
-    if not spoken or len(common) >= 2 or len(common) * 2 > len(spoken) or len(spoken) > 6:
+    return bool(spoken) and len(common) < 2 and len(common) * 2 <= len(spoken) <= 6
+
+
+async def match_name(text, customers, cfg, judge=None):
+    if '?' in text or re.search(r'\d', text) or not _name_like(text):
+        # A name can sit in one clause of a longer turn ("I just told you, it's Emily Carter."). A clause counts
+        # only on a clear match without the fallback, so a stray clause never costs an attempt.
+        clauses = [c for c in re.split(r'[.,;:!?]+', text) if c.strip() and c.strip() != text.strip()]
+        if not THIRD_PARTY.search(text.lower().replace('’', "'").replace("'", '')):
+            for clause in clauses:
+                if re.search(r'\d', clause) or not _name_like(clause): continue
+                result = await match_name(clause, customers, cfg)
+                if result.outcome == 'pass': return result
         return FieldResult('full_name', 'no_answer', 'none')  # A question or a different request, not a name.
-    spoken = [t for t in spoken if t not in COMMON]
+    spoken = [t for t in name_tokens(text) if t not in COMMON]
     normalized = ' '.join(spoken)
     for c in customers:
         exact = {f"{c['first_name']} {c['last_name']}".lower(), full_name(c).lower()}
@@ -748,6 +764,12 @@ class Verification:
         spoken = name_tokens(text)
         common = [t for t in spoken if t in COMMON]
         return bool(spoken) and '?' not in text and len(common) < 2 and len(common) * 2 <= len(spoken) <= 12
+
+    async def take_volunteered_name(self, text):
+        """A name given in the turn that started verification counts, but only if it clearly matches."""
+        if self.status != 'in_progress' or self.step != 'full_name' or self.history: return None
+        if (await match_name(text, self.customers, self.cfg['name_match'])).outcome != 'pass': return None
+        return await self.answer(text)
 
     async def answer(self, text):
         resuming = self.status == 'paused' and self.step in RESUME_BY_ANSWER

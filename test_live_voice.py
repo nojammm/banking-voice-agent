@@ -165,6 +165,23 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('Current step', wf.state_note(agent.fresh[message.id]))
         self.assertEqual(self.events[-1], {'type': 'auth', 'state': 'in_progress', 'step': 'residential address'})
 
+    async def test_a_name_in_the_turn_that_starts_verification_counts(self):
+        from livekit.agents import llm
+        agent, wf = self.agent()
+        message = llm.ChatMessage(role='user', content=["Hi, it's Emily Carter here. Can you check my balance?"])
+        await agent.on_user_turn_completed(llm.ChatContext(), message)
+        self.assertEqual(wf.idv.status, 'not_started')
+        result = json.loads(await agent._run('get_account_summary'))
+        self.assertEqual((wf.idv.status, wf.idv.step), ('in_progress', 'dob'))
+        self.assertIn("don't ask for it", result['next'])
+        self.assertIn('date of birth', result['next'])
+        self.assertIn('just checked out', wf.state_note(agent.fresh[message.id]))
+        other = llm.ChatMessage(role='user', content=['What are your home loan rates?'])
+        agent2, wf2 = self.agent()
+        await agent2.on_user_turn_completed(llm.ChatContext(), other)
+        json.loads(await agent2._run('begin_identity_verification', reason='balance'))
+        self.assertEqual((wf2.idv.step, wf2.idv.history), ('full_name', []))
+
     async def test_preemptive_drafts_during_verification_never_reach_the_model(self):
         from livekit.agents import Agent, llm
         agent, wf = self.agent()

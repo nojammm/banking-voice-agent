@@ -418,6 +418,30 @@ class QuestionsAreNotAnswersTests(unittest.TestCase):
         self.assertIn("without saying which part they gave", v.note(v.last))
         self.assertEqual(run(v.answer('the 14th of March 1991')).outcome, 'pass')
 
+class VolunteeredNameTests(unittest.TestCase):
+    """A caller who already said their name isn't asked to repeat it, and "I just told you" is still an answer."""
+    def match(self, text):
+        return run(idv.match_name(text, CUSTOMERS, config()['name_match'], Judge()))
+
+    def test_a_name_inside_a_longer_turn_counts_only_on_a_clear_match(self):
+        for text in ["I just told you, it's Emily Carter.", "Hi, it's Emily Carter here. Can you check my account balance for me?",
+                     'Emily Carter, sorry, can I also ask about my loan?']:
+            with self.subTest(text): self.assertEqual((self.match(text).outcome, self.match(text).customer_id), ('pass', 'CUS-1'))
+        for text in ['I just told you, it was Bo Xu.', 'My wife, Emily Carter, wants to know her balance.',
+                     "I'm calling for Emily Carter, she's my wife. Can I check her balance?", 'Why do you need that?']:
+            with self.subTest(text): self.assertEqual(self.match(text).outcome, 'no_answer')
+
+    def test_the_turn_that_started_verification_is_matched_once(self):
+        v = idv.Verification(CUSTOMERS, config(), Judge(), TODAY)
+        self.assertIsNone(run(v.take_volunteered_name('Hi, it\'s Emily Carter here.')))  # Not started yet.
+        v.begin('tool')
+        self.assertIsNone(run(v.take_volunteered_name('Hi, this is Bo Xu, can you check my balance?')))
+        self.assertEqual((v.step, v.steps['full_name']['attempts'], v.history), ('full_name', 0, []))  # A miss costs nothing.
+        self.assertEqual(run(v.take_volunteered_name("Hi, it's Emily Carter here. Can you check my balance?")).outcome, 'pass')
+        self.assertEqual(v.step, 'dob')
+        self.assertIsNone(run(v.take_volunteered_name("It's Emily Carter.")))  # Only before any answer.
+
+
 EMILY_ANSWERS = ['Emily Carter', '14 March 1991', 'unit 4 56 Harbour Street Wollongong NSW 2500']
 
 

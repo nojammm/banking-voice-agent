@@ -186,7 +186,7 @@ class VoiceAgent(Agent):
         super().__init__(instructions=build_prompt())
         self.workflow, self.publish = workflow, publish
         self.raw_finals, self.seen, self.fresh, self.pending = [], set(), {}, set()
-        self.current_said, self.last_lookup = [], None
+        self.current_said, self.last_lookup, self.opening = [], None, None
 
     async def stt_node(self, audio, model_settings):
         async for event in Agent.default.stt_node(self, audio, model_settings):
@@ -207,6 +207,8 @@ class VoiceAgent(Agent):
         self.raw_finals.clear()
         self.seen.add(new_message.id)
         verification = self.workflow.idv
+        # A name said before verification starts counts if a tool starts verification in this same turn.
+        self.opening = (new_message.id, raw) if verification.status == 'not_started' else None
         if verification.status not in ('in_progress', 'paused'): return
         step = verification.step
         result = await verification.answer(raw)
@@ -252,7 +254,15 @@ class VoiceAgent(Agent):
                 task.add_done_callback(self.pending.discard)
 
     async def _run(self, tool, **args):
-        return json.dumps(await self.workflow.call(tool, **args))
+        verification, opening = self.workflow.idv, self.opening
+        result = await self.workflow.call(tool, **args)
+        if opening and verification.status == 'in_progress' and await verification.take_volunteered_name(opening[1]):
+            self.opening = None
+            self.fresh[opening[0]] = verification.last
+            await self.workflow.auth_changed()
+            result['next'] = (f"The full name the caller already gave checked out, so don't ask for it. "
+                              f"Ask for their {idv.STEP_LABEL[verification.step]}.")
+        return json.dumps(result)
 
     @function_tool()
     async def begin_identity_verification(self, context: RunContext, reason: str) -> str:
