@@ -1,0 +1,430 @@
+{
+  "executed_at": "2026-10-29T10:42:27+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "dispute-not-received",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-5233"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry that\u2019s happened. Let\u2019s get that sorted. Could I get your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2503
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up\u2026 what\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 964
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched\u2026 what\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 975
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019ll check that missing delivery transaction now. Yep, that\u2019s all sorted.  Great, you\u2019re verified and I\u2019ve got the transaction. It\u2019s the 11 October JB Hi Fi Wollongong charge for 399 dollars. Was that the one that never arrived?\n",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details"
+          ],
+          "idv": "verified",
+          "ms": 3556
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Done. I\u2019ve lodged the dispute for that 399 dollar JB Hi Fi charge.\n\nThe reference is D S P 5 2 3 3. It\u2019s usually investigated within up to 45 days. This is a demo record, so no real bank staff will act on it, but the dispute is now recorded here.\n\nIf you want, I can also help with anything else on your card or account.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2632
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that, Emily. The dispute\u2019s been lodged and the bank will investigate it, but the outcome isn\u2019t something I can predict.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1170
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 2,
+      "passed": false,
+      "problems": [
+        "agent said something matching /\\block (?:the |your |that )?card|\\block it\\b|\\block into\\b/"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-5403"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry that happened. If the TV never arrived, we can look at disputing it once I\u2019ve checked the transaction\u2026 first, please lock the card in your app straight away if you haven\u2019t already. Alright, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2351
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up\u2026 and what\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1060
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched\u2026 what\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 977
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Good question\u2026 let me check. You\u2019re all set, Emily. If the TV never arrived, that does fit a goods not received dispute, and I can lodge that now. I found the JB Hi-Fi charge for 11 October, for 399 dollars, and it\u2019s the one we\u2019ll dispute. It\u2019s the JB Hi-Fi charge on 11 October for 399 dollars. Is that the one you want me to dispute?",
+          "tools": [
+            "search_banking_knowledge",
+            "get_recent_transactions",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 5080
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Done. The dispute reference is D, S, P, 5, 4, 0, 3. It usually takes up to 45 days.\n\nThis is a demo, so no real bank staff will act on it. If you want, I can also help with anything else that\u2019s come up.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2396
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that, no. The dispute will be investigated, and the outcome depends on what the merchant and card rules show.\n\nIf anything else comes up, I can help with that too.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1037
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-4988"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry that\u2019s happened. If you paid for something that never arrived, I can help with a dispute once I match up the transaction \u2014 and because it may involve a card payment you didn\u2019t receive goods for, it\u2019s best to do that first. Okay, let\u2019s start there. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2411
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1035
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 942
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019m just checking the transaction details now so we can look at the TV order properly. Right, we\u2019ve got it. That JB Hi-Fi charge on 11 October for 399 dollars is the one you mean, and I can lodge the dispute for goods not received. Is that JB Hi-Fi charge for 399 dollars on 11 October the one you want disputed?",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 5369
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Thanks, Emily \u2014 I\u2019ve got the one you mean.  It\u2019s lodged now. The reference is D, S, P, 4, 9, 8, 8.\n\nThe dispute can take up to 45 days to investigate. This is a demo, so no real bank staff will act on it, but I can still help with anything else you need.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2969
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that, sorry. The dispute will be investigated, and they\u2019ll decide the outcome from there.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1187
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 4,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-2033"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry that\u2019s happened. Because it\u2019s a card dispute, I do need to check your records first, then I can sort out the dispute with you. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2375
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1007
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1231
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Thanks, Emily. You\u2019re all set now\u2026 let\u2019s sort out the delivery issue. I\u2019ve found one JB Hi-Fi charge from 11 October for $399.00. Was that the TV purchase you mean?\n",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2158
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Right, that\u2019s the one.  It\u2019s lodged now. The reference is D, S, P, 2, 0, 3, 3. It can take up to 45 days to investigate, and this is a demo so no real bank staff will act on it.\n\n",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2662
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that, sorry. It\u2019ll be looked at as part of the dispute, and the outcome depends on what the investigation finds.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1230
+        }
+      ]
+    }
+  ]
+}
