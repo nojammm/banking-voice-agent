@@ -119,6 +119,23 @@ class AccessControlTests(TempDB):
         self.assertTrue(dates and all(not re.search(r'\d{4}-\d', d) for d in dates), dates)
         self.assertIn('2026', wf.facts)  # The year left out may still be said.
 
+    def test_transaction_descriptions_are_ready_to_say(self):
+        for raw, said in [('PAYPAL *GAMEVAULT 4029357733', 'Paypal Gamevault'), ('AMAZON AU Marketplace', 'Amazon AU Marketplace'),
+                          ('Pending: Shell Coles Express Fairy Meadow', 'Shell Coles Express Fairy Meadow'),
+                          ('Rent - Harbour Property Mgmt', 'Rent, Harbour Property Management'), ('Netflix.com', 'Netflix'),
+                          ('Car loan repayment LN-2001', 'Car loan repayment'), ('JB Hi-Fi Wollongong', 'JB Hi-Fi Wollongong'),
+                          ('AGL Energy', 'AGL Energy'), ("St Mary's Primary School fees", "St Mary's Primary School fees"),
+                          ('AMAZON AU Marketplace $129.00: goods not received', 'Amazon AU Marketplace $129.00: goods not received')]:
+            with self.subTest(raw): self.assertEqual(banking.say_description(raw), said)
+        wf = self.workflow()
+        self.verify(wf)
+        listed = run(wf.call('get_recent_transactions', search='paypal'))['transactions'][0]
+        self.assertEqual(listed['description'], 'Paypal Gamevault')
+        self.assertEqual(run(wf.call('get_transaction_details', transaction_id=listed['transaction_id']))['description'], 'Paypal Gamevault')
+        lodged = run(wf.call('lodge_dispute', transaction_id=listed['transaction_id'], dispute_type='unauthorised', description='x'))
+        merchant = next(c for c in bank.cases(self.conn, 'CUS-10482') if c['type'] == 'fraud')['details']['merchant']
+        self.assertEqual((lodged['route'], merchant), ('fraud', 'PAYPAL *GAMEVAULT 4029357733'))  # The record keeps the raw text.
+
     def test_transactions_filter_and_duplicate_detection(self):
         wf = self.workflow()
         self.verify(wf)

@@ -41,6 +41,20 @@ def say_date(value, today=None):
     return f'{d.day} {MONTHS[d.month - 1]}' + ('' if d.year == (today or date.today()).year else f' {d.year}')
 
 
+ABBREVIATIONS = {'Mgmt': 'Management', 'Pty': '', 'Ltd': ''}
+
+
+def say_description(raw):
+    """A transaction description as it should be said: merchant words in normal case, without long reference
+    numbers, internal IDs, symbols, web suffixes or a "Pending:" prefix (the status says that).
+    "PAYPAL *GAMEVAULT 4029357733" -> "Paypal Gamevault"."""
+    text = re.sub(r'^\s*pending:\s*', '', str(raw or ''), flags=re.I)
+    text = re.sub(r'\b[A-Z]{2,3}-\d+\b|\b\d{6,}\b|[*#]', ' ', text)  # LN-2001, 4029357733, PAYPAL *
+    text = re.sub(r'\.com(?:\.au)?\b', '', text, flags=re.I).replace(' - ', ', ')
+    words = [ABBREVIATIONS.get(w, w.capitalize() if len(w) > 3 and w.isupper() else w) for w in text.split()]
+    return re.sub(r'\s+([,:])', r'\1', ' '.join(w for w in words if w)).strip(' ,:') or str(raw)
+
+
 def mask(number):
     return 'ending ' + number[-4:]
 
@@ -170,7 +184,7 @@ class Workflow:
         limit = max(1, min(int(limit or 5), 10))
         rows = bank.transactions(self.conn, self.idv.customer_id, account_id or None, (search or '').strip()[:40] or None, limit)
         self._shown(*(t['id'] for t in rows))
-        return {'transactions': [{'transaction_id': t['id'], 'date': self._date(t['posted']), 'description': t['description'],
+        return {'transactions': [{'transaction_id': t['id'], 'date': self._date(t['posted']), 'description': say_description(t['description']),
                                   'amount': money(t['amount']), 'status': t['status'], 'account_id': t['account_id']} for t in rows]}
 
     async def get_transaction_details(self, transaction_id):
@@ -181,7 +195,7 @@ class Workflow:
         twins = [o for o in bank.transactions(self.conn, self.idv.customer_id, t['account_id'], limit=50)
                  if o['id'] != t['id'] and o['description'] == t['description'] and o['amount'] == t['amount'] and o['posted'] == t['posted']]
         disputes = [c['ref'] for c in bank.cases(self.conn, self.idv.customer_id) if c['details'].get('transaction_id') == t['id']]
-        return {'transaction_id': t['id'], 'date': self._date(t['posted']), 'description': t['description'], 'amount': money(t['amount']),
+        return {'transaction_id': t['id'], 'date': self._date(t['posted']), 'description': say_description(t['description']), 'amount': money(t['amount']),
                 'status': t['status'], 'account_id': t['account_id'],
                 'identical_charges_same_day': [o['id'] for o in twins], 'existing_cases': disputes}
 
@@ -203,7 +217,7 @@ class Workflow:
         rows = bank.cases(self.conn, self.idv.customer_id)
         if reference: rows = [c for c in rows if c['ref'].replace('-', '').lower() == reference.replace('-', '').replace(' ', '').lower()]
         return {'cases': [{'reference': c['ref'], 'say_reference': spoken(c['ref']), 'type': c['type'], 'status': c['status'], 'opened': self._date(c['created_at']),
-                           'summary': c['summary'], **{k: self._date(v) for k, v in c['details'].items() if k.endswith('_due')}} for c in rows]}
+                           'summary': say_description(c['summary']), **{k: self._date(v) for k, v in c['details'].items() if k.endswith('_due')}} for c in rows]}
 
     async def lodge_dispute(self, transaction_id, dispute_type, description):
         if (blocked := self._guard('lodge_dispute')): await self.auth_changed(); return blocked
