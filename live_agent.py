@@ -104,7 +104,20 @@ def allowed_numbers(chat_ctx, extra=()):
             continue
         allowed |= numbers(text, expand=True)
         for digits in REFERENCE.findall(text): allowed.update(digits)  # References are read out digit by digit.
+        if isinstance(item, llm.FunctionCallOutput): allowed |= list_counts(text)
     return allowed
+
+
+def list_counts(output):
+    """How many items each list in a tool result holds ("here are the last 5"): a count the result supports."""
+    try: data = json.loads(output)
+    except ValueError: return set()
+    counts, stack = set(), [data]
+    while stack:
+        value = stack.pop()
+        if isinstance(value, list): counts.add(str(len(value))); stack.extend(value)
+        elif isinstance(value, dict): stack.extend(value.values())
+    return counts
 
 
 def redact(text):

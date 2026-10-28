@@ -115,6 +115,16 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         said = 'Your reference is C, M, P, 8, 9, 9, 3.'
         self.assertEqual((await self.speak([said], allowed_numbers(ctx)))[0], said)
 
+    async def test_a_count_of_tool_results_is_a_supported_number(self):
+        from livekit.agents import llm
+        from live_agent import UNSUPPORTED, allowed_numbers
+        ctx = llm.ChatContext()
+        ctx.items.append(llm.FunctionCallOutput(name='get_recent_transactions', call_id='c3', is_error=False,
+                                                output='{"transactions": [{"id": "a"}, {"id": "b"}, {"id": "c"}, {"id": "d"}, {"id": "e"}]}'))
+        said = 'Here are the last 5 I can see.'
+        self.assertEqual((await self.speak([said], allowed_numbers(ctx)))[0], said)
+        self.assertEqual((await self.speak(['Here are the last 7.'], allowed_numbers(ctx)))[0], UNSUPPORTED)
+
     async def test_tool_calls_pass_through_the_guard(self):
         from livekit.agents import llm
         call = llm.ChatChunk(id='x', delta=llm.ChoiceDelta(role='assistant', tool_calls=[
