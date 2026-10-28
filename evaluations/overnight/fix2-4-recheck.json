@@ -1,0 +1,703 @@
+{
+  "executed_at": "2026-10-29T09:42:18+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "idv-address-two-parts-correction",
+      "run": 1,
+      "passed": false,
+      "problems": [
+        "agent never said anything matching /(?:6(?:th)? (?:of )?Nov|Nov\\w* (?:the )?6)/"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "incomplete",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 \u00b7 state - \u00b7 words harbour street",
+          "missing": [
+            "postcode",
+            "state",
+            "suburb"
+          ],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "missing",
+            "state": "missing",
+            "street_name": "match (1.0)",
+            "suburb": "missing"
+          },
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "incomplete",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 2500 \u00b7 state - \u00b7 words wollongong",
+          "missing": [
+            "state"
+          ],
+          "components": {
+            "unit": "match (earlier turn)",
+            "street_number": "match (earlier turn)",
+            "postcode": "match",
+            "state": "missing",
+            "street_name": "match (earlier turn)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "deterministic",
+          "score": null,
+          "normalized": "numbers - \u00b7 state NSW \u00b7 words -",
+          "missing": [],
+          "components": {
+            "unit": "match (earlier turn)",
+            "street_number": "match (earlier turn)",
+            "postcode": "match (earlier turn)",
+            "state": "match",
+            "street_name": "match (earlier turn)",
+            "suburb": "match (earlier turn)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I want to check my home loan application, sorry, no, I mean my car loan. When's the next repayment?",
+          "agent": "Sure, I can help with the car loan. I\u2019ll just need to verify it\u2019s you first. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2442
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that lines up. And what\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1131
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1231
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street",
+          "agent": "Could you tell me the postcode, suburb, and state, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 940
+        },
+        {
+          "caller": "Wollongong, 2500",
+          "agent": "And the state, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1277
+        },
+        {
+          "caller": "New South Wales",
+          "agent": "All set, Emily. I\u2019m checking the car loan repayment now. You\u2019re all set. Your next car loan repayment is $296.12, due on 2026-11-06.",
+          "tools": [
+            "get_loans"
+          ],
+          "idv": "verified",
+          "ms": 2347
+        }
+      ]
+    },
+    {
+      "id": "idv-address-two-parts-correction",
+      "run": 2,
+      "passed": false,
+      "problems": [
+        "expected tool get_loans was not called",
+        "agent never said anything matching /(?:6(?:th)? (?:of )?Nov|Nov\\w* (?:the )?6)/"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "incomplete",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 \u00b7 state - \u00b7 words harbour street",
+          "missing": [
+            "postcode",
+            "state",
+            "suburb"
+          ],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "missing",
+            "state": "missing",
+            "street_name": "match (1.0)",
+            "suburb": "missing"
+          },
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "incomplete",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 2500 \u00b7 state - \u00b7 words wollongong",
+          "missing": [
+            "state"
+          ],
+          "components": {
+            "unit": "match (earlier turn)",
+            "street_number": "match (earlier turn)",
+            "postcode": "match",
+            "state": "missing",
+            "street_name": "match (earlier turn)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "deterministic",
+          "score": null,
+          "normalized": "numbers - \u00b7 state NSW \u00b7 words -",
+          "missing": [],
+          "components": {
+            "unit": "match (earlier turn)",
+            "street_number": "match (earlier turn)",
+            "postcode": "match (earlier turn)",
+            "state": "match",
+            "street_name": "match (earlier turn)",
+            "suburb": "match (earlier turn)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I want to check my home loan application, sorry, no, I mean my car loan. When's the next repayment?",
+          "agent": "No worries \u2014 I can help with that. I\u2019ll just need to verify it\u2019s you first, then I can check the car loan. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2326
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 860
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Lovely, that all checks out so far. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 843
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street",
+          "agent": "And the postcode, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 937
+        },
+        {
+          "caller": "Wollongong, 2500",
+          "agent": "What\u2019s the state, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1002
+        },
+        {
+          "caller": "New South Wales",
+          "agent": "You\u2019re all set, Emily. I\u2019ve got your application now, and the next repayment on the car loan is coming up soon \u2014 I\u2019m just checking the exact date for you.",
+          "tools": [
+            "get_loan_applications"
+          ],
+          "idv": "verified",
+          "ms": 2569
+        }
+      ]
+    },
+    {
+      "id": "idv-address-two-parts-correction",
+      "run": 3,
+      "passed": false,
+      "problems": [
+        "agent never said anything matching /(?:6(?:th)? (?:of )?Nov|Nov\\w* (?:the )?6)/"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "incomplete",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 \u00b7 state - \u00b7 words harbour street",
+          "missing": [
+            "postcode",
+            "state",
+            "suburb"
+          ],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "missing",
+            "state": "missing",
+            "street_name": "match (1.0)",
+            "suburb": "missing"
+          },
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "incomplete",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 2500 \u00b7 state - \u00b7 words wollongong",
+          "missing": [
+            "state"
+          ],
+          "components": {
+            "unit": "match (earlier turn)",
+            "street_number": "match (earlier turn)",
+            "postcode": "match",
+            "state": "missing",
+            "street_name": "match (earlier turn)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "deterministic",
+          "score": null,
+          "normalized": "numbers - \u00b7 state NSW \u00b7 words -",
+          "missing": [],
+          "components": {
+            "unit": "match (earlier turn)",
+            "street_number": "match (earlier turn)",
+            "postcode": "match (earlier turn)",
+            "state": "match",
+            "street_name": "match (earlier turn)",
+            "suburb": "match (earlier turn)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I want to check my home loan application, sorry, no, I mean my car loan. When's the next repayment?",
+          "agent": "Yep, we can look at the car loan. I just need to verify it\u2019s you first. Alright, can I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2423
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1082
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1243
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street",
+          "agent": "I just need the suburb, state and postcode for your address, please.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 934
+        },
+        {
+          "caller": "Wollongong, 2500",
+          "agent": "What\u2019s the state, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 786
+        },
+        {
+          "caller": "New South Wales",
+          "agent": "You\u2019re all set, Emily. Let me check the car loan now. Your next car loan repayment is due on 2026-11-06, and it\u2019s $296.12.",
+          "tools": [
+            "get_loans"
+          ],
+          "idv": "verified",
+          "ms": 2193
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-4284"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "I can do the general rate straight away, and I\u2019ll need to verify you before I can check your balance. I can also log the complaint about the overdrawn fee now. Absolutely. The reference is C, M, P, 4, 2, 8, 4. They aim to respond within 30 days.\n\nTo check your balance, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification",
+            "lodge_complaint"
+          ],
+          "idv": "in_progress",
+          "ms": 3090
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "That sounds really frustrating. I\u2019ve already recorded the complaint about the fee, and I can see you want it refunded.\n\nFor the balance check, what\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1018
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 890
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1018
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. I can check your balance now. Your Everyday Choice account has a balance of 2,418.76 dollars and available funds of 2,368.76 dollars.\n\nAnd on the term deposit rate, what do you mean exactly. Are you asking for the bank\u2019s term deposit rates in general, or a rate on a specific account?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2254
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 2,
+      "passed": false,
+      "problems": [
+        "expected tool get_account_summary was not called",
+        "verification ended not_started"
+      ],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-6013"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Sorry, I can't confirm that detail right now.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1165
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "That sounds really frustrating. I can record the complaint about the fee now. It\u2019s recorded. The reference is C M P 6 0 1 3.\n\nThey usually respond within 30 days. And just so you know, this is demo data, so no real bank staff will act on it.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2384
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Okay. What would you like to do with that?\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1306
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "I need to check your identity before I can look up your account balance. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1040
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Thanks, that lines up. I just need your date of birth to get into your account details.\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1552
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-1553"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Let me look that up for you. Sure \u2014 I can help with all 3. I\u2019ve recorded your complaint already, and the reference is C, M, P, 1, 5, 5, 3. \n\nTo check your balance, I just need your full name first.",
+          "tools": [
+            "begin_identity_verification",
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2897
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "That sounds really frustrating, especially if it was only a few cents and just for one day. I\u2019ve already got the complaint recorded, and I\u2019ve noted that you want the 15 dollar fee refunded. \n\nTo check your balance, what\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1271
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2004
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1132
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. Your Everyday Choice account balance is 2,418 dollars and 76 cents, and the available balance is 2,368 dollars and 76 cents. \n\nFor the term deposit rate, I can look that up next if you\u2019d like.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2092
+        }
+      ]
+    }
+  ]
+}
