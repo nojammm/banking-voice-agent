@@ -291,8 +291,10 @@ class Workflow:
         ref, customer = await self._record('hardship', f"Hardship notice: {cause.replace('_', ' ')}", details, priority='high',
                                            status='Received - assessment pending')
         self.hardship_ref = ref
-        result = {'reference': ref, 'say_reference': spoken(ref), 'response_due_days': 21,
-                  'next': 'Give the reference. A hardship specialist assesses options; nothing is approved on this call. Offer a specialist follow-up. ' + self._mock()}
+        counselling = kb.document('hardship-help')
+        result = {'reference': ref, 'say_reference': spoken(ref), 'response_due_days': 21, 'free_counselling': counselling and counselling['text'],
+                  'next': 'Give the reference. A hardship specialist assesses options; nothing is approved on this call. Offer a specialist follow-up. '
+                          'If the caller sounds distressed or overwhelmed, also mention the free counselling in a sentence. ' + self._mock()}
         if not customer:
             result['identity'] = 'Not verified, so the notice is not yet linked to accounts. The caller can verify now, or a specialist will confirm identity first.'
         return result

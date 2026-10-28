@@ -1,0 +1,197 @@
+{
+  "executed_at": "2026-10-29T10:36:37+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "idv-volunteered-name",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Hi, it's Emily Carter here. Can you check my account balance for me?",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2645
+        },
+        {
+          "caller": "I just told you, it's Emily Carter.",
+          "agent": "Yep, I\u2019ve got the name. I still need your date of birth to check your own account.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 966
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "in_progress",
+          "ms": 1884
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your Everyday Choice account has a balance of $2,418.76, and available funds of $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2164
+        }
+      ]
+    },
+    {
+      "id": "idv-volunteered-name",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Hi, it's Emily Carter here. Can you check my account balance for me?",
+          "agent": "Sure, I can check that. I just need to verify it\u2019s you first, to protect your account. Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2356
+        },
+        {
+          "caller": "I just told you, it's Emily Carter.",
+          "agent": "Right, sorry, I already have your name. I still just need your date of birth to check the balance.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1227
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Lovely, that\u2019s matched. And what\u2019s your residential address?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 889
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your Everyday Choice account has a balance of $2,418.76 and available funds of $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 1826
+        }
+      ]
+    }
+  ]
+}

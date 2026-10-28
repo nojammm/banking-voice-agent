@@ -193,6 +193,7 @@ class CaseWorkflowTests(TempDB):
         first = run(wf.call('record_hardship_notice', cause='reduced_income', situation='Hours cut', affected_products='unknown',
                             expected_duration='unknown', support_wanted='unsure'))
         self.assertEqual(first['say_reference'], ', '.join(first['reference'].replace('-', '')))
+        self.assertIn('National Debt Helpline', first['free_counselling'])  # For a distressed caller, without a search.
         second = run(wf.call('record_hardship_notice', cause='reduced_income', situation='Hours cut in half', affected_products='home loan',
                              expected_duration='3 months', support_wanted='lower repayments'))
         self.assertEqual((second['reference'], second['status']), (first['reference'], 'updated'))
