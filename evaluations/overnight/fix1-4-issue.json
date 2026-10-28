@@ -1,0 +1,962 @@
+{
+  "executed_at": "2026-10-29T01:06:51+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "balance-and-duplicate",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-4943"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Sure, I can help with that. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2169
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1163
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1284
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. For your Everyday Choice account, the balance is $2,418.76 and the available amount is $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2366
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Sure. Your latest transactions are Uber Eats Sydney for $42.35 on 27 October, PAYPAL GAMEVAULT for $249 on 26 October, and a pending Shell Coles Express Fairy Meadow payment for $50 on 25 October. There are also 2 Coles Wollongong Central charges for $84.20 each on 24 October.",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 3438
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Yep, I\u2019ve lodged that now. The reference is DSP 4943. It\u2019ll be looked into, and these cases usually take up to 45 days.\n\nWe\u2019re in a demo, so no real bank staff will act on it, but the dispute is recorded here.",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4005
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "Done. That dispute is already lodged, and the reference is DSP 4943. It\u2019s marked for review, and the usual timeframe is up to 45 days.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1865
+        }
+      ]
+    },
+    {
+      "id": "balance-and-duplicate",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-3879"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Sure \u2014 what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1965
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1184
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Great, that\u2019s all in order. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1059
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2375
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Sure thing, Emily. Your latest transactions are Uber Eats Sydney for $42.35 on 27 October, PAYPAL GAMEVAULT for $249 on 26 October, a pending Shell Coles Express charge for $50 on 25 October, and 2 Coles Wollongong Central transactions for $84.20 each on 24 October.",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2514
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Yep, I\u2019ve lodged that for you. The reference is D S P 3 8 7 9.\n\nIt\u2019ll be looked into, and it can take up to 45 days. I can\u2019t promise the outcome, but if you\u2019d like I can also help with anything else on the account.",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3918
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "Already done \u2014 that dispute\u2019s been lodged. The reference is D S P 3 8 7 9.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1030
+        }
+      ]
+    },
+    {
+      "id": "balance-and-duplicate",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-1731"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Alright, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2001
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1213
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1103
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. Your Everyday Choice account has a balance of $2,418.76, and the available balance is $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2167
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Yep. The last  Sorry, I can't confirm that detail right now.",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2537
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Yep, I\u2019ve lodged that as a duplicate card dispute. The reference is D S P 1 7 3 1.\n\nIt\u2019ll usually take up to 45 days to investigate. I can\u2019t promise the outcome, but the case is in now.",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4079
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "Done, it\u2019s lodged. The reference is D S P 1 7 3 1.\n\nIt\u2019ll usually take up to 45 days to look into.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1217
+        }
+      ]
+    },
+    {
+      "id": "idv-stt-karter-balance-available",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.909,
+          "normalized": "emily karter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": null,
+            "last": 0.833,
+            "whole": 0.909
+          },
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my everyday account balance please.",
+          "agent": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2346
+        },
+        {
+          "caller": "Emily Karter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 886
+        },
+        {
+          "caller": "fourteenth of March, nineteen ninety one",
+          "agent": "Lovely, that\u2019s all matching up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 998
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your Everyday Choice account has a balance of $2,418.76, and the available amount is $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2051
+        },
+        {
+          "caller": "Why are the balance and the available amount different?",
+          "agent": "That\u2019s usually because some of the money is on hold or pending, so it isn\u2019t available to spend yet. In your case, the balance is $2,418.76 and the available amount is $2,368.76, so there\u2019s  Sorry, I can't confirm that detail right now.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1198
+        }
+      ]
+    },
+    {
+      "id": "idv-stt-karter-balance-available",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.909,
+          "normalized": "emily karter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": null,
+            "last": 0.833,
+            "whole": 0.909
+          },
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my everyday account balance please.",
+          "agent": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2501
+        },
+        {
+          "caller": "Emily Karter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1338
+        },
+        {
+          "caller": "fourteenth of March, nineteen ninety one",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1037
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. Your everyday account balance is $2,418.76, and the available balance is $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2090
+        },
+        {
+          "caller": "Why are the balance and the available amount different?",
+          "agent": "Let me look that up for you. Yeah, that\u2019s usually because some money is still pending. The balance is what\u2019s in the account, and the available amount is what you can use right now after things like pending card payments or holds are taken off.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "verified",
+          "ms": 2672
+        }
+      ]
+    },
+    {
+      "id": "idv-stt-karter-balance-available",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.909,
+          "normalized": "emily karter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": null,
+            "last": 0.833,
+            "whole": 0.909
+          },
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my everyday account balance please.",
+          "agent": "Sure thing. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1943
+        },
+        {
+          "caller": "Emily Karter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1254
+        },
+        {
+          "caller": "fourteenth of March, nineteen ninety one",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1158
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2307
+        },
+        {
+          "caller": "Why are the balance and the available amount different?",
+          "agent": "One sec, I'll find that for you. It\u2019s usually because some payments are still pending. The balance is what\u2019s in the account now, and the available amount takes off anything that\u2019s been authorised but not fully processed yet.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "verified",
+          "ms": 2445
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-3096"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Sure, let me just check that. Sure. I\u2019ve logged the complaint, and the reference is C, M, P, 3, 0, 9, 6. It should be responded to within 30 days.\n\nAnd for the balance, I just need your full name to keep going.",
+          "tools": [
+            "begin_identity_verification",
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2760
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "That sounds really frustrating, especially for a few cents over for just one day. The complaint\u2019s already recorded, and I\u2019ve noted that you want the 15 dollar fee refunded.\n\nFor the balance check, I still need your full name.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1293
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1340
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1506
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. For your Everyday Choice account, the balance is 2,418 dollars and 76 cents, and the available amount is 2,368 dollars and 76 cents.\n\n",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2443
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-9053"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "One sec, I'll find that for you. Sure. I\u2019ve got the complaint recorded, and the reference is C, M, P, 9, 0, 5, 3. You\u2019ll get a response within 30 days.\n\nTo check your balance, I just need your full name first.",
+          "tools": [
+            "begin_identity_verification",
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2873
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "That\u2019s frustrating, especially if it was only for a day and just a few cents. I can see why you\u2019d want that looked at.\n\nThe complaint\u2019s already in. If you still want your balance checked, I just need your full name first.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1490
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 991
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Lovely, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1201
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your everyday account balance is 2,418 dollars and 76 cents, and available funds are 2,368 dollars and 76 cents.\n\nAnd just to pick up your complaint, it\u2019s been logged about the 15 dollar overdrawn fee. The reference is C, M, P, 9, 0, 5, 3.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2326
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-1654"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Let me look that up for you. Sure \u2014 I can help with all 3. First, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification",
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2658
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "That sounds really frustrating. I\u2019ve already recorded the complaint about the overdrawn fee, and the reference is C, M, P, 1, 6, 5, 4. It\u2019ll be handled within 30 days.\n\nIf you still want to check your balance, I just need your full name to keep going.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1249
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s all lined up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1140
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1210
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.\n\nAnd on the term deposit, I\u2019ve got indicative demo rates only, not real offers. I don\u2019t have a term deposit rate in the knowledge results I can see just now.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2291
+        }
+      ]
+    }
+  ]
+}

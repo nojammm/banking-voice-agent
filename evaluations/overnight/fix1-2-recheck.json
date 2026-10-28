@@ -1,0 +1,251 @@
+{
+  "executed_at": "2026-10-29T00:59:47+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "complaint-wants-afca",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-1875"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I've complained twice about how my hardship request was handled and nothing's happened. I want to take this to AFCA.",
+          "agent": "I\u2019m sorry it\u2019s been dragged out like that. I can record this as a complaint about how your hardship requests were handled, and I can also help with the AFCA part. It\u2019s recorded, and the reference is C, M, P, 1, 8, 7, 5. The usual response time is up to 21 days for a hardship complaint.\n\nIf you\u2019re still not satisfied after that, you can take it to AFCA. It\u2019s free and independent.",
+          "tools": [
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 3398
+        },
+        {
+          "caller": "How do I contact them?",
+          "agent": "You can contact AFCA on 1800 931 678. You can also go to afca.org.au or email info@afca.org.au.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1259
+        }
+      ]
+    },
+    {
+      "id": "complaint-wants-afca",
+      "run": 2,
+      "passed": false,
+      "problems": [
+        "expected tool search_banking_knowledge was not called"
+      ],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I've complained twice about how my hardship request was handled and nothing's happened. I want to take this to AFCA.",
+          "agent": "I\u2019m sorry it\u2019s been left hanging like that. I can record this as a complaint about the way the hardship request was handled, and I can also note that you want to take it to AFCA.\n\nWould you like me to lodge the complaint now, and do you want a human follow-up as well?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1211
+        },
+        {
+          "caller": "How do I contact them?",
+          "agent": "You can contact AFCA directly through their website or by phone. If you want, I can help you with the general complaint steps here too.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1284
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 1,
+      "passed": false,
+      "problems": [
+        "expected tool get_account_summary was not called",
+        "verification ended in_progress"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-3065"
+        },
+        {
+          "type": "complaint",
+          "ref": "CMP-8556"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Good question\u2026 let me check. I\u2019ve recorded the complaint for the overdrawn fee.\n\nYour reference is C, M, P, 3, 0, 6, 5. You should hear back within 30 days.\n\nFor the term deposit rate, I don\u2019t have a term deposit rate in the info I can see here. If you want, I can help with general deposit options instead.",
+          "tools": [
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 3638
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "I\u2019m sorry, that\u2019s frustrating, especially for just a few cents. I\u2019ve already recorded the complaint, and I can update it with those details now. Right, I\u2019ve updated the complaint with that detail.\n\nYour new reference is C, M, P, 8, 5, 5, 6. You should hear back within 30 days.\n\nAnd just so you know, this is a demo record only, so no real bank staff will act on it.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2317
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Sorry, I can\u2019t help with someone else\u2019s details unless they\u2019re the account holder on the call. If that\u2019s the person who\u2019s calling, they\u2019ll need to speak for themselves.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 2076
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Thanks. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2168
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Righto, I\u2019ve got the address. I still just need your full name to keep going.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1528
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-5896"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Let me look that up for you. Sure, I can help with all 3. First, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2618
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "I\u2019ve recorded that complaint. The reference is C, M, P, 5, 8, 9, 6. We\u2019d expect a response within 30 days.\n\nAnd for the balance, I still need to verify you first. What\u2019s your full name?",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "in_progress",
+          "ms": 2375
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 913
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 968
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Sure, let me just check that. All set, Emily. Your balance is 2,368 dollars and 76 cents available in your Everyday Choice account ending 3307.\n\nOn term deposits, I don\u2019t have a specific term deposit rate in the demo info here. What I do have are indicative demo rates for loans, not deposits, so I\u2019d need a term deposit rate source to give you that one.",
+          "tools": [
+            "get_account_summary",
+            "search_banking_knowledge"
+          ],
+          "idv": "verified",
+          "ms": 3154
+        }
+      ]
+    }
+  ]
+}

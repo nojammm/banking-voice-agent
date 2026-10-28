@@ -1,0 +1,311 @@
+{
+  "executed_at": "2026-10-29T08:54:17+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "idv-offtopic-midway",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my account balance.",
+          "agent": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2231
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1022
+        },
+        {
+          "caller": "Oh sorry, quick one before I forget, are your branches open on Saturdays?",
+          "agent": "Let me look that up for you. I can check that for you. In general, Saturday opening hours can vary by branch, so it\u2019s best to look up the specific one you mean. Which branch are you asking about?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2392
+        },
+        {
+          "caller": "Okay no worries. My date of birth is 14 March 1991.",
+          "agent": "Lovely, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1002
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2152
+        }
+      ]
+    },
+    {
+      "id": "idv-offtopic-midway",
+      "run": 2,
+      "passed": false,
+      "problems": [
+        "expected tool get_account_summary was not called",
+        "verification ended in_progress"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "uncertain",
+          "method": "llm",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {
+            "candidates": []
+          },
+          "llm": {
+            "invoked": true,
+            "task": "dob",
+            "response": {
+              "status": "unclear",
+              "date": "",
+              "missing": []
+            },
+            "latency_ms": 830,
+            "valid": false
+          }
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my account balance.",
+          "agent": "Alright, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2362
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 941
+        },
+        {
+          "caller": "Oh sorry, quick one before I forget, are your branches open on Saturdays?",
+          "agent": "Let me look that up for you. I don\u2019t have branch hours for Saturdays in the info I can see. If you want, I can help with something general about banking hours, or we can get back to your balance after this.",
+          "tools": [
+            "pause_identity_verification",
+            "search_banking_knowledge"
+          ],
+          "idv": "paused",
+          "ms": 4128
+        },
+        {
+          "caller": "Okay no worries. My date of birth is 14 March 1991.",
+          "agent": "Thanks. Just to make sure I\u2019ve got it right, what\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2363
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Could you say your date of birth again, with the month as a word?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 2096
+        }
+      ]
+    },
+    {
+      "id": "idv-offtopic-midway",
+      "run": 3,
+      "passed": false,
+      "problems": [
+        "expected tool get_account_summary was not called",
+        "verification ended in_progress"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "uncertain",
+          "method": "llm",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {
+            "candidates": []
+          },
+          "llm": {
+            "invoked": true,
+            "task": "dob",
+            "response": {
+              "status": "unclear",
+              "date": "",
+              "missing": []
+            },
+            "latency_ms": 895,
+            "valid": false
+          }
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my account balance.",
+          "agent": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2442
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1331
+        },
+        {
+          "caller": "Oh sorry, quick one before I forget, are your branches open on Saturdays?",
+          "agent": "I can help with general questions, and I don\u2019t need your details for that. I don\u2019t have branch hours in front of me here, so I can\u2019t confirm Saturdays.\n\nIf you\u2019d like, I can help with something else too.",
+          "tools": [
+            "pause_identity_verification"
+          ],
+          "idv": "paused",
+          "ms": 2288
+        },
+        {
+          "caller": "Okay no worries. My date of birth is 14 March 1991.",
+          "agent": "Thanks. And what\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2084
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Could you say your date of birth again, with the month as a word?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1763
+        }
+      ]
+    }
+  ]
+}
