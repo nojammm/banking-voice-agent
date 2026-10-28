@@ -85,11 +85,11 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         wf = banking.Workflow.create('evidence-' + 'c' * 24, conn=self.conn, publish=self.publish, config=cfg, today=date(2026, 10, 28))
         return VoiceAgent(wf, self.publish), wf
 
-    async def speak(self, pieces, allowed=(), audio_tags=True):
+    async def speak(self, pieces, allowed=(), audio_tags=True, seen=None):
         from live_agent import SMALL, guarded
         async def stream():
             for piece in pieces: yield piece
-        out = [piece async for piece in guarded(stream(), set(SMALL) | set(allowed), self.publish, audio_tags)]
+        out = [piece async for piece in guarded(stream(), set(SMALL) | set(allowed), self.publish, audio_tags, seen=seen)]
         return ''.join(p for p in out if isinstance(p, str)), [p for p in out if not isinstance(p, str)]
 
     async def test_numbers_must_come_from_the_session(self):
@@ -122,6 +122,29 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         out, chunks = await self.speak(['Let me check. ', call])
         self.assertEqual(out, 'Let me check. ')
         self.assertEqual(chunks[0].delta.tool_calls[0].name, 'get_loans')
+
+    async def test_a_question_before_a_tool_call_is_dropped_and_repeats_are_said_once(self):
+        from livekit.agents import llm
+        call = llm.ChatChunk(id='x', delta=llm.ChoiceDelta(role='assistant', tool_calls=[
+            llm.FunctionToolCall(name='record_hardship_notice', arguments='{}', call_id='c1')]))
+        out, chunks = await self.speak(["I'm so sorry. ", 'Which repayments are ', 'affected? ', "I'll note that. ", call])
+        self.assertEqual(out, "I'm so sorry. ")  # The tool result answers it; asking first would talk over the caller.
+        self.assertEqual(chunks[0].delta.tool_calls[0].name, 'record_hardship_notice')
+        out, _ = await self.speak(['Perfect, that lines up. ', "What's your date of birth?", "\nPerfect, that lines up. What's your date of birth?"])
+        self.assertEqual(out, "Perfect, that lines up. What's your date of birth?\n")
+        out, _ = await self.speak(['Lock the card in your app now. ', "What's your full name? ", call])
+        self.assertEqual(out, 'Lock the card in your app now. ')  # Statements before a tool call still stream.
+        out, _ = await self.speak(["I'm so sorry. Which repayments are ", 'affected? ', 'Take your time.'])
+        self.assertEqual(out, "I'm so sorry. Which repayments are affected? Take your time.")  # No tool: all of it, in order.
+        seen = set()
+        await self.speak(["I'm really sorry you're dealing with that. ", call], seen=seen)
+        out, _ = await self.speak(["I'm sorry you're going through that. ", "I've recorded it. ", "I'm really sorry you're dealing with that."],
+                                  seen=seen)
+        self.assertEqual(out, "I've recorded it. ")  # Close to, or the same as, the line before the tool call.
+        out, _ = await self.speak(["I'm sorry. ", "You're all set. ", 'The reference is H, D, S, 1, 2, 3, 4.'], allowed={'1', '2', '3', '4'}, seen=seen)
+        self.assertEqual(out, "You're all set. The reference is H, D, S, 1, 2, 3, 4.")
+        out, _ = await self.speak(['Is that the home loan? ', 'It was $9,999 last month.'])
+        self.assertTrue(out.endswith(__import__("live_agent").UNSUPPORTED) and '9,999' not in out)
 
     async def test_audio_tags_reach_a_tag_capable_voice_only(self):
         pieces = ['[sym', 'pathetic] Oh no, that sounds stressful. ', 'Let me [short ', 'pause] check.']

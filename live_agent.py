@@ -1,5 +1,6 @@
 """Live audio worker: Deepgram -> OpenAI banking agent with Worker-owned ID&V and tools -> ElevenLabs."""
 import asyncio
+import difflib
 import json
 import logging
 import os
@@ -111,27 +112,67 @@ def redact(text):
     return re.sub(r'\[REDACTED\](?:[\s,.-]*\[REDACTED\])+', '[REDACTED]', text)
 
 
+SENTENCE_END = re.compile(r'[.?!…]+["’”)]*\s+')
+
+
 def split_ready(pending):
-    """Split at the last space that isn't inside an unclosed [audio tag]."""
+    """Split after the last finished sentence that isn't inside an unclosed [audio tag].
+    Speech is synthesised a sentence at a time anyway, so this costs no audio latency."""
     limit = len(pending)
     opened = pending.rfind('[')
     if opened > pending.rfind(']') and len(pending) - opened < 60:
         limit = opened
-    cut = max(pending.rfind(' ', 0, limit), pending.rfind('\n', 0, limit))
-    return (pending[:cut + 1], pending[cut + 1:]) if cut >= 0 else ('', pending)
+    ends = [m.end() for m in SENTENCE_END.finditer(pending, 0, limit)]
+    return (pending[:ends[-1]], pending[ends[-1]:]) if ends else ('', pending)
 
 
-async def guarded(stream, allowed, publish, audio_tags=None, said=None):
-    """Pass tool calls through untouched; stop speech that states a number nobody supplied."""
+def sentences(text):
+    out, start = [], 0
+    for m in SENTENCE_END.finditer(text):
+        out.append(text[start:m.end()]); start = m.end()
+    return out + ([text[start:]] if text[start:] else [])
+
+
+async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=None):
+    """Pass tool calls through untouched; stop speech that states a number nobody supplied.
+
+    Speech goes out a sentence at a time. A question waits for the reply to end; if the reply calls a tool, the
+    question and anything after it are dropped, so the agent never asks something and then answers it from the
+    result without waiting. A sentence already said this turn (seen), or one close to a line said before the tool
+    call, isn't said again."""
     audio_tags = AUDIO_TAGS if audio_tags is None else audio_tags
-    pending, spoken = '', False
+    pending, held, tool_called, spoken = '', [], False, False
     said = [] if said is None else said
+    seen = set() if seen is None else seen
+    earlier = list(seen)  # Said in this turn before a tool call.
 
-    def ok(text):
-        return not (numbers(text) - allowed)
+    def take(text):
+        ready = []
+        for sentence in sentences(text):
+            if held or sentence.rstrip().endswith('?'): held.append(sentence)
+            else: ready.append(sentence)
+        return ready
 
-    def speakable(text):
-        return text if audio_tags else AUDIO_TAG.sub('', text)
+    def close(key, before):
+        """A paraphrase ("I'm sorry you're going through that.") or a short part ("I'm sorry.") of an earlier line."""
+        words = re.findall(r"[a-z'’]+", key)
+        return (difflib.SequenceMatcher(None, key, before).ratio() >= 0.7 or
+                (len(words) <= 5 and set(words) <= set(re.findall(r"[a-z'’]+", before))))
+
+    def speak(pieces):
+        """The text to yield for these sentences, minus word-for-word repeats; True if a number nobody supplied appears."""
+        nonlocal spoken
+        out = []
+        for piece in pieces:
+            key = ' '.join(AUDIO_TAG.sub('', piece).lower().split())
+            if len(key) >= 8 and key in seen: continue
+            if not re.search(r'\d', key) and any(close(key, e) for e in earlier): continue
+            seen.add(key)
+            if numbers(piece) - allowed: return out + [(' ' if spoken else '') + UNSUPPORTED], True
+            spoken = True
+            said.append(piece)
+            out.append(piece if audio_tags else AUDIO_TAG.sub('', piece))
+        return out, False
 
     async for chunk in stream:
         if isinstance(chunk, str):
@@ -139,26 +180,19 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None):
         else:
             text = chunk.delta.content if chunk.delta else None
             if chunk.delta is None or chunk.delta.tool_calls:
+                if chunk.delta and chunk.delta.tool_calls: tool_called = True
                 if chunk.delta: chunk.delta.content = None
                 yield chunk  # Tool calls and usage records go straight to the framework.
             if not text: continue
         pending += text
-        ready, pending = split_ready(pending)
-        if not ready: continue
-        if not ok(ready):
-            await publish({'type': 'guard', 'reason': 'unsupported_number'})
-            yield (' ' if spoken else '') + UNSUPPORTED
-            return
-        spoken = True
-        said.append(ready)
-        yield speakable(ready)
-    if pending:
-        if not ok(pending):
-            await publish({'type': 'guard', 'reason': 'unsupported_number'})
-            yield (' ' if spoken else '') + UNSUPPORTED
-            return
-        said.append(pending)
-        yield speakable(pending)
+        complete, pending = split_ready(pending)
+        out, blocked = speak(take(complete))
+        if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
+        for piece in out: yield piece
+        if blocked: return
+    out, blocked = speak(take(pending) + ([] if tool_called else held))
+    if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
+    for piece in out: yield piece
 
 
 async def display_text(text):
@@ -186,7 +220,7 @@ class VoiceAgent(Agent):
         super().__init__(instructions=build_prompt())
         self.workflow, self.publish = workflow, publish
         self.raw_finals, self.seen, self.fresh, self.pending = [], set(), {}, set()
-        self.current_said, self.last_lookup, self.opening = [], None, None
+        self.current_said, self.last_lookup, self.opening, self.turn_seen = [], None, None, (None, set())
 
     async def stt_node(self, audio, model_settings):
         async for event in Agent.default.stt_node(self, audio, model_settings):
@@ -236,8 +270,11 @@ class VoiceAgent(Agent):
         ctx.add_message(role='system', content=self.workflow.state_note(self.fresh.get(last.id) if last is not None else None))
         allowed = allowed_numbers(ctx, self.workflow.facts)
         said = self.current_said = []
+        turn_id = last.id if last is not None else None
+        if self.turn_seen[0] != turn_id: self.turn_seen = (turn_id, set())  # Sentences said so far this turn.
+        seen = self.turn_seen[1]
         try:
-            async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said):
+            async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen):
                 yield piece
         except asyncio.CancelledError:
             raise
