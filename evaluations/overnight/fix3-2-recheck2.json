@@ -1,0 +1,499 @@
+{
+  "executed_at": "2026-10-29T10:07:59+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "dispute-scam",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-3368"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-4150"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I think I've been scammed. I paid a seller through PayPal for a game console and now they've blocked me and nothing's come.",
+          "agent": "Oh no\u2026 I\u2019m sorry that\u2019s happened. Please lock your card in your app straight away if you can, just to stop anything else going through. Alright. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1978
+        },
+        {
+          "caller": "Not yet, I'll do that now. Can you report it? It was on my credit card.",
+          "agent": "Yeah, I can help with that. I do still need your full name to check the card payment on your own record, then I can lodge it as suspected fraud.\nWhat\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1562
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 989
+        },
+        {
+          "caller": "fourteenth of March 1991",
+          "agent": "Beautiful, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1449
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. I can see the PayPal payment now, and I\u2019m going to check that transaction so we can lodge this properly. That PayPal payment for 249 dollars is the one I\u2019ve got, and I\u2019m lodging it now as a scam, since you were tricked into making it. Yes, that\u2019s the one. PAYPAL GAMEVAULT, 249 dollars, on 26 October.\n\nShall I lodge that as a scam now?",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4532
+        },
+        {
+          "caller": "Yes, that's it, 249 dollars.",
+          "agent": "Right, thanks Emily. I\u2019m lodging that now. Done. The fraud reference is F, R, D, 3, 3, 6, 8.\n\nPlease lock the card in your app straight away and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one-time codes, and if anyone has remote access to your device, disconnect it from the internet.\n\nThe fraud team will review it as a priority. This is a demo record, so no real bank staff will act on it, but the process is recorded here.\n\n",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2856
+        },
+        {
+          "caller": "Am I going to get that back?",
+          "agent": "I can\u2019t promise that, no. The fraud team will review it and look at the next steps, but the outcome depends on their assessment.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1103
+        }
+      ]
+    },
+    {
+      "id": "dispute-scam",
+      "run": 2,
+      "passed": false,
+      "problems": [
+        "agent said something matching /(?:you(?:['\u2019]ll| will) (?:definitely )?(?:get|receive|be given) (?:a |your |the |that )?(?:money back|refund)|refund (?:is|has been) (?:approved|guaranteed|processed)|(?:I|we) (?:can )?guarantee)/"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-1203"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-5480"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I think I've been scammed. I paid a seller through PayPal for a game console and now they've blocked me and nothing's come.",
+          "agent": "Okay\u2026 I\u2019m sorry that\u2019s happened. If you paid and now they\u2019ve blocked you, I can help with the scam report, and I\u2019ll need to verify your identity first so I can check the right record. Right, let\u2019s sort that out. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2827
+        },
+        {
+          "caller": "Not yet, I'll do that now. Can you report it? It was on my credit card.",
+          "agent": "Yeah, I can help with that. Because this looks like a scam, I do need to keep going with verification first, then I can lodge it for the credit card transaction.\nWhat\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1041
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1214
+        },
+        {
+          "caller": "fourteenth of March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1275
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019m going to look up the recent card transaction now so we can confirm the one you mean. Yep, that\u2019s the one. PAYPAL GAMEVAULT for 249 dollars on 26 October. I\u2019m lodging this as suspected scam now. Emily, that\u2019s all set on my side. PAYPAL GAMEVAULT, 249 dollars on 26 October \u2014 is that the transaction you want me to lodge as a scam?\n",
+          "tools": [
+            "get_recent_transactions",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4432
+        },
+        {
+          "caller": "Yes, that's it, 249 dollars.",
+          "agent": "Thanks, Emily. I\u2019m lodging it now, and I\u2019ll include the security steps in a moment. Done. The reference is F, R, D, 1, 2, 0, 3.\n\nPlease lock that card straight away in your app and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one-time codes, and if anyone has remote access to your device, disconnect it from the internet. The fraud team will review this as a priority.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2502
+        },
+        {
+          "caller": "Am I going to get that back?",
+          "agent": "I can\u2019t promise that, sorry. The fraud team will review it and decide the outcome, but I can\u2019t say you\u2019ll get the money back.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1245
+        }
+      ]
+    },
+    {
+      "id": "dispute-scam",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-7598"
+        },
+        {
+          "type": "fraud",
+          "ref": "FRD-1584"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-3385"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I think I've been scammed. I paid a seller through PayPal for a game console and now they've blocked me and nothing's come.",
+          "agent": "Lock the card in your app straight away if you can. That sounds like a scam, and I\u2019ll help sort the next step. I\u2019m sorry, that sounds really unpleasant. I\u2019ve recorded it as a complaint too.\n\nThe reference is C, M, P, 7, 5, 9, 8. You should hear back within 30 days.\n\nIf you want, I can also help with the next step for the scam side.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2887
+        },
+        {
+          "caller": "Not yet, I'll do that now. Can you report it? It was on my credit card.",
+          "agent": "Yeah, I can help with that. I\u2019ll need to verify you first so I can check the card transaction. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2149
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s all lined up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1114
+        },
+        {
+          "caller": "fourteenth of March 1991",
+          "agent": "Lovely, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1001
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. I can look at the card payment now. Right, I\u2019ve found the payment. It\u2019s PAYPAL GAMEVAULT for 249 dollars on 26 October 2026. Does that look like the one you\u2019re talking about?\n",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2458
+        },
+        {
+          "caller": "Yes, that's it, 249 dollars.",
+          "agent": "Thanks, Emily. I\u2019m lodging the dispute now, and because it\u2019s a credit card payment that you didn\u2019t get the item for, this will be treated as suspected scam fraud. I\u2019ve lodged that as fraud. The reference is F, R, D, 1, 5, 8, 4.\n\nLock the card in your app straight away, and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one-time codes, and if anyone has remote access to your device, disconnect it from the internet.\n\nThe fraud team will review it as a priority. I can also help if you want the next step on the PayPal side.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2914
+        },
+        {
+          "caller": "Am I going to get that back?",
+          "agent": "I can\u2019t promise that, no. The fraud team will review it and look at the transaction, but I can\u2019t predict the outcome or guarantee a refund.\n\nIf you want, I can also help with what to do next with PayPal.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1364
+        }
+      ]
+    },
+    {
+      "id": "human-angry-transfer",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "escalation",
+          "ref": "ESC-8577"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "This is bloody ridiculous. I've been going round in circles. Transfer me to a damn human now!",
+          "agent": "I can record that request for a person to follow up. Since you\u2019ve asked for a human, I\u2019ll do that now. It\u2019s recorded. Reference E, S, C, 8, 5, 7, 7.\n\nThis is a demo, so no live transfer will happen and no real bank staff will call. If you want, I can still help with the issue here.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "not_started",
+          "ms": 2565
+        },
+        {
+          "caller": "Just bloody do it. Yes, log it, whatever.",
+          "agent": "Already done. It\u2019s logged with reference E, S, C, 8, 5, 7, 7.\n\nI can\u2019t make a real transfer from here, but the follow-up request is in.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1280
+        },
+        {
+          "caller": "So when will they call me?",
+          "agent": "I can\u2019t give you a call time, and this is a demo so no one will actually ring you. The request is logged, but there isn\u2019t a real callback queue behind it.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1190
+        }
+      ]
+    },
+    {
+      "id": "human-angry-transfer",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "escalation",
+          "ref": "ESC-4100"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "This is bloody ridiculous. I've been going round in circles. Transfer me to a damn human now!",
+          "agent": "I\u2019m sorry it\u2019s been such a mess. I can record a request for a person to follow up, but I can\u2019t transfer the call live. A follow-up request\u2019s been recorded. The reference is E, S, C, 4, 1, 0, 0.\n\nThis is a demo, so no live transfer will happen and no one will actually call back. If you want, I can still help with the issue itself.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "not_started",
+          "ms": 2848
+        },
+        {
+          "caller": "Just bloody do it. Yes, log it, whatever.",
+          "agent": "Alright, it\u2019s in. The follow-up request is logged. If you want to keep going, tell me what\u2019s happened and I\u2019ll help sort that part out.\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1092
+        },
+        {
+          "caller": "So when will they call me?",
+          "agent": "I can\u2019t give you a call time, and in this demo no one will actually ring you back. The request is recorded, though, and if you want I can help with the issue here.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1239
+        }
+      ]
+    },
+    {
+      "id": "human-angry-transfer",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "escalation",
+          "ref": "ESC-7690"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "This is bloody ridiculous. I've been going round in circles. Transfer me to a damn human now!",
+          "agent": "I hear you. I\u2019ll get a human follow-up started for you. Done. A follow-up request\u2019s been recorded, and the reference is E, S, C, 7, 6, 9, 0.\n\nThis is a demo, so no live transfer happens and no real bank staff will call.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "not_started",
+          "ms": 2460
+        },
+        {
+          "caller": "Just bloody do it. Yes, log it, whatever.",
+          "agent": "Already logged. The follow-up request is in with reference E, S, C, 7, 6, 9, 0.\n\nThis is still a demo, so there\u2019s no live transfer and no one will actually ring.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1145
+        },
+        {
+          "caller": "So when will they call me?",
+          "agent": "They won\u2019t call, I\u2019m afraid. This is a demo only, so that follow-up request is just recorded here and no real callback happens.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1226
+        }
+      ]
+    }
+  ]
+}
