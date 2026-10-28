@@ -377,6 +377,17 @@ def _valid_name_verdict(response):
 
 # ---------------------------------------------------------------- dates of birth
 
+# A question about their own details ("is my birthday in March?") or about something else ("quick one, are
+# your branches open?") isn't an answer, even when it contains a month or a stray number word.
+QUESTION = re.compile(r"(?:^|[.,;:!]\s*|\b(?:and|so|but|oh|um|also|sorry|actually|one)\s+)"
+                      r"(?:is|are|was|were|do|does|did|can|could|will|would|should|what|why|how)(?:['’]s)?\s+"
+                      r"(?:my|your|you|it|its|there|the|this|that|i|we|they)\b", re.I)
+
+
+def is_question(text):
+    return '?' in text or bool(QUESTION.search(text))
+
+
 @dataclass
 class DobParse:
     status: str  # ok | ambiguous | incomplete | no_answer | unparsed
@@ -482,7 +493,9 @@ def _valid_llm_date(response, today, candidates):
 async def match_dob(text, stored, cfg, judge=None, today=None):
     today = today or date.today()
     parsed = parse_dob(text, today, cfg['two_digit_year_pivot'])
-    if parsed.status == 'no_answer': return FieldResult('dob', 'no_answer', 'none')
+    # A question counts only if it holds a whole date ("is it 14 March 1991?"); otherwise it's not an answer.
+    if parsed.status == 'no_answer' or (parsed.status not in ('ok', 'ambiguous') and is_question(text)):
+        return FieldResult('dob', 'no_answer', 'none')
     if parsed.status == 'incomplete':
         return FieldResult('dob', 'incomplete', 'deterministic', missing=parsed.missing)
     if parsed.status == 'ok':
@@ -600,8 +613,9 @@ async def match_address(text, stored, cfg, judge=None, carry=None):
     """
     carry = dict(carry or {})
     parts, normalized = score_address(text, stored)
-    if all(v == 'missing' for v in parts.values()): return FieldResult('address', 'no_answer', 'none')
     required = [p for p in EXACT_PARTS + FUZZY_PARTS if p != 'unit' or stored.get('unit')]
+    if all(v == 'missing' for v in parts.values()) or (is_question(text) and any(parts[p] == 'missing' for p in required)):
+        return FieldResult('address', 'no_answer', 'none')  # Nothing given, or a question without a whole address.
     readable = f"numbers {' '.join(normalized['numbers']) or '-'} · state {normalized['state'] or '-'} · words {' '.join(normalized['words']) or '-'}"
     result = FieldResult('address', 'fail', 'deterministic', normalized=readable)
     status = {}
@@ -818,7 +832,8 @@ class Verification:
                     lines.append(f"Their {STEP_LABEL[fresh['step']]} just checked out. React warmly in your own words, "
                                  f"then ask for their {STEP_LABEL[self.step]} in the same turn.")
                 elif outcome == 'incomplete':
-                    lines.append("Their last answer was incomplete. Ask only for the missing part: " + ', '.join(fresh['missing']) + '.')
+                    lines.append("Their last answer was incomplete. Ask only for the missing part (" + ', '.join(fresh['missing']) +
+                                 "), without saying which part they gave or that it was right.")
                 elif outcome == 'uncertain':
                     lines.append("Their last answer was close but couldn't be confirmed, probably a mishearing. "
                                  "Ask them to " + CLARIFY[self.step] + ", lightly, without saying what was wrong.")
@@ -828,9 +843,9 @@ class Verification:
                                  "a mishearing, without saying what was wrong." + hint)
                 elif outcome == 'no_answer':
                     lines.append("Their last turn wasn't an answer to the verification question, so don't say you didn't "
-                                 "catch it. Respond to what they actually said. If they still want what needed verification, "
-                                 "come back to the question afterwards. If they've moved on, call pause_identity_verification "
-                                 "and help with the new request.")
+                                 "catch it. Respond to what they actually said. A side question doesn't mean they've moved on: "
+                                 "answer it, then come back to the question. Only if they no longer want what needed "
+                                 "verification, call pause_identity_verification and help with the new request.")
             else:
                 lines.append(f"Ask for their {STEP_LABEL[self.step]} naturally, one item at a time.")
         lines.append("Never say, hint at, or confirm any stored identity detail, and never claim the caller is "

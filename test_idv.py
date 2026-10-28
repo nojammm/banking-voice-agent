@@ -378,6 +378,46 @@ class OffTrackTests(unittest.TestCase):
         self.assertIn('pause_identity_verification', note)
 
 
+
+class QuestionsAreNotAnswersTests(unittest.TestCase):
+    """A question about the caller's own details, or about something else, is never a partial answer."""
+    def dob(self, text):
+        return run(idv.match_dob(text, EMILY['dob'], config()['dob_match'], None, TODAY))
+
+    def address(self, text, carry=None):
+        return run(idv.match_address(text, EMILY['address'], config()['address_match'], None, carry))
+
+    def test_questions_at_the_dob_step_are_not_answers(self):
+        for text in ["Is my birthday in March? Just tell me if it's March.", 'is my birthday in March',
+                     'Oh sorry, quick one before I forget, are your branches open on Saturdays?',
+                     'Oh sorry, quick one before I forget, are your branches open on Saturdays',
+                     "What's the year on file?", 'Was I born in 1991?']:
+            with self.subTest(text): self.assertEqual(self.dob(text).outcome, 'no_answer')
+
+    def test_a_whole_date_still_counts_even_with_a_rising_question_mark(self):
+        self.assertEqual(self.dob('14 March 1991?').outcome, 'pass')
+        self.assertEqual(self.dob('Is it the 14th of March 1992?').outcome, 'fail')
+        self.assertEqual(self.dob('March 1991').outcome, 'incomplete')  # Plain partial answers are unchanged.
+
+    def test_questions_at_the_address_step_are_not_answers(self):
+        for text in ['Is my postcode 2500?', 'Do you have me in Wollongong', 'quick one, are your branches open on Saturdays?',
+                     'Is it Harbour Street?']:
+            with self.subTest(text): self.assertEqual(self.address(text).outcome, 'no_answer')
+        carry = self.address('unit 4 56 Harbour Street Wollongong').components['_carry']
+        self.assertEqual(self.address('Is it New South Wales?', carry).outcome, 'no_answer')
+        self.assertEqual(self.address('Unit 4, 56 Harbour Street, Wollongong NSW 2500?').outcome, 'pass')
+
+    def test_question_turns_cost_nothing_and_the_note_never_acknowledges_a_part(self):
+        v = idv.Verification(CUSTOMERS, config(), None, TODAY)
+        v.begin()
+        run(v.answer('Emily Carter'))
+        result = run(v.answer("Is my birthday in March? Just tell me if it's March."))
+        self.assertEqual(result.outcome, 'no_answer')
+        self.assertEqual((v.step, v.steps['dob']['attempts'], v.steps['dob']['incomplete']), ('dob', 0, 0))
+        run(v.answer('March 1991'))
+        self.assertIn("without saying which part they gave", v.note(v.last))
+        self.assertEqual(run(v.answer('the 14th of March 1991')).outcome, 'pass')
+
 EMILY_ANSWERS = ['Emily Carter', '14 March 1991', 'unit 4 56 Harbour Street Wollongong NSW 2500']
 
 
