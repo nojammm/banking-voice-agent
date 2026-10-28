@@ -146,10 +146,10 @@ def create_case(conn, kind, summary, details, customer_id=None, session_id=None,
             continue
 
 
-def update_case(conn, ref, details):
-    row = conn.execute('SELECT details FROM cases WHERE ref=?', (ref,)).fetchone()
+def update_case(conn, ref, details, summary=None):
+    row = conn.execute('SELECT details, summary FROM cases WHERE ref=?', (ref,)).fetchone()
     merged = {**json.loads(row['details'] or '{}'), **details}
-    conn.execute('UPDATE cases SET details=? WHERE ref=?', (json.dumps(merged), ref))
+    conn.execute('UPDATE cases SET details=?, summary=? WHERE ref=?', (json.dumps(merged), (summary or row['summary'])[:500], ref))
 
 
 def overview(conn):

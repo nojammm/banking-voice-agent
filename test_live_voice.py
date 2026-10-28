@@ -159,6 +159,20 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         out, _ = await self.speak(['Is that the home loan? ', 'It was $9,999 last month.'])
         self.assertTrue(out.endswith(__import__("live_agent").UNSUPPORTED) and '9,999' not in out)
 
+    async def test_an_announced_record_before_a_tool_call_is_dropped(self):
+        from livekit.agents import llm
+        call = llm.ChatChunk(id='x', delta=llm.ChoiceDelta(role='assistant', tool_calls=[
+            llm.FunctionToolCall(name='lodge_dispute', arguments='{}', call_id='c1')]))
+        out, chunks = await self.speak(["That's the one. ", "I'm lodging it now as goods not received. ", call])
+        self.assertEqual(out, "That's the one. ")  # The result may say it's already lodged.
+        self.assertEqual(chunks[0].delta.tool_calls[0].name, 'lodge_dispute')
+        out, _ = await self.speak(["Sure. ", "I'll check the Amazon charge and then lodge the dispute. ", call])
+        self.assertEqual(out, 'Sure. ')
+        out, _ = await self.speak(["I'll update the notice with that. ", 'Take your time.'])
+        self.assertEqual(out, "I'll update the notice with that. Take your time.")  # No tool: said, in order.
+        out, _ = await self.speak(["I'm not sure about that one. ", call])
+        self.assertEqual(out, "I'm not sure about that one. ")
+
     async def test_audio_tags_reach_a_tag_capable_voice_only(self):
         pieces = ['[sym', 'pathetic] Oh no, that sounds stressful. ', 'Let me [short ', 'pause] check.']
         self.assertEqual((await self.speak(pieces))[0], '[sympathetic] Oh no, that sounds stressful. Let me [short pause] check.')

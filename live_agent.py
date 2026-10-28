@@ -126,6 +126,9 @@ def redact(text):
 
 
 SENTENCE_END = re.compile(r'[.?!…]+["’”)]*\s+')
+# "I'm lodging it now", "I'll update the notice": says a record is being made before the tool has made it.
+ANNOUNCE = re.compile(r"\b(?:I['’]m|I am|I['’]ll|I will|let me|then|so I can|before I)\s+(?:just\s+|now\s+|also\s+|going to\s+|go ahead and\s+)*"
+                      r"(?:lodg|record|log(?:ging)?\b|add|updat|not(?:e|ing)\b|fil(?:e|ing)\b|rais|submit|pass|flag|escalat|creat)", re.I)
 
 
 def split_ready(pending):
@@ -149,11 +152,12 @@ def sentences(text):
 async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=None):
     """Pass tool calls through untouched; stop speech that states a number nobody supplied.
 
-    Speech goes out a sentence at a time. A question waits for the reply to end; if the reply calls a tool, the
-    question and anything after it are dropped, so the agent never asks something and then answers it from the
-    result without waiting. A sentence already said this turn (seen), or one close to a line said before the tool
-    call, isn't said again. After an unsupported number the reply goes quiet, but its tool calls still go through;
-    the fallback line is said only if there were none (the reply after the tool result speaks instead)."""
+    Speech goes out a sentence at a time. A question, or an announcement that a record is being made, waits for the
+    reply to end; if the reply calls a tool, it and anything after it are dropped, so the agent never asks something
+    and then answers it from the result, or says "I'm lodging it now" before a result that says otherwise. A sentence
+    already said this turn (seen), or one close to a line said before the tool call, isn't said again. After an
+    unsupported number the reply goes quiet, but its tool calls still go through; the fallback line is said only if
+    there were none (the reply after the tool result speaks instead)."""
     audio_tags = AUDIO_TAGS if audio_tags is None else audio_tags
     pending, held, tool_called, spoken, blocked = '', [], False, False, False
     said = [] if said is None else said
@@ -163,7 +167,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
     def take(text):
         ready = []
         for sentence in sentences(text):
-            if held or sentence.rstrip().endswith('?'): held.append(sentence)
+            if held or sentence.rstrip().endswith('?') or ANNOUNCE.search(sentence): held.append(sentence)
             else: ready.append(sentence)
         return ready
 
@@ -450,11 +454,11 @@ class VoiceAgent(Agent):
                               category: Literal['fees_and_charges', 'service', 'delay', 'product', 'decision', 'hardship',
                                                 'dispute_handling', 'privacy', 'other'],
                               summary: str, desired_outcome: str = '') -> str:
-        """Record a complaint. Works before verification.
+        """Record a complaint. Calling it again updates this call's complaint. Works before verification.
 
         Args:
             category: The closest category.
-            summary: What the caller is unhappy about, in a sentence or two.
+            summary: What the caller is unhappy about, in a sentence or two; on an update, everything so far.
             desired_outcome: What they want to happen, if they said.
         """
         return await self._run('lodge_complaint', category=category, summary=summary, desired_outcome=desired_outcome)

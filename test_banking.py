@@ -162,6 +162,7 @@ class CaseWorkflowTests(TempDB):
         again = run(wf.call('lodge_dispute', transaction_id='TXN-1001-04', dispute_type='duplicate', description='again'))
         self.assertEqual((again['error'], again['reference']), ('already_lodged', dispute['reference']))
         self.assertEqual(again['say_reference'], dispute['say_reference'])
+        self.assertIn("can't be added", again['next'])  # Nothing to add the caller's update to.
         fraud = run(wf.call('lodge_dispute', transaction_id='TXN-1003-04', dispute_type='unauthorised', description="Didn't make it"))
         self.assertEqual(fraud['route'], 'fraud')
         self.assertIn('lock it straight away', fraud['security_guidance'])
@@ -181,6 +182,19 @@ class CaseWorkflowTests(TempDB):
         rows = [c for c in bank.cases(self.conn, session_id=wf.session_id) if c['type'] == 'hardship']
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]['details']['affected_products'], 'home loan')
+
+    def test_a_complaint_is_one_record_per_call_and_later_details_update_it(self):
+        wf = self.workflow()
+        first = run(wf.call('lodge_complaint', category='fees_and_charges', summary='Overdrawn fee'))
+        second = run(wf.call('lodge_complaint', category='fees_and_charges', summary='Overdrawn fee of 15 dollars for a few cents',
+                             desired_outcome='Fee refunded'))
+        self.assertEqual((second['reference'], second['status']), (first['reference'], 'updated'))
+        self.assertNotIn('final_response_within_days', second)  # Unchanged, so not read again.
+        rows = [c for c in bank.cases(self.conn, session_id=wf.session_id) if c['type'] == 'complaint']
+        self.assertEqual(len(rows), 1)
+        self.assertEqual((rows[0]['summary'], rows[0]['details']['desired_outcome']),
+                         ('Overdrawn fee of 15 dollars for a few cents', 'Fee refunded'))
+        self.assertEqual([e['kind'] for e in self.ui if e['type'] == 'case'], ['complaint'])
 
     def test_hardship_and_complaints_work_before_verification(self):
         wf = self.workflow()

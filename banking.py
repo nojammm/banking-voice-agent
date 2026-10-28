@@ -49,7 +49,7 @@ class Workflow:
     def __init__(self, session_id, conn, verification, publish=None):
         self.session_id, self.conn, self.idv = session_id, conn, verification
         self.publish = publish
-        self.forms, self.created, self.facts, self.hardship_ref = {}, [], set(), None
+        self.forms, self.created, self.facts, self.hardship_ref, self.complaint_ref = {}, [], set(), None, None
         self.turn, self.shown = None, {}  # Caller turns (set by the voice agent) and when each transaction was first shown.
         verification.on_event = self.audit
         bank.save_session(conn, session_id, self.snapshot())
@@ -212,7 +212,7 @@ class Workflow:
         if not t: return {'error': 'not_found', 'next': 'Confirm the transaction with get_recent_transactions first.'}
         existing = [c['ref'] for c in bank.cases(self.conn, self.idv.customer_id)
                     if c['details'].get('transaction_id') == t['id'] and c['type'] in ('dispute', 'fraud')]
-        if existing: return {'error': 'already_lodged', 'reference': existing[0], 'say_reference': spoken(existing[0]), 'next': 'Give the existing reference and its status.'}
+        if existing: return {'error': 'already_lodged', 'reference': existing[0], 'say_reference': spoken(existing[0]), 'next': "Nothing new was lodged, and details can't be added to an existing case on this call. Give the existing reference and its status."}
         if self.turn is not None and self.shown.get(t['id'], self.turn) >= self.turn:
             return {'error': 'not_confirmed', 'next': "The caller hasn't confirmed this transaction yet. Describe it briefly (merchant, "
                                                       "amount, date) and ask if it's the one; lodge it once they say yes."}
@@ -279,7 +279,13 @@ class Workflow:
         if category not in COMPLAINT_CATEGORIES: return {'error': 'invalid_category', 'allowed': sorted(COMPLAINT_CATEGORIES)}
         details = {'category': category, 'desired_outcome': desired_outcome[:300], 'identity': 'verified' if self.idv.verified else 'not verified'}
         days = 21 if category == 'hardship' else 30
+        if self.complaint_ref:  # One complaint per call: details the caller adds later update it.
+            bank.update_case(self.conn, self.complaint_ref, details, summary[:300])
+            self.audit('case_updated', {'ref': self.complaint_ref, 'type': 'complaint'})
+            return {'reference': self.complaint_ref, 'say_reference': spoken(self.complaint_ref), 'status': 'updated',
+                    'next': "The existing complaint now has these details. Say so in a few words; the reference and timeframe are unchanged, so don't read them again."}
         ref, _ = await self._record('complaint', summary[:300], details, status='Received')
+        self.complaint_ref = ref
         return {'reference': ref, 'say_reference': spoken(ref), 'final_response_within_days': days,
                 'next': 'Give the reference and the timeframe; mention AFCA only if they ask what happens if they stay unhappy. ' + MOCK}
 
