@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import tempfile
 import threading
 import unittest
@@ -100,10 +101,22 @@ class AccessControlTests(TempDB):
         self.verify(wf, ARJUN)
         loan = run(wf.call('get_loans'))['loans'][0]
         self.assertEqual((loan['balance_owing'], loan['interest_rate'], loan['repayment'], loan['next_due']),
-                         ('$612,304.88', '6.24% p.a. variable', '$4,012.55', '2026-11-01'))
+                         ('$612,304.88', '6.24% p.a. variable', '$4,012.55', '1 November'))
         self.assertEqual(run(wf.call('get_loan_applications'))['applications'], [])
         cases = run(wf.call('get_case_status', reference='cmp 2741'))['cases']
-        self.assertEqual((cases[0]['status'], cases[0]['response_due']), ('Under review', '2026-11-11'))
+        self.assertEqual((cases[0]['status'], cases[0]['response_due']), ('Under review', '11 November'))
+        self.assertEqual(cases[0]['opened'], '12 October')
+
+    def test_dates_are_ready_to_say(self):
+        self.assertEqual(banking.say_date('2026-11-06', TODAY), '6 November')
+        self.assertEqual(banking.say_date('2027-01-02', TODAY), '2 January 2027')
+        self.assertEqual(banking.say_date('2026-10-12T09:30:00+11:00', TODAY), '12 October')
+        self.assertEqual(banking.say_date('soon', TODAY), 'soon')
+        wf = self.workflow()
+        self.verify(wf)
+        dates = [t['date'] for t in run(wf.call('get_recent_transactions', limit=10))['transactions']]
+        self.assertTrue(dates and all(not re.search(r'\d{4}-\d', d) for d in dates), dates)
+        self.assertIn('2026', wf.facts)  # The year left out may still be said.
 
     def test_transactions_filter_and_duplicate_detection(self):
         wf = self.workflow()

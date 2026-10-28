@@ -4,6 +4,7 @@ Every customer-data tool checks the Worker's verification state itself; the prom
 control. Results carry only what the reply needs, with account numbers masked.
 """
 import re
+from datetime import date
 import bank
 import idv
 import kb
@@ -27,6 +28,17 @@ def money(value):
 def spoken(ref):
     """A reference as it should be read aloud: one character at a time, no dash."""
     return ', '.join(ref.replace('-', ''))
+
+
+MONTHS = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+          'November', 'December')
+
+
+def say_date(value, today=None):
+    """An ISO date as it should be said: "6 November", with the year only when it isn't this year."""
+    try: d = date.fromisoformat(str(value)[:10])
+    except ValueError: return value
+    return f'{d.day} {MONTHS[d.month - 1]}' + ('' if d.year == (today or date.today()).year else f' {d.year}')
 
 
 def mask(number):
@@ -81,6 +93,13 @@ class Workflow:
         if self.created:
             lines.append('Records created this call: ' + ', '.join(f"{c['type']} {c['ref']}" for c in self.created) + '.')
         return '\n\n'.join(lines)
+
+    def _date(self, value):
+        """Dates go to the model ready to say. The current year may still be said, though it's left out."""
+        if not value: return value
+        today = self.idv.today or date.today()
+        self.facts.add(str(today.year))
+        return say_date(value, today)
 
     def _guard(self, tool):
         """Independent check for every protected tool. Starts ID&V rather than guessing."""
@@ -151,7 +170,7 @@ class Workflow:
         limit = max(1, min(int(limit or 5), 10))
         rows = bank.transactions(self.conn, self.idv.customer_id, account_id or None, (search or '').strip()[:40] or None, limit)
         self._shown(*(t['id'] for t in rows))
-        return {'transactions': [{'transaction_id': t['id'], 'date': t['posted'], 'description': t['description'],
+        return {'transactions': [{'transaction_id': t['id'], 'date': self._date(t['posted']), 'description': t['description'],
                                   'amount': money(t['amount']), 'status': t['status'], 'account_id': t['account_id']} for t in rows]}
 
     async def get_transaction_details(self, transaction_id):
@@ -162,7 +181,7 @@ class Workflow:
         twins = [o for o in bank.transactions(self.conn, self.idv.customer_id, t['account_id'], limit=50)
                  if o['id'] != t['id'] and o['description'] == t['description'] and o['amount'] == t['amount'] and o['posted'] == t['posted']]
         disputes = [c['ref'] for c in bank.cases(self.conn, self.idv.customer_id) if c['details'].get('transaction_id') == t['id']]
-        return {'transaction_id': t['id'], 'date': t['posted'], 'description': t['description'], 'amount': money(t['amount']),
+        return {'transaction_id': t['id'], 'date': self._date(t['posted']), 'description': t['description'], 'amount': money(t['amount']),
                 'status': t['status'], 'account_id': t['account_id'],
                 'identical_charges_same_day': [o['id'] for o in twins], 'existing_cases': disputes}
 
@@ -170,21 +189,21 @@ class Workflow:
         if (blocked := self._guard('get_loans')): await self.auth_changed(); return blocked
         return {'loans': [{'loan_id': l['id'], 'product': l['product'], 'balance_owing': money(l['balance']),
                            'interest_rate': f"{l['rate']:.2f}% p.a. {l['rate_type']}", 'repayment': money(l['repayment']),
-                           'frequency': l['frequency'], 'next_due': l['next_due'], 'term_ends': l['term_end'],
+                           'frequency': l['frequency'], 'next_due': self._date(l['next_due']), 'term_ends': self._date(l['term_end']),
                            'offset_account': l['offset_account']} for l in bank.loans(self.conn, self.idv.customer_id)]}
 
     async def get_loan_applications(self):
         if (blocked := self._guard('get_loan_applications')): await self.auth_changed(); return blocked
         return {'applications': [{'application_id': a['id'], 'product': a['product'], 'amount': money(a['amount']),
-                                  'status': a['status'], 'lodged': a['lodged'], 'last_updated': a['updated'], 'next_step': a['next_step']}
+                                  'status': a['status'], 'lodged': self._date(a['lodged']), 'last_updated': self._date(a['updated']), 'next_step': a['next_step']}
                                  for a in bank.applications(self.conn, self.idv.customer_id)]}
 
     async def get_case_status(self, reference=''):
         if (blocked := self._guard('get_case_status')): await self.auth_changed(); return blocked
         rows = bank.cases(self.conn, self.idv.customer_id)
         if reference: rows = [c for c in rows if c['ref'].replace('-', '').lower() == reference.replace('-', '').replace(' ', '').lower()]
-        return {'cases': [{'reference': c['ref'], 'type': c['type'], 'status': c['status'], 'opened': c['created_at'][:10],
-                           'summary': c['summary'], **{k: v for k, v in c['details'].items() if k.endswith('_due')}} for c in rows]}
+        return {'cases': [{'reference': c['ref'], 'type': c['type'], 'status': c['status'], 'opened': self._date(c['created_at']),
+                           'summary': c['summary'], **{k: self._date(v) for k, v in c['details'].items() if k.endswith('_due')}} for c in rows]}
 
     async def lodge_dispute(self, transaction_id, dispute_type, description):
         if (blocked := self._guard('lodge_dispute')): await self.auth_changed(); return blocked
