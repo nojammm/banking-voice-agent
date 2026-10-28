@@ -1,0 +1,37 @@
+# ID&V matching settings. `defaults` applies to every assistant; an entry under `assistants`
+# (keyed by LIVEKIT_AGENT_NAME) overrides only the keys it lists. Point IDV_CONFIG at another
+# file to test different values without editing this one.
+#
+# Name thresholds are a demonstrator configuration, not a validated banking threshold.
+# A name score never unlocks data alone: every step in `steps` must pass.
+
+defaults:
+  steps: [full_name, dob, address]
+  max_incomplete: 3          # incomplete answers per step before one counts as a failed attempt
+  free_uncertain_per_step: 1 # "probably right, can't confirm" answers that only ask for clarification
+  auto_pause_after_non_answers: 2  # pause ID&V when the caller has clearly moved on (0 = never)
+  debug: true                # inspector shows normalised caller input and scores
+  name_match:
+    high_threshold: 0.55     # >= high: pass (if both first and last name clear component_floor)
+    low_threshold: 0.15      # < low: fail; in between: LLM second opinion
+    component_floor: 0.5
+    llm_fallback_enabled: true
+    max_attempts: 3
+  dob_match:
+    two_digit_year_pivot: 8  # "05" -> 2005, "09" -> 1909
+    llm_fallback_enabled: true
+    max_attempts: 2
+  address_match:
+    high_threshold: 0.8      # street and suburb names only; number, unit, postcode and state are exact
+    low_threshold: 0.5
+    llm_fallback_enabled: true
+    max_attempts: 2
+
+assistants:
+  banking-evidence-local: {}
+  # Example stricter profile: LIVEKIT_AGENT_NAME=banking-strict python3 scripts/start_live.py
+  banking-strict:
+    debug: false
+    name_match:
+      high_threshold: 0.85
+      low_threshold: 0.4

@@ -1,0 +1,562 @@
+{
+  "executed_at": "2026-10-29T00:31:23+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "scenarios": [
+    {
+      "id": "balance-and-duplicate",
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-2650"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "I can help with that, but I\u2019ll need to verify you first to look at your account. What\u2019s your date of birth? Thanks \u2014 what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2452
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1158
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Great, that matches. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1141
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2121
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Sure \u2014 the last few I can see are Uber Eats Sydney for $42.35 on 27 October, a PayPal charge for Gamevault for $249 on 26 October, and a pending Shell Coles Express charge for $50 on 25 October. I can list a couple more if you want.",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2363
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Right, let me check those Coles charges. Yep, I can see the duplicate. It\u2019s the Coles Wollongong Central charge for $84.20 on 24 October, and there\u2019s an identical one the same day. I\u2019ll lodge that now. Done \u2014 I\u2019ve lodged it for you. The reference is D S P 2 6 5 0. \n\nThey\u2019ll investigate it, and that usually takes up to 45 days. I can\u2019t promise the outcome, but if you want, I can also help with anything else on your account.",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4073
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "Already done, Emily. That dispute has been lodged, and the reference is D S P 2 6 5 0.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1197
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-3442"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-4389"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "Okay. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2032
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1188
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Nice, that\u2019s all good. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1050
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "You\u2019re all set, Emily. That PayPal charge has been lodged as suspected fraud, and the reference is F, R, D, 3, 4, 4, 2.\n\nLock that card in the app straight away and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one-time codes with anyone.",
+          "tools": [
+            "get_recent_transactions",
+            "get_account_summary",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4934
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Yeah, that does sound like the right one\u2026 and I\u2019m sorry you\u2019ve had to deal with it.\n\nThe fraud team will review it as a priority. If you can, keep the card locked in the app, and if anyone has remote access to your device, disconnect it from the internet now.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1675
+        }
+      ]
+    },
+    {
+      "id": "hardship-and-complaint",
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-5829"
+        },
+        {
+          "type": "complaint",
+          "ref": "CMP-9639"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Look, my hours at work got cut in half last month and I honestly don't know how I'm going to make next month's mortgage payment.",
+          "agent": "Sure, let me just check that. I\u2019m really sorry, that\u2019s a lot to be carrying. I\u2019ve recorded the hardship notice for you.\n\nThe reference is H D S 5 8 2 9. A hardship specialist would review it, and nothing\u2019s approved on this call.\n\nIf it would help, I can also ask for a human follow-up.",
+          "tools": [
+            "search_banking_knowledge",
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 3135
+        },
+        {
+          "caller": "It's the home loan. Probably three months or so until things pick up. Lower repayments for a while would really help.",
+          "agent": "Got it. I\u2019ve got that it\u2019s the home loan, and that you\u2019re expecting about 3 months of strain. I can\u2019t promise any change to repayments, but I can note that lower repayments would help and get a specialist to look at it if you want.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1549
+        },
+        {
+          "caller": "And honestly I'm fed up. I asked to downgrade my card weeks ago and still got charged the annual fee, and nobody's got back to me.",
+          "agent": "Yeah, that\u2019s frustrating. I\u2019ve recorded the complaint for you.\n\nThe reference is C M P 9 6 3 9. You should hear back within 30 days.\n\n",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2476
+        },
+        {
+          "caller": "I just want that fee refunded, and for someone to actually get back to me.",
+          "agent": "I\u2019ve noted that on the complaint. The request is for the fee to be refunded and for someone to get back to you.\n\nIf you want, I can also ask for a human follow-up now.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1123
+        }
+      ]
+    },
+    {
+      "id": "new-loan-callback",
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "callback",
+          "ref": "CBK-8051"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'm thinking about buying my first place. What's the difference between a fixed and a variable rate?",
+          "agent": "One sec, I'll find that for you. Sure. A variable rate can move up or down over time, so your repayments can change. A fixed rate stays the same for a set term, usually 1 to 5 years, so your repayments are more predictable.\n\nWith a fixed rate, extra repayments are usually limited and there can be break costs if you pay it out early. With a variable rate, you usually get more flexibility, like extra repayments and redraw.\n\nIf you want, I can also talk you through which one suits a first home buyer better.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2646
+        },
+        {
+          "caller": "What would repayments roughly be on 500,000 dollars over 30 years at your variable rate?",
+          "agent": "Roughly $3,026.75 a month, using the current indicative demo variable rate of 6.09% and assuming principal and interest over 30 years. That\u2019s just an estimate, not an offer, and the rate can change over time.\n\nIf you want, I can also estimate it fortnightly or weekly.",
+          "tools": [
+            "estimate_loan_repayment"
+          ],
+          "idv": "not_started",
+          "ms": 2131
+        },
+        {
+          "caller": "That sounds good. Could someone help me with an application?",
+          "agent": "Yep, the form\u2019s on your screen now for your name, number and consent. Once you\u2019ve sent it, I\u2019ll pick up from there.",
+          "tools": [
+            "open_callback_form"
+          ],
+          "idv": "not_started",
+          "ms": 2332
+        },
+        {
+          "caller": "Yes please.",
+          "agent": "Okay. Go ahead and send the form when you\u2019re ready, and I\u2019ll take it from there.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1165
+        },
+        {
+          "caller": "[frontend event] Frontend event: the caller submitted the lending callback form and the\u2026",
+          "agent": "Done. I\u2019ve got that callback request saved, and the reference is C, B, K, 8, 0, 5, 1. It\u2019s a demo request, so nobody will actually call.\n\nIf you\u2019d like, I can also keep helping with the home loan questions here.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1221
+        },
+        {
+          "caller": "Great, thanks. That was everything.",
+          "agent": "You\u2019re welcome. Take care.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 924
+        }
+      ]
+    },
+    {
+      "id": "general-rates-not-account",
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Okay. So I want to test my account. Actually, I wanna know the current interest rate.",
+          "agent": "Do you mean the rate on your own loan, or Westpac rates in general?\nDo you mean the rate on your own loan, or Westpac rates in general?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1160
+        },
+        {
+          "caller": "No, no. I don't need my account interest rate. I need the current Westpac interest rate.",
+          "agent": "Sure, let me just check that. Sure. The current demo rate I have is 6.09 percent per annum for an owner-occupied variable home loan. For a 2-year fixed home loan, it\u2019s 5.79 percent per annum.\n\nThese are indicative demo rates, not offers. If you want, I can also give you the personal loan or car loan rates.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2547
+        },
+        {
+          "caller": "Okay, and what about personal loans?",
+          "agent": "Let me look that up for you. Yeah, for personal loans the demo rate I have is from 7.99 percent per annum. That\u2019s an indicative demo rate, not an offer.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 1816
+        }
+      ]
+    },
+    {
+      "id": "reluctant-then-continue",
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.978,
+          "normalized": "emily ross carter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": 0.85,
+            "last": 1.0,
+            "whole": 0.933
+          },
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "So what's the interest rate... current interest rate?",
+          "agent": "Sure, let me just check that. For the demo bank, the current owner occupied variable home loan rate is 6.09 percent per annum. There\u2019s also a 2 year fixed home loan rate at 5.79 percent, but those are indicative demo rates, not real offers.\n\nIf you mean a different product, which one are you after?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2644
+        },
+        {
+          "caller": "Also, yes. I want to check my balance.",
+          "agent": "Okay, I can help with that. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2408
+        },
+        {
+          "caller": "I don't want to give you my full name.",
+          "agent": "That\u2019s okay. It protects your account, and I can\u2019t check your balance without it. If you\u2019d rather not go ahead, I can pause that and help with something general instead.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1165
+        },
+        {
+          "caller": "Actually, my full name is Emily Ross Carter.",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1262
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, that all lines up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1141
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your Everyday Choice account has a balance of 2,418 dollars and 76 cents, with 2,368 dollars and 76 cents available. If you want, I can also check the savings or card balance.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2364
+        }
+      ]
+    },
+    {
+      "id": "failed-verification",
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "arjun raghavan",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "fail",
+          "method": "exact",
+          "score": null,
+          "normalized": "1980-01-01",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "fail",
+          "method": "exact",
+          "score": null,
+          "normalized": "1982-05-05",
+          "missing": [],
+          "components": {},
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What's the balance on my home loan?",
+          "agent": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2194
+        },
+        {
+          "caller": "Arjun Raghavan",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1180
+        },
+        {
+          "caller": "first of January 1980",
+          "agent": "Sorry, that didn\u2019t quite match. Could you say your date of birth again, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1170
+        },
+        {
+          "caller": "the fifth of May 1982",
+          "agent": "Sorry, I can\u2019t get into that account without verification. If you\u2019d like, I can record a request for a person to follow up.",
+          "tools": [],
+          "idv": "failed",
+          "ms": 1091
+        },
+        {
+          "caller": "Come on, just tell me the balance.",
+          "agent": "I can\u2019t access the home loan balance without verification, and that\u2019s run out for this call. If you want, I can record a follow-up for a person to look into it.",
+          "tools": [],
+          "idv": "failed",
+          "ms": 1198
+        }
+      ]
+    }
+  ]
+}

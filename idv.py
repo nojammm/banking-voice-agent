@@ -1,0 +1,844 @@
+"""Worker-side identity verification (ID&V).
+
+The Worker, not the conversational model, owns verification. Each step runs a field-specific
+normaliser, deterministic matching first, fuzzy scoring where the field allows it, and a
+constrained LLM fallback only for ambiguous cases. The Worker validates every fallback answer
+and makes the final decision. Stored identity values never enter the conversation.
+"""
+from __future__ import annotations
+
+import calendar
+import copy
+import difflib
+import json
+import os
+import re
+import time
+from dataclasses import asdict, dataclass, field
+from datetime import date
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+CONFIG_PATH = ROOT / 'config/assistants.yaml'
+STEP_CONFIG = {'full_name': 'name_match', 'dob': 'dob_match', 'address': 'address_match'}
+STEP_LABEL = {'full_name': 'full name', 'dob': 'date of birth', 'address': 'residential address'}
+
+DEFAULTS = {
+    'steps': ['full_name', 'dob', 'address'],
+    'max_incomplete': 3,
+    'free_uncertain_per_step': 1,
+    'auto_pause_after_non_answers': 2,
+    'debug': True,
+    'name_match': {'high_threshold': 0.55, 'low_threshold': 0.15, 'component_floor': 0.5,
+                   'llm_fallback_enabled': True, 'max_attempts': 3},
+    'dob_match': {'two_digit_year_pivot': 8, 'llm_fallback_enabled': True, 'max_attempts': 2},
+    'address_match': {'high_threshold': 0.8, 'low_threshold': 0.5,
+                      'llm_fallback_enabled': True, 'max_attempts': 2},
+}
+
+
+# ---------------------------------------------------------------- configuration
+
+def _merge(base, override, where):
+    for key, value in (override or {}).items():
+        if key not in base: raise ValueError(f'Unknown ID&V setting {where}{key}')
+        if isinstance(base[key], dict):
+            if not isinstance(value, dict): raise ValueError(f'{where}{key} must be a mapping')
+            _merge(base[key], value, f'{where}{key}.')
+        else:
+            base[key] = value
+
+
+def validate_config(cfg):
+    if not cfg['steps'] or any(s not in STEP_CONFIG for s in cfg['steps']) or len(set(cfg['steps'])) != len(cfg['steps']):
+        raise ValueError('steps must list distinct values from ' + ', '.join(STEP_CONFIG))
+    if cfg['steps'][0] != 'full_name':
+        raise ValueError('full_name must come first: it identifies the record the other steps check')
+    for key in ('name_match', 'address_match'):
+        low, high = cfg[key]['low_threshold'], cfg[key]['high_threshold']
+        if not 0 <= low <= high <= 1: raise ValueError(f'{key}: need 0 <= low_threshold <= high_threshold <= 1')
+    for key in STEP_CONFIG.values():
+        if not isinstance(cfg[key]['max_attempts'], int) or cfg[key]['max_attempts'] < 1:
+            raise ValueError(f'{key}.max_attempts must be a positive integer')
+    for key in ('max_incomplete', 'free_uncertain_per_step', 'auto_pause_after_non_answers'):
+        if not isinstance(cfg[key], int) or cfg[key] < 0: raise ValueError(f'{key} must be a whole number')
+    return cfg
+
+
+def load_config(assistant, path=None):
+    """Defaults <- file defaults <- this assistant's overrides. Missing keys keep their default."""
+    cfg = copy.deepcopy(DEFAULTS)
+    path = Path(path or os.environ.get('IDV_CONFIG') or CONFIG_PATH)
+    if path.exists():
+        import yaml  # The worker's virtualenv ships PyYAML; nothing else reads this file.
+        data = yaml.safe_load(path.read_text()) or {}
+        _merge(cfg, data.get('defaults'), '')
+        _merge(cfg, (data.get('assistants') or {}).get(assistant), f'assistants.{assistant}.')
+    return validate_config(cfg)
+
+
+# ---------------------------------------------------------------- spoken numbers
+
+UNITS = {'zero': 0, 'oh': 0, 'o': 0, 'nought': 0, 'naught': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4,
+         'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9}
+TEENS = {'ten': 10, 'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
+         'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19}
+TENS = {'twenty': 20, 'thirty': 30, 'forty': 40, 'fourty': 40, 'fifty': 50, 'sixty': 60,
+        'seventy': 70, 'eighty': 80, 'ninety': 90}
+ORD_UNITS = {'first': 1, 'second': 2, 'third': 3, 'fourth': 4, 'forth': 4, 'fifth': 5, 'sixth': 6,
+             'seventh': 7, 'eighth': 8, 'ninth': 9}
+ORDINALS = {**ORD_UNITS, 'tenth': 10, 'eleventh': 11, 'twelfth': 12, 'thirteenth': 13, 'fourteenth': 14,
+            'fifteenth': 15, 'sixteenth': 16, 'seventeenth': 17, 'eighteenth': 18, 'nineteenth': 19,
+            'twentieth': 20, 'thirtieth': 30}
+MONTHS = {name: i for i, names in enumerate([
+    (), ('january', 'jan'), ('february', 'feb', 'febuary', 'febru'), ('march', 'mar'), ('april', 'apr'),
+    ('may',), ('june', 'jun'), ('july', 'jul'), ('august', 'aug'), ('september', 'sep', 'sept'),
+    ('october', 'oct'), ('november', 'nov'), ('december', 'dec')]) for name in names}
+NUMBER_WORDS = set(UNITS) | set(TEENS) | set(TENS) | set(ORDINALS) | {'hundred', 'thousand', 'double', 'triple'}
+
+
+@dataclass
+class Num:
+    digits: str
+    ordinal: bool
+    pos: int
+
+
+@dataclass
+class Word:
+    text: str
+    pos: int
+
+
+def tokens(text):
+    text = text.lower().replace('’', "'").replace("'", '')
+    return re.findall(r'\d+(?:st|nd|rd|th)?|[a-z]+', text)
+
+
+def _numeric(toks, i):
+    return 0 <= i < len(toks) and (toks[i][0].isdigit() or (toks[i] in NUMBER_WORDS and toks[i] not in ('o', 'oh')))
+
+
+def _small(toks, i):
+    """A number below 100 starting at toks[i]: (value, ordinal, tokens used)."""
+    t = toks[i] if i < len(toks) else None
+    if t in TENS:
+        n = toks[i + 1] if i + 1 < len(toks) else None
+        if n in UNITS and UNITS[n] and n not in ('o', 'oh'): return TENS[t] + UNITS[n], False, 2
+        if n in ORD_UNITS: return TENS[t] + ORD_UNITS[n], True, 2
+        return TENS[t], False, 1
+    if t in TEENS: return TEENS[t], False, 1
+    if t in ORDINALS: return ORDINALS[t], True, 1
+    if t in ('o', 'oh') and not (_numeric(toks, i + 1) or _numeric(toks, i - 1)):
+        return 0, False, 0  # "Oh, it's…" is a filler, not a zero.
+    if t in UNITS: return UNITS[t], False, 1
+    return 0, False, 0
+
+
+def _compound(toks, i, allow_thousand=True):
+    value, ordinal, used = _small(toks, i)
+    if not used: return None
+    j = i + used
+    if not ordinal and toks[j:j + 1] == ['hundred']:
+        value, j = value * 100, j + 1
+        k = j + (toks[j:j + 1] == ['and'])
+        rest, ordinal, more = _small(toks, k)
+        if more: value, j = value + rest, k + more
+    if allow_thousand and not ordinal and toks[j:j + 1] == ['thousand']:
+        value, j = value * 1000, j + 1
+        k = j + (toks[j:j + 1] == ['and'])
+        rest = _compound(toks, k, allow_thousand=False)
+        if rest: value, ordinal, j = value + int(rest[0]), rest[1], k + rest[2]
+    return str(value), ordinal, j - i
+
+
+def spoken_items(text):
+    """Tokens with spoken numbers grouped the way people say them.
+
+    "nineteen eighty five" -> 19, 85; "twenty third" -> 23rd; "two thousand and two" -> 2002;
+    "oh three" -> 0, 3; "double four" -> 4, 4. Pieces keep their spoken boundaries so date and
+    address parsers can decide how to join them.
+    """
+    toks, items, i = tokens(text), [], 0
+    while i < len(toks):
+        t = toks[i]
+        if (m := re.fullmatch(r'(\d+)(st|nd|rd|th)?', t)):
+            items.append(Num(m[1], bool(m[2]), i)); i += 1; continue
+        if t in ('st', 'nd', 'rd', 'th') and items and isinstance(items[-1], Num) and items[-1].pos == i - 1:
+            items[-1].ordinal = True; i += 1; continue
+        if t in ('double', 'triple') and i + 1 < len(toks) and toks[i + 1] in UNITS:
+            for _ in range(2 if t == 'double' else 3): items.append(Num(str(UNITS[toks[i + 1]]), False, i))
+            i += 2; continue
+        if (found := _compound(toks, i)):
+            items.append(Num(found[0], found[1], i)); i += found[2]; continue
+        items.append(Word(t, i)); i += 1
+    return items
+
+
+# ---------------------------------------------------------------- results and fallback
+
+@dataclass
+class FieldResult:
+    field: str
+    outcome: str  # pass | fail | incomplete | no_answer | uncertain (probably right, can't confirm)
+    method: str  # exact | fuzzy | deterministic | llm | none
+    score: float | None = None
+    normalized: str | None = None
+    missing: list = field(default_factory=list)
+    components: dict = field(default_factory=dict)
+    llm: dict | None = None
+    customer_id: str | None = None
+
+    def public(self, debug=True):
+        data = asdict(self)
+        data.pop('customer_id')
+        if not debug: data.pop('normalized'); data.pop('components')
+        return data
+
+
+LLM_SCHEMAS = {
+    'name': {'type': 'object', 'additionalProperties': False, 'required': ['verdict', 'cause', 'evidence'], 'properties': {
+        'verdict': {'type': 'string', 'enum': ['same_name', 'different_name', 'not_a_name', 'uncertain']},
+        'cause': {'type': 'string', 'enum': ['stt_error', 'pronunciation', 'spelling_variant', 'short_form', 'different', 'not_a_name', 'unclear']},
+        'evidence': {'type': 'string'}}},
+    'dob': {'type': 'object', 'additionalProperties': False, 'required': ['status', 'date', 'missing'], 'properties': {
+        'status': {'type': 'string', 'enum': ['complete', 'incomplete', 'unclear']},
+        'date': {'type': 'string'},
+        'missing': {'type': 'array', 'items': {'type': 'string', 'enum': ['day', 'month', 'year']}}}},
+    'address': {'type': 'object', 'additionalProperties': False, 'required': ['verdict', 'evidence'], 'properties': {
+        'verdict': {'type': 'string', 'enum': ['same', 'different', 'uncertain']},
+        'evidence': {'type': 'string'}}},
+}
+LLM_INSTRUCTIONS = {
+    'name': ("You are a constrained second-opinion check inside a bank's identity verification. A caller's spoken "
+             "name was transcribed by speech-to-text and only partly matches the record. Decide whether the "
+             "difference is plausibly caused by transcription error, accent or pronunciation, a spelling variant "
+             "or a common short form of the same name. A different first name or surname is a different name. "
+             "If the words aren't a person's name at all (a question, a request, banking words), answer not_a_name. "
+             "If you cannot tell, answer uncertain. Give one short sentence of evidence."),
+    'dob': ("Normalise a caller's spoken date of birth, transcribed by speech-to-text, to YYYY-MM-DD. Australian "
+            "day-month-year order is the default. Treat 'oh' as zero and 'a' as 'of'. Two-digit years 00-08 are "
+            "2000s, otherwise 1900s. Never invent a missing part: use status incomplete and list what is missing. "
+            "If the words can't be read as a single date, use status unclear and an empty date."),
+    'address': ("You are a constrained second-opinion check inside a bank's identity verification. Decide whether a "
+                "spoken address component, transcribed by speech-to-text, is plausibly the same place name as the "
+                "record despite transcription or pronunciation differences. A different place is different. If you "
+                "cannot tell, answer uncertain. Give one short sentence of evidence."),
+}
+
+
+class OpenAIJudge:
+    """LLM fallback for ambiguous ID&V inputs. It interprets; the Worker decides."""
+
+    def __init__(self, model=None, timeout=4.0):
+        from openai import AsyncOpenAI
+        self.client = AsyncOpenAI(timeout=timeout, max_retries=0)
+        self.model = model or os.environ.get('IDV_LLM_MODEL') or os.environ.get('LIVE_LLM_MODEL', 'gpt-5.4-mini')
+
+    async def __call__(self, task, payload):
+        response = await self.client.chat.completions.create(
+            model=self.model, store=False, reasoning_effort='none', max_completion_tokens=200,
+            messages=[{'role': 'system', 'content': LLM_INSTRUCTIONS[task]},
+                      {'role': 'user', 'content': json.dumps(payload)}],
+            response_format={'type': 'json_schema', 'json_schema': {
+                'name': f'idv_{task}', 'strict': True, 'schema': LLM_SCHEMAS[task]}})
+        return json.loads(response.choices[0].message.content)
+
+
+async def _ask(judge, task, payload):
+    """Call the fallback; any exception or timeout becomes an invalid verdict, never a pass."""
+    started = time.monotonic()
+    info = {'invoked': True, 'task': task}
+    try:
+        info['response'] = await judge(task, payload)
+    except Exception as exc:  # The fallback must fail closed.
+        info['error'] = type(exc).__name__
+    info['latency_ms'] = round((time.monotonic() - started) * 1000)
+    return info
+
+
+# ---------------------------------------------------------------- names
+
+FILLER = re.compile(
+    r"\b(?:is my (?:full )?name|my (?:full |legal )?name is|my (?:full )?names|the names?|names|full name is|"
+    r"it is|its|i am|im|this is|thats|that is|spelled|spelt|um+|uh+|erm|er|ah+|hmm+|yeah|yep|yes|sure|okay|ok|"
+    r"so|well|right|alright|hi|hello|thanks|thank you|please|speaking|here)\b")
+COMMON = set('''i me my mine you your we us want wanted need would like to a an the of for about with and or but not
+no can could do does did why what how who where when is are was be been have has had help account balance loan
+card money pay payment complaint complain problem issue mortgage bank transaction call speak someone person human
+wait sorry hang on just give tell know dont that this there again repeat already said told agent real fraud scam
+hardship dispute charge charged check if will should get got go going interest rate rates current westpac
+credit savings fees fee cost general information info question asking actually instead rather loans accounts
+anything something nothing never mind forget sorry'''.split())
+
+
+def soundex(word):
+    codes = {**dict.fromkeys('bfpv', '1'), **dict.fromkeys('cgjkqsxz', '2'), **dict.fromkeys('dt', '3'),
+             'l': '4', **dict.fromkeys('mn', '5'), 'r': '6'}
+    out, last = word[0], codes.get(word[0], '')
+    for ch in word[1:]:
+        code = codes.get(ch, '')
+        if code and code != last: out += code
+        if ch not in 'hw': last = code
+    return (out + '000')[:4]
+
+
+def similarity(a, b):
+    if a == b: return 1.0
+    if not a or not b: return 0.0
+    score = difflib.SequenceMatcher(None, a, b).ratio()
+    if len(a) > 2 and len(b) > 2 and soundex(a) == soundex(b): score = max(score, 0.85)
+    return score
+
+
+def name_tokens(text):
+    raw = text.lower().replace('’', "'")
+    words = re.findall(r"[a-z]+", FILLER.sub(' ', raw.replace("'", '')))
+    joined, run = [], []
+    for w in words + ['']:  # Spelled-out letters ("c a r t e r") become one word.
+        if len(w) == 1: run.append(w); continue
+        joined.extend([''.join(run)] if len(run) >= 3 else run); run = []
+        if w: joined.append(w)
+    return joined
+
+
+def score_name(spoken, record):
+    first, middle, last = (record.get('first_name', '') or '').lower(), (record.get('middle_name') or '').lower(), record['last_name'].lower()
+    grams = spoken + [a + b for a, b in zip(spoken, spoken[1:])]
+    f = max(similarity(g, first) for g in grams)
+    l = max(similarity(g, last) for g in grams)
+    m = max(similarity(g, middle) for g in grams) if middle and len(spoken) >= 3 else None
+    weighted = 0.45 * f + 0.55 * l if m is None else 0.4 * f + 0.15 * m + 0.45 * l
+    whole = max(difflib.SequenceMatcher(None, ''.join(spoken), first + last).ratio(),
+                difflib.SequenceMatcher(None, ''.join(spoken), first + middle + last).ratio())
+    return round(max(weighted, whole), 3), {'first': round(f, 3), 'middle': None if m is None else round(m, 3),
+                                             'last': round(l, 3), 'whole': round(whole, 3)}
+
+
+def full_name(record):
+    return ' '.join(p for p in (record['first_name'], record.get('middle_name'), record['last_name']) if p)
+
+
+def name_decision(score, parts, cfg):
+    """pass at or above high_threshold (if first and last name each clear the floor), fail below
+    low_threshold, otherwise ask the LLM. The floor stops "right first name, wrong surname" passing."""
+    if score >= cfg['high_threshold'] and min(parts['first'], parts['last']) >= cfg['component_floor']: return 'pass'
+    return 'llm' if score >= cfg['low_threshold'] else 'fail'
+
+
+async def match_name(text, customers, cfg, judge=None):
+    if '?' in text or re.search(r'\d', text): return FieldResult('full_name', 'no_answer', 'none')
+    spoken = name_tokens(text)
+    common = [t for t in spoken if t in COMMON]
+    if not spoken or len(common) >= 2 or len(common) * 2 > len(spoken) or len(spoken) > 6:
+        return FieldResult('full_name', 'no_answer', 'none')  # A question or a different request, not a name.
+    spoken = [t for t in spoken if t not in COMMON]
+    normalized = ' '.join(spoken)
+    for c in customers:
+        exact = {f"{c['first_name']} {c['last_name']}".lower(), full_name(c).lower()}
+        if normalized in exact:
+            return FieldResult('full_name', 'pass', 'exact', 1.0, normalized, customer_id=c['id'])
+    if len(spoken) == 1:
+        for c in customers:
+            whole = difflib.SequenceMatcher(None, spoken[0], (c['first_name'] + c['last_name']).lower()).ratio()
+            if whole >= 0.8: break  # One run-together token ("emilycarter") is still a full name.
+            if similarity(spoken[0], c['first_name'].lower()) >= 0.8:
+                return FieldResult('full_name', 'incomplete', 'deterministic', normalized=normalized, missing=['last name'])
+            if similarity(spoken[0], c['last_name'].lower()) >= 0.8:
+                return FieldResult('full_name', 'incomplete', 'deterministic', normalized=normalized, missing=['first name'])
+    scored = sorted(((score_name(spoken, c), c) for c in customers), key=lambda x: -x[0][0])
+    (score, parts), best = scored[0]
+    result = FieldResult('full_name', 'fail', 'fuzzy', score, normalized, components=parts, customer_id=best['id'])
+    decision = name_decision(score, parts, cfg)
+    if decision == 'pass':
+        result.outcome = 'pass'
+    elif decision == 'llm':
+        if not (cfg['llm_fallback_enabled'] and judge):
+            return result  # Without a second opinion the ambiguous band fails closed.
+        info = await _ask(judge, 'name', {'spoken': normalized, 'record': full_name(best), 'fuzzy_score': score})
+        result.method, result.llm = 'llm', info
+        verdict = _valid_name_verdict(info.get('response'))
+        info['valid'] = verdict is not None
+        # The fallback can also say the words weren't a name at all: that's not an attempt.
+        result.outcome = {'same_name': 'pass', 'different_name': 'fail', 'not_a_name': 'no_answer'}.get(verdict, 'uncertain')
+    if result.outcome != 'pass': result.customer_id = None
+    return result
+
+
+def _valid_name_verdict(response):
+    if not isinstance(response, dict) or set(response) != {'verdict', 'cause', 'evidence'}: return None
+    verdict, cause, evidence = response['verdict'], response['cause'], response['evidence']
+    if verdict not in ('same_name', 'different_name', 'not_a_name', 'uncertain') or not isinstance(evidence, str) or not evidence.strip() or len(evidence) > 400:
+        return None
+    if verdict == 'same_name' and cause not in ('stt_error', 'pronunciation', 'spelling_variant', 'short_form'):
+        return None  # A pass must name a plausible cause.
+    return None if verdict == 'uncertain' else verdict
+
+
+# ---------------------------------------------------------------- dates of birth
+
+@dataclass
+class DobParse:
+    status: str  # ok | ambiguous | incomplete | no_answer | unparsed
+    value: str | None = None
+    candidates: list = field(default_factory=list)
+    missing: list = field(default_factory=list)
+
+
+def _year(text, today, pivot):
+    if len(text) == 2:
+        year = int(text) + (2000 if int(text) <= pivot else 1900)
+    elif len(text) == 4:
+        year = int(text)
+    else:
+        return None
+    return year if 1900 <= year <= today.year else None
+
+
+def make_date(d, m, y, today, pivot):
+    if not (1 <= len(d) <= 2 and 1 <= len(m) <= 2): return None
+    year, month, day = _year(y, today, pivot), int(m), int(d)
+    if year is None or not 1 <= month <= 12 or not 1 <= day <= calendar.monthrange(year, month)[1]: return None
+    value = date(year, month, day)
+    return value.isoformat() if value <= today else None
+
+
+def _best(found):
+    if not found: return None
+    top = max(score for score, _ in found)
+    return sorted({value for score, value in found if score == top})
+
+
+def _partitions(pieces, today, pivot):
+    """Split spoken number pieces into day, month and year; DD/MM/YYYY first, as in Australia."""
+    n, orders = len(pieces), {'dmy': [], 'mdy': [], 'ymd': []}
+    for i in range(1, n - 1):
+        for j in range(i + 1, n):
+            groups = (pieces[:i], pieces[i:j], pieces[j:])
+            text = [''.join(p.digits for p in g) for g in groups]
+            natural = sum(len(g) == 1 for g in groups)
+            for order, (d, m, y) in (('dmy', (0, 1, 2)), ('mdy', (1, 0, 2)), ('ymd', (2, 1, 0))):
+                value = make_date(text[d], text[m], text[y], today, pivot)
+                if value:
+                    bonus = 0.5 if any(p.ordinal for p in groups[d]) else 0
+                    orders[order].append((natural + bonus, value))
+    for order in ('dmy', 'ymd', 'mdy'):
+        if (best := _best(orders[order])): return best
+    return []
+
+
+def parse_dob(text, today, pivot=8):
+    items = spoken_items(text)
+    nums = [x for x in items if isinstance(x, Num)]
+    months = {MONTHS[x.text]: x.pos for x in items if isinstance(x, Word) and x.text in MONTHS}
+    if not nums and not months: return DobParse('no_answer')
+    if len(months) > 1: return DobParse('unparsed')
+    if months:
+        (month, pos), = months.items()
+        before, after = [n for n in nums if n.pos < pos], [n for n in nums if n.pos > pos]
+        joined = lambda group: ''.join(p.digits for p in group)
+        found = []
+        if before and after:
+            found += [(2, v) for v in [make_date(joined(before), str(month), joined(after), today, pivot),
+                                       make_date(joined(after), str(month), joined(before), today, pivot)] if v]
+        else:
+            group = before or after
+            for k in range(1, len(group)):
+                value = make_date(joined(group[:k]), str(month), joined(group[k:]), today, pivot)
+                if value: found.append(((k == 1) + (len(group) - k == 1) + 0.5 * group[0].ordinal, value))
+        if (best := _best(found)): return DobParse('ok' if len(best) == 1 else 'ambiguous', best[0] if len(best) == 1 else None, best)
+        group = before or after
+        if not nums: return DobParse('incomplete', missing=['day', 'year'])
+        if len(nums) == 1:
+            value = nums[0].digits
+            return DobParse('incomplete', missing=['year'] if len(value) <= 2 and int(value) <= 31 else ['day'])
+        return DobParse('unparsed')
+    candidates = _partitions(nums, today, pivot)
+    if not candidates and any(len(n.digits) > 4 for n in nums):
+        singles = [Num(ch, False, n.pos) for n in nums for ch in n.digits]
+        candidates = _partitions(singles, today, pivot)
+    if len(candidates) == 1: return DobParse('ok', candidates[0], candidates)
+    if candidates: return DobParse('ambiguous', candidates=candidates)
+    digits = sum(len(n.digits) for n in nums)
+    if digits <= 4 and len(nums) <= 2:
+        return DobParse('incomplete', missing=['year'] if len(nums) == 2 else ['month', 'year'])
+    return DobParse('unparsed')
+
+
+def _valid_llm_date(response, today, candidates):
+    if not isinstance(response, dict) or set(response) != {'status', 'date', 'missing'}: return None
+    if response['status'] == 'incomplete':
+        missing = response['missing']
+        if isinstance(missing, list) and missing and set(missing) <= {'day', 'month', 'year'}: return ('incomplete', missing)
+        return None
+    if response['status'] != 'complete' or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(response['date'])): return None
+    y, m, d = response['date'].split('-')
+    value = make_date(d, m, y, today, 0)
+    if value is None or (candidates and value not in candidates):
+        return None  # The fallback may only choose between readings the Worker already found.
+    return ('complete', value)
+
+
+async def match_dob(text, stored, cfg, judge=None, today=None):
+    today = today or date.today()
+    parsed = parse_dob(text, today, cfg['two_digit_year_pivot'])
+    if parsed.status == 'no_answer': return FieldResult('dob', 'no_answer', 'none')
+    if parsed.status == 'incomplete':
+        return FieldResult('dob', 'incomplete', 'deterministic', missing=parsed.missing)
+    if parsed.status == 'ok':
+        return FieldResult('dob', 'pass' if parsed.value == stored else 'fail', 'exact', normalized=parsed.value)
+    result = FieldResult('dob', 'uncertain', 'llm', components={'candidates': parsed.candidates})
+    if not (cfg['llm_fallback_enabled'] and judge): result.method = 'deterministic'; return result
+    result.llm = info = await _ask(judge, 'dob', {'spoken': text})
+    checked = _valid_llm_date(info.get('response'), today, parsed.candidates)
+    info['valid'] = checked is not None
+    if checked and checked[0] == 'incomplete':
+        result.outcome, result.missing = 'incomplete', checked[1]
+    elif checked:
+        result.normalized = checked[1]
+        result.outcome = 'pass' if checked[1] == stored else 'fail'
+    return result
+
+
+# ---------------------------------------------------------------- addresses
+
+STREET_TYPES = {'st': 'street', 'street': 'street', 'rd': 'road', 'road': 'road', 'ave': 'avenue', 'av': 'avenue',
+                'avenue': 'avenue', 'dr': 'drive', 'drive': 'drive', 'cres': 'crescent', 'crescent': 'crescent',
+                'ct': 'court', 'court': 'court', 'pl': 'place', 'place': 'place', 'hwy': 'highway',
+                'highway': 'highway', 'pde': 'parade', 'parade': 'parade', 'tce': 'terrace', 'terrace': 'terrace',
+                'blvd': 'boulevard', 'bvd': 'boulevard', 'boulevard': 'boulevard', 'ln': 'lane', 'lane': 'lane',
+                'cl': 'close', 'close': 'close', 'way': 'way', 'cct': 'circuit', 'circuit': 'circuit',
+                'gr': 'grove', 'grove': 'grove', 'sq': 'square', 'square': 'square', 'esp': 'esplanade',
+                'esplanade': 'esplanade'}
+STATES = [('new south wales', 'NSW'), ('n s w', 'NSW'), ('nsw', 'NSW'), ('victoria', 'VIC'), ('vic', 'VIC'),
+          ('queensland', 'QLD'), ('qld', 'QLD'), ('western australia', 'WA'), ('w a', 'WA'), ('wa', 'WA'),
+          ('south australia', 'SA'), ('s a', 'SA'), ('sa', 'SA'), ('tasmania', 'TAS'), ('tas', 'TAS'),
+          ('northern territory', 'NT'), ('n t', 'NT'), ('nt', 'NT'),
+          ('australian capital territory', 'ACT'), ('a c t', 'ACT'), ('act', 'ACT')]
+ADDRESS_FILLER = set('''my address is its it the at in live i um uh er yeah so slash number unit apartment apt flat
+suite level postcode post code state of and its thats a we our on yes sure okay ok well'''.split())
+EXACT_PARTS, FUZZY_PARTS = ('unit', 'street_number', 'postcode', 'state'), ('street_name', 'suburb')
+
+
+def _address_parts(text):
+    lowered = ' ' + ' '.join(tokens(text.replace('/', ' slash '))) + ' '
+    state = None
+    for phrase, code in STATES:
+        if f' {phrase} ' in lowered:
+            state = state or code
+            lowered = lowered.replace(f' {phrase} ', ' ')
+    groups, current, words = [], [], []
+    for item in spoken_items(lowered):
+        if isinstance(item, Num): current.append(item.digits); continue
+        if item.text == 'slash' and current: continue
+        if current: groups.append(current); current = []
+        words.append(item.text)
+    if current: groups.append(current)
+    return groups, words, state
+
+
+def _candidates(group):
+    return {''.join(group[i:j]) for i in range(len(group)) for j in range(i + 1, min(len(group), i + 4) + 1)}
+
+
+def _gram_score(words, target):
+    target = target.lower().split()
+    if not words: return 0.0
+    best = 0.0
+    for size in {max(1, len(target) - 1), len(target), len(target) + 1}:
+        for i in range(len(words) - size + 1):
+            best = max(best, similarity(''.join(words[i:i + size]), ''.join(target)))
+    return round(best, 3)
+
+
+def score_address(text, stored):
+    """Per-component status for one spoken answer: match, mismatch, missing, or a fuzzy score."""
+    groups, words, state = _address_parts(text)
+    unit, number, postcode = stored.get('unit') or '', stored['number'], stored['postcode']
+    parts = {}
+    street = next((g for g in groups if number in _candidates(g) or (unit and unit + number in _candidates(g))), None)
+    if street:
+        parts['street_number'] = 'match'
+        if unit:
+            cands = _candidates(street)
+            parts['unit'] = ('match' if unit + number in cands or unit in cands - {number} else
+                             'missing' if street == [number] else 'mismatch')
+    rest = [g for g in groups if g is not street]
+    if any(postcode in _candidates(g) for g in rest):
+        parts['postcode'] = 'match'
+    else:
+        parts['postcode'] = 'mismatch' if any(len(''.join(g)) == 4 for g in rest) else 'missing'
+    if not street:
+        guesses = [g for g in rest if len(''.join(g)) != 4]
+        parts['street_number'] = 'mismatch' if guesses else 'missing'
+        if unit: parts['unit'] = parts['street_number']
+    parts['state'] = 'missing' if state is None else ('match' if state == stored['state'] else 'mismatch')
+    content = [w for w in words if w not in ADDRESS_FILLER]
+    type_at = next((i for i, w in enumerate(content) if w in STREET_TYPES), None)
+    street_words = content[:type_at] if type_at is not None else content
+    suburb_words = content[type_at + 1:] if type_at is not None else content
+    parts['street_name'] = _gram_score(street_words, stored['street']) if street_words else 'missing'
+    parts['suburb'] = _gram_score(suburb_words, stored['suburb']) if suburb_words else 'missing'
+    for part in FUZZY_PARTS:  # Without a street type, unrelated words aren't evidence of a wrong name.
+        if type_at is None and isinstance(parts[part], float) and parts[part] < 0.5: parts[part] = 'missing'
+    return parts, {'numbers': [''.join(g) for g in groups], 'state': state, 'words': content}
+
+
+def _address_verdict(info):
+    response = info.get('response')
+    ok = (isinstance(response, dict) and set(response) == {'verdict', 'evidence'} and
+          response['verdict'] in ('same', 'different', 'uncertain') and
+          isinstance(response['evidence'], str) and bool(response['evidence'].strip()))
+    info['valid'] = ok
+    return response['verdict'] if ok else 'uncertain'
+
+
+async def match_address(text, stored, cfg, judge=None, carry=None):
+    """Exact street number, unit, postcode and state; fuzzy street and suburb names.
+
+    Components confirmed in an earlier turn carry over, so a retry only needs the missing part.
+    """
+    carry = dict(carry or {})
+    parts, normalized = score_address(text, stored)
+    if all(v == 'missing' for v in parts.values()): return FieldResult('address', 'no_answer', 'none')
+    required = [p for p in EXACT_PARTS + FUZZY_PARTS if p != 'unit' or stored.get('unit')]
+    readable = f"numbers {' '.join(normalized['numbers']) or '-'} · state {normalized['state'] or '-'} · words {' '.join(normalized['words']) or '-'}"
+    result = FieldResult('address', 'fail', 'deterministic', normalized=readable)
+    status = {}
+    for part in required:
+        if carry.get(part) == 'match':
+            status[part], result.components[part] = 'match', 'match (earlier turn)'
+            continue
+        value = parts[part]
+        if isinstance(value, float):
+            result.method = 'fuzzy'
+            status[part] = ('match' if value >= cfg['high_threshold'] else
+                            'ambiguous' if value >= cfg['low_threshold'] else 'mismatch')
+            result.components[part] = f'{status[part]} ({value})'
+        else:
+            status[part] = result.components[part] = value
+    ambiguous = [p for p in required if status[p] == 'ambiguous']
+    if 'mismatch' not in status.values() and ambiguous:
+        if cfg['llm_fallback_enabled'] and judge:
+            result.method, result.llm = 'llm', {'invoked': True, 'calls': []}
+            for part in ambiguous:
+                info = await _ask(judge, 'address', {'component': part.replace('_', ' '), 'spoken': ' '.join(normalized['words']),
+                                                     'record': stored['street' if part == 'street_name' else 'suburb']})
+                verdict = _address_verdict(info)
+                result.llm['calls'].append({'component': part, **info})
+                status[part] = {'same': 'match', 'different': 'mismatch'}[verdict] if verdict != 'uncertain' else 'uncertain'
+        else:
+            status.update({p: 'mismatch' for p in ambiguous})  # No second opinion: fail closed.
+    for part in required:
+        if status[part] == 'match': carry[part] = 'match'
+    missing = [p for p in required if status[p] == 'missing']
+    if 'mismatch' in status.values(): result.outcome = 'fail'
+    elif 'uncertain' in status.values(): result.outcome = 'uncertain'
+    elif missing: result.outcome, result.missing = 'incomplete', [p.replace('_', ' ') for p in missing]
+    else: result.outcome = 'pass'
+    result.components['_carry'] = carry
+    return result
+
+
+# ---------------------------------------------------------------- state machine
+
+# Volunteering one of these while paused resumes verification. Names have a strong "is this an answer?"
+# gate; stray numbers could look like a date or street number, so those steps resume only on request.
+RESUME_BY_ANSWER = {'full_name'}
+CLARIFY = {'full_name': 'spell their surname', 'dob': 'say it again with the month as a word',
+           'address': 'repeat the street and suburb slowly'}
+ASK_PATTERNS = {
+    'full_name': re.compile(r"\b(?:full name|your name|first and last name|surname|last name|legal name)\b", re.I),
+    'dob': re.compile(r"\b(?:date of birth|birth ?date|d\.?o\.?b|when (?:were|was) you born|birthday)\b", re.I),
+    'address': re.compile(r"\b(?:residential address|home address|your address|street address|address (?:we|on file)|postcode)\b", re.I),
+}
+VERIFY_CONTEXT = re.compile(r"\b(?:verify|verification|confirm|identity|security|secure|make sure|check (?:that )?(?:it'?s|its) you)\b", re.I)
+
+
+class Verification:
+    """Worker-owned ID&V state. The model can only observe it."""
+
+    def __init__(self, customers, config=None, judge=None, today=None, on_event=None):
+        self.customers = customers
+        self.cfg = config or validate_config(copy.deepcopy(DEFAULTS))
+        self.judge, self.today = judge, today
+        self.on_event = on_event or (lambda kind, data: None)
+        self.status, self.step, self.customer_id, self.last = 'not_started', None, None, None
+        self.steps = {s: {'status': 'pending', 'attempts': 0, 'incomplete': 0, 'uncertain': 0, 'asked': False, 'activated_by': None}
+                      for s in self.cfg['steps']}
+        self.address_carry, self.history, self.non_answers, self.paused_by = {}, [], 0, None
+
+    @property
+    def verified(self):
+        return self.status == 'verified'
+
+    def customer(self):
+        return next((c for c in self.customers if c['id'] == self.customer_id), None)
+
+    def _event(self, kind, **data):
+        self.on_event(kind, data)
+
+    def _activate(self, step, source):
+        self.step = step
+        self.steps[step].update(status='active', activated_by=source)
+        self._event('idv_step_active', step=step, source=source)
+
+    def begin(self, source='tool'):
+        if self.status in ('verified', 'failed'):
+            self._event('idv_transition_blocked', reason=f'already {self.status}', source=source)
+            return False
+        if self.status == 'in_progress': return True
+        if self.status == 'paused':  # Resume where it stopped; attempts are never reset.
+            self.status, self.paused_by, self.non_answers = 'in_progress', None, 0
+            self._event('idv_resumed', source=source, step=self.step)
+            return True
+        self.status = 'in_progress'
+        self._event('idv_started', source=source)
+        self._activate(self.cfg['steps'][0], source)
+        return True
+
+    def pause(self, source, reason=''):
+        """Stop matching because the caller moved on. Only removes access, so the model may ask for it."""
+        if self.status != 'in_progress':
+            self._event('idv_transition_blocked', reason=f'cannot pause when {self.status}', source=source)
+            return False
+        self.status, self.paused_by, self.non_answers = 'paused', source, 0
+        self._event('idv_paused', source=source, step=self.step, reason=reason[:120])
+        return True
+
+    def observe_agent(self, text):
+        """Compatibility path: detect identity questions in the agent's own words."""
+        hits = [s for s, p in ASK_PATTERNS.items() if s in self.steps and p.search(text)]
+        if not hits: return
+        if self.status == 'not_started':
+            if self.cfg['steps'][0] in hits and VERIFY_CONTEXT.search(text):
+                self.begin('regex')
+                self.steps[self.step]['asked'] = True
+            else:
+                self._event('idv_regex_ignored', detected=hits, reason='no verification context or out of order')
+        elif self.status == 'in_progress':
+            if self.step in hits:
+                if not self.steps[self.step]['asked']: self._event('idv_step_asked', step=self.step, source='regex')
+                self.steps[self.step]['asked'] = True
+            else:
+                self._event('idv_regex_ignored', detected=hits, expected=self.step, reason='out of order')
+        elif self.status == 'paused' and self.step in hits:
+            self.begin('regex')  # The agent went back to the paused question.
+            self.steps[self.step]['asked'] = True
+        else:
+            self._event('idv_regex_ignored', detected=hits, reason=f'verification {self.status}')
+
+    def might_answer(self, text):
+        """Cheap check: could this paused-step turn be a volunteered answer?"""
+        if self.status != 'paused' or self.step not in RESUME_BY_ANSWER: return False
+        spoken = name_tokens(text)
+        common = [t for t in spoken if t in COMMON]
+        return bool(spoken) and '?' not in text and len(common) < 2 and len(common) * 2 <= len(spoken) <= 12
+
+    async def answer(self, text):
+        resuming = self.status == 'paused' and self.step in RESUME_BY_ANSWER
+        if self.status != 'in_progress' and not resuming: return None
+        step, today = self.step, self.today or date.today()
+        cfg = self.cfg[STEP_CONFIG[step]]
+        if step == 'full_name':
+            result = await match_name(text, self.customers, cfg, self.judge)
+        elif step == 'dob':
+            result = await match_dob(text, self.customer()['dob'], cfg, self.judge, today)
+        else:
+            result = await match_address(text, self.customer()['address'], cfg, self.judge, self.address_carry)
+            self.address_carry = result.components.pop('_carry', self.address_carry)
+        if resuming:
+            if result.outcome == 'no_answer': return None  # Still moved on: nothing is recorded.
+            self.begin('caller')  # They volunteered the detail; it counts like any other attempt.
+        state = self.steps[step]
+        if result.outcome == 'pass':
+            state['status'] = 'passed'
+            if step == 'full_name': self.customer_id = result.customer_id
+            remaining = [s for s in self.cfg['steps'] if self.steps[s]['status'] == 'pending']
+            if remaining:
+                self._activate(remaining[0], 'progression')
+            else:
+                self.status, self.step = 'verified', None
+        elif result.outcome == 'incomplete':
+            state['incomplete'] += 1
+            if state['incomplete'] > self.cfg['max_incomplete']:
+                state['incomplete'] = 0
+                self._fail_attempt(step, cfg)
+        elif result.outcome == 'uncertain':
+            state['uncertain'] += 1  # Probably a mishearing: the first ones only ask for a clarification.
+            if state['uncertain'] > self.cfg['free_uncertain_per_step']: self._fail_attempt(step, cfg)
+        elif result.outcome == 'fail':
+            self._fail_attempt(step, cfg)
+        self.non_answers = self.non_answers + 1 if result.outcome == 'no_answer' else 0
+        self.last = {'step': step, **result.public(self.cfg['debug'])}
+        self.history.append(self.last)
+        self._event('idv_attempt', step=step, attempts=state['attempts'], max_attempts=cfg['max_attempts'],
+                    status=self.status, **result.public(self.cfg['debug']))
+        if self.status in ('verified', 'failed'): self._event('idv_complete', status=self.status)
+        limit = self.cfg['auto_pause_after_non_answers']
+        if limit and self.non_answers >= limit: self.pause('worker', 'consecutive turns without an answer')
+        return result
+
+    def _fail_attempt(self, step, cfg):
+        state = self.steps[step]
+        state['attempts'] += 1
+        if state['attempts'] >= cfg['max_attempts']:
+            state['status'] = 'failed'
+            self.status, self.step = 'failed', None
+
+    def note(self, fresh=None):
+        """What the agent needs to know, with no stored values and no detail about what was wrong."""
+        lines = ['IDENTITY VERIFICATION (set by the Worker; authoritative)']
+        if self.status == 'not_started':
+            lines.append("Not started. Customer-specific tools will start it when needed; you can also call "
+                         "begin_identity_verification once the caller wants something that needs their records.")
+        elif self.status == 'verified':
+            lines.append(f"VERIFIED for this call. Address the caller as {self.customer()['preferred_name']} if natural. "
+                         "Account tools are unlocked. Don't ask for identity details again.")
+            if fresh and fresh['outcome'] == 'pass':
+                lines.append("Verification just finished. Let them know warmly they're all set, then get on with what they originally wanted.")
+        elif self.status == 'paused':
+            by = 'the Worker, after turns that weren\'t answers' if self.paused_by == 'worker' else 'you'
+            lines.append(f"PAUSED by {by}: the caller moved on from what needed verification, so don't push for identity "
+                         "details. As soon as they want to continue, want something from their own records, or start giving "
+                         f"identity details, call begin_identity_verification: it resumes at the {STEP_LABEL[self.step]} step.")
+        elif self.status == 'failed':
+            lines.append("FAILED: the attempt limit was reached. Don't retry verification, don't say which detail "
+                         "failed, and don't discuss account records. Offer a human follow-up (request_human_followup). "
+                         "General questions, hardship notices and complaints are still fine.")
+        else:
+            done = [STEP_LABEL[s] for s in self.cfg['steps'] if self.steps[s]['status'] == 'passed']
+            cfg = self.cfg[STEP_CONFIG[self.step]]
+            left = cfg['max_attempts'] - self.steps[self.step]['attempts']
+            lines.append('In progress. ' + (f"Done: {', '.join(done)}. " if done else '') +
+                         f"Current step: the caller's {STEP_LABEL[self.step]}. Attempts left: {left}.")
+            if fresh:
+                outcome = fresh['outcome']
+                if fresh['step'] != self.step and outcome == 'pass':
+                    lines.append(f"Their {STEP_LABEL[fresh['step']]} just checked out. React warmly in your own words, "
+                                 f"then ask for their {STEP_LABEL[self.step]} in the same turn.")
+                elif outcome == 'incomplete':
+                    lines.append("Their last answer was incomplete. Ask only for the missing part: " + ', '.join(fresh['missing']) + '.')
+                elif outcome == 'uncertain':
+                    lines.append("Their last answer was close but couldn't be confirmed, probably a mishearing. "
+                                 "Ask them to " + CLARIFY[self.step] + ", lightly, without saying what was wrong.")
+                elif outcome == 'fail':
+                    hint = ' You may ask them to spell it.' if self.step == 'full_name' and left == 1 else ''
+                    lines.append("Their last answer didn't match. Kindly ask them to try again, as if it was probably "
+                                 "a mishearing, without saying what was wrong." + hint)
+                elif outcome == 'no_answer':
+                    lines.append("Their last turn wasn't an answer to the verification question, so don't say you didn't "
+                                 "catch it. Respond to what they actually said. If they still want what needed verification, "
+                                 "come back to the question afterwards. If they've moved on, call pause_identity_verification "
+                                 "and help with the new request.")
+            else:
+                lines.append(f"Ask for their {STEP_LABEL[self.step]} naturally, one item at a time.")
+        lines.append("Never say, hint at, or confirm any stored identity detail, and never claim the caller is "
+                     "verified unless this note says VERIFIED.")
+        return '\n'.join(lines)
+
+    def snapshot(self):
+        return {'status': self.status, 'step': self.step, 'paused_by': self.paused_by,
+                'customer_id': self.customer_id if self.status == 'verified' else None,
+                'steps': copy.deepcopy(self.steps), 'history': copy.deepcopy(self.history), 'debug': self.cfg['debug'],
+                'thresholds': {k: self.cfg[k] for k in STEP_CONFIG.values()}}
