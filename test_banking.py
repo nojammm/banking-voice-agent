@@ -235,6 +235,8 @@ class CaseWorkflowTests(TempDB):
         self.assertEqual(wf.idv.status, 'not_started')  # Recording hardship doesn't force verification.
         complaint = run(wf.call('lodge_complaint', category='delay', summary='Still waiting on a fee complaint'))
         self.assertEqual(complaint['final_response_within_days'], 30)
+        self.assertIn('AFCA', complaint['if_still_unhappy'])  # Sourced contact details, so no guessing or extra search.
+        self.assertIn('1800 931 678', complaint['if_still_unhappy'])
         rows = bank.cases(self.conn, session_id=wf.session_id)
         self.assertTrue(all(r['customer_id'] is None for r in rows))
         self.assertEqual(run(wf.call('lodge_complaint', category='rude', summary='x'))['error'], 'invalid_category')

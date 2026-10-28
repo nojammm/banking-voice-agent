@@ -310,8 +310,10 @@ class Workflow:
                     'next': "The existing complaint now has these details. Say so in a few words; the reference and timeframe are unchanged, so don't read them again."}
         ref, _ = await self._record('complaint', summary[:300], details, status='Received')
         self.complaint_ref = ref
-        return {'reference': ref, 'say_reference': spoken(ref), 'final_response_within_days': days,
-                'next': 'Give the reference and the timeframe; mention AFCA only if they ask what happens if they stay unhappy. ' + self._mock()}
+        afca = next((x for x in re.split(r'(?<=\.)\s+', (kb.document('complaints') or {}).get('text', '')) if 'AFCA' in x), None)
+        return {'reference': ref, 'say_reference': spoken(ref), 'final_response_within_days': days, 'if_still_unhappy': afca,
+                'next': 'Give the reference and the timeframe. Mention AFCA only if they want to go there or ask what happens if they stay unhappy, '
+                        'with one contact route. ' + self._mock()}
 
     async def request_human_followup(self, reason, summary, urgency='normal'):
         if reason not in FOLLOWUP_REASONS: return {'error': 'invalid_reason', 'allowed': sorted(FOLLOWUP_REASONS)}
