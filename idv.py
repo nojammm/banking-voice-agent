@@ -856,7 +856,7 @@ class Verification:
             lines.append(f"VERIFIED for this call. Address the caller as {self.customer()['preferred_name']} if natural. "
                          "Account tools are unlocked. Don't ask for identity details again.")
             if fresh and fresh['outcome'] == 'pass':
-                lines.append("Verification just finished. Let them know warmly they're all set, then get on with what they originally wanted.")
+                lines.append("Verification just finished. Let them know warmly they're all set, then get on with what they wanted, as they last put it (a correction replaces what it corrects).")
         elif self.status == 'paused':
             by = 'the Worker, after turns that weren\'t answers' if self.paused_by == 'worker' else 'you'
             lines.append(f"PAUSED by {by}: the caller moved on from what needed verification, so don't push for identity "
