@@ -257,7 +257,7 @@ class VoiceAgent(Agent):
     @function_tool()
     async def begin_identity_verification(self, context: RunContext, reason: str) -> str:
         """Start identity verification when the caller wants something from their own records: their balances,
-        transactions, loans, applications or cases. Never for general rates, products, fees or how things work.
+        transactions, loans, applications or cases. Never for someone else's account, or for general rates, products, fees or how things work.
 
         Args:
             reason: What the caller wants, in a few words.
