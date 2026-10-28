@@ -1,0 +1,750 @@
+{
+  "executed_at": "2026-10-29T00:47:57+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "fraud",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-8410"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-7431"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "That sounds like a transaction we should treat seriously. I\u2019ll need to check your card record to look into it, and because it\u2019s your own account I need to verify your identity first. Can I get your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2277
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1704
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "That\u2019s all matching so far. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1182
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019ve logged that as suspected fraud on that card payment, and the fraud team will review it. Please lock the card in the app straight away and keep it locked until a replacement arrives.",
+          "tools": [
+            "get_recent_transactions",
+            "get_account_summary",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 5215
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Yeah, that does sound like it isn\u2019t yours. I\u2019ve already recorded it as suspected fraud, and the fraud team will review it.\n\nPlease lock the card in the app now and keep it locked until a replacement arrives.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1077
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-3949"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-2819"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "Okay\u2026 what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1939
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 818
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 891
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "Thanks, Emily \u2014 that\u2019s been recorded as suspected fraud.\n\nLock that card straight away in the app and keep it locked until a replacement arrives. The fraud team will review it, but I can\u2019t promise any outcome or refund.\n\nIf anyone\u2019s had remote access to your phone or computer, disconnect it from the internet now. And please don\u2019t share any passwords, PINs or one-time codes with anyone.",
+          "tools": [
+            "get_recent_transactions",
+            "get_account_summary",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4963
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Yeah, that looks consistent with a card payment you didn\u2019t make. The fraud report is in, and the team will review it from here.\n\nIf you haven\u2019t already, please lock the card in the app now. If you want, I can also help with checking your recent card activity for anything else unusual.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1474
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-8112"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-6422"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "Okay, I can help with that. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1978
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 753
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1016
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "You\u2019re all set, and I\u2019ve logged that as suspected fraud. The reference is F, R, D, 8, 1, 1, 2.\n\nLock that card straight away in the app and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs, or one-time codes, and if anyone has remote access to your device, disconnect it from the internet.",
+          "tools": [
+            "get_recent_transactions",
+            "get_account_summary",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4063
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Yeah, that fits the one we found. It\u2019s been lodged with the fraud team, and they\u2019ll review it as a priority.\n\nKeep that card locked for now. If you want, I can also help with any other transactions you\u2019re unsure about.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1184
+        }
+      ]
+    },
+    {
+      "id": "kb-fees-repeat",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What fees are there on an everyday transaction account?",
+          "agent": "Good question\u2026 let me check. I don\u2019t have a fee list for that account from the knowledge here. If you want, I can help you check the fees in general for Westpac everyday accounts, or I can look up a specific account type if you tell me which one.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2519
+        },
+        {
+          "caller": "Is there a fee for using my card overseas?",
+          "agent": "Sure, let me just check that. I can\u2019t see a fee for overseas card use from the info I\u2019ve got here. If you want, I can check the general fee policy for overseas card transactions or ATM withdrawals.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2211
+        },
+        {
+          "caller": "Sorry, what was that overseas fee again?",
+          "agent": "Good question\u2026 let me check. I can\u2019t see a specific overseas card fee from the info here. If you mean the bank\u2019s general fee policy, I don\u2019t have that detail to hand.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2949
+        }
+      ]
+    },
+    {
+      "id": "kb-fees-repeat",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What fees are there on an everyday transaction account?",
+          "agent": "Good question\u2026 let me check. I can help with that, but I\u2019ve only got a general result here and not the fee list itself. If you want, I can look up the everyday transaction account fees more specifically.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2138
+        },
+        {
+          "caller": "Is there a fee for using my card overseas?",
+          "agent": "Sure, let me just check that. I don\u2019t have the fee details for overseas card use in the result I got. If you want, I can keep looking for the exact overseas fee and any foreign exchange charge.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2616
+        },
+        {
+          "caller": "Sorry, what was that overseas fee again?",
+          "agent": "One sec, I'll find that for you. Sorry, I don\u2019t have the exact overseas fee in the result I got. I can keep looking if you want the specific card fee and any exchange rate charge.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 12131
+        }
+      ]
+    },
+    {
+      "id": "kb-fees-repeat",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What fees are there on an everyday transaction account?",
+          "agent": "One sec, I'll find that for you. It depends on the account, but I don\u2019t have a fee list here for an everyday transaction account. If you want, I can check the general banking info for that product, or if you mean a specific Westpac account type, tell me which one.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2176
+        },
+        {
+          "caller": "Is there a fee for using my card overseas?",
+          "agent": "Sure, let me just check that. I don\u2019t have the fee details for overseas card use in the info I\u2019ve got here. If you tell me the exact card or account type, I can check that.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 3565
+        },
+        {
+          "caller": "Sorry, what was that overseas fee again?",
+          "agent": "Good question\u2026 let me check. I\u2019m sorry, I can\u2019t see a confirmed overseas card fee in what I\u2019ve got here. If you tell me the card type, I can check the general info for that one.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2471
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-8330"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Right, I can help with both. Your complaint\u2019s been recorded, and the reference is C, M, P, 8, 3, 3, 0. We\u2019ll usually respond within 30 days.\n\nTo check your balance, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification",
+            "lodge_complaint"
+          ],
+          "idv": "in_progress",
+          "ms": 4013
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "I\u2019m sorry, that\u2019s frustrating. I can\u2019t promise a refund, but I\u2019ve got the complaint noted with that detail too.\n\nIf you still want your balance checked, what\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1119
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\nPerfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1295
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 887
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. Your Everyday Choice balance is 2,418.76, and available funds are 2,368.76.\n\nOn the term deposit rate, I can check that for you too. Do you want the bank\u2019s current term deposit rates in general?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 1935
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-2930"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Alright, I can help with that. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1893
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "Good question\u2026 let me check. I\u2019m sorry, that does sound frustrating. I\u2019ve recorded the complaint for the fee refund. Reference is C, M, P, 2, 9, 3, 0, and it should be reviewed within 30 days.\n\nFor the term deposit, I can give general info, but I\u2019d need your full name first if you still want me to check your balance.",
+          "tools": [
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2951
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1754
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1044
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Sure, let me just check that. Perfect, Emily, you\u2019re all set. Your balance on the Everyday Choice account is $2,418.76, and the available amount is $2,368.76.\n\nFor term deposits, I can\u2019t see a specific term deposit rate here. If you want, I can explain how term deposits generally work, or check anything else on your accounts.",
+          "tools": [
+            "get_account_summary",
+            "search_banking_knowledge"
+          ],
+          "idv": "verified",
+          "ms": 2464
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-9020"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Good question\u2026 let me check. Of course. I\u2019ve logged the complaint, and the reference is C, M, P, 9, 0, 2, 0. It should be responded to within 30 days.\n\nFor the balance, I just need your full name to keep going. And for term deposits, the rate depends on the term and amount, so I can look that up once we\u2019ve got that sorted too.",
+          "tools": [
+            "begin_identity_verification",
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2923
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "That sounds really frustrating. I\u2019ve already recorded the complaint, and I\u2019ve noted that you want the 15 dollar fee refunded because it was only a small overdrawn amount for one day.\n\nYour complaint reference is C, M, P, 9, 0, 2, 0, and it should be responded to within 30 days. If you\u2019d like, I can also keep going with the balance check once you give me your full name.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1459
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up nicely. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 885
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1139
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "One sec, I'll find that for you. All set, Emily. Your balance is 2,368.76 available in your Everyday Choice account, ending 3307.\n\nAnd on term deposits, I can only give general info here, not a live rate. The knowledge I have says notice about interest rate changes is given no later than the day of the change, but I don\u2019t have a current term deposit rate in this call.",
+          "tools": [
+            "get_account_summary",
+            "search_banking_knowledge"
+          ],
+          "idv": "verified",
+          "ms": 2383
+        }
+      ]
+    }
+  ]
+}
