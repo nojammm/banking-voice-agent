@@ -202,7 +202,7 @@ class Workflow:
         if (blocked := self._guard('get_case_status')): await self.auth_changed(); return blocked
         rows = bank.cases(self.conn, self.idv.customer_id)
         if reference: rows = [c for c in rows if c['ref'].replace('-', '').lower() == reference.replace('-', '').replace(' ', '').lower()]
-        return {'cases': [{'reference': c['ref'], 'type': c['type'], 'status': c['status'], 'opened': self._date(c['created_at']),
+        return {'cases': [{'reference': c['ref'], 'say_reference': spoken(c['ref']), 'type': c['type'], 'status': c['status'], 'opened': self._date(c['created_at']),
                            'summary': c['summary'], **{k: self._date(v) for k, v in c['details'].items() if k.endswith('_due')}} for c in rows]}
 
     async def lodge_dispute(self, transaction_id, dispute_type, description):
@@ -212,7 +212,7 @@ class Workflow:
         if not t: return {'error': 'not_found', 'next': 'Confirm the transaction with get_recent_transactions first.'}
         existing = [c['ref'] for c in bank.cases(self.conn, self.idv.customer_id)
                     if c['details'].get('transaction_id') == t['id'] and c['type'] in ('dispute', 'fraud')]
-        if existing: return {'error': 'already_lodged', 'reference': existing[0], 'next': 'Give the existing reference and its status.'}
+        if existing: return {'error': 'already_lodged', 'reference': existing[0], 'say_reference': spoken(existing[0]), 'next': 'Give the existing reference and its status.'}
         if self.turn is not None and self.shown.get(t['id'], self.turn) >= self.turn:
             return {'error': 'not_confirmed', 'next': "The caller hasn't confirmed this transaction yet. Describe it briefly (merchant, "
                                                       "amount, date) and ask if it's the one; lodge it once they say yes."}

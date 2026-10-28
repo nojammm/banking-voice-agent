@@ -106,6 +106,7 @@ class AccessControlTests(TempDB):
         cases = run(wf.call('get_case_status', reference='cmp 2741'))['cases']
         self.assertEqual((cases[0]['status'], cases[0]['response_due']), ('Under review', '11 November'))
         self.assertEqual(cases[0]['opened'], '12 October')
+        self.assertEqual(cases[0]['say_reference'], 'C, M, P, 2, 7, 4, 1')  # Read one character at a time, no dash.
 
     def test_dates_are_ready_to_say(self):
         self.assertEqual(banking.say_date('2026-11-06', TODAY), '6 November')
@@ -160,6 +161,7 @@ class CaseWorkflowTests(TempDB):
         self.assertRegex(dispute['reference'], r'^DSP-\d{4}$')
         again = run(wf.call('lodge_dispute', transaction_id='TXN-1001-04', dispute_type='duplicate', description='again'))
         self.assertEqual((again['error'], again['reference']), ('already_lodged', dispute['reference']))
+        self.assertEqual(again['say_reference'], dispute['say_reference'])
         fraud = run(wf.call('lodge_dispute', transaction_id='TXN-1003-04', dispute_type='unauthorised', description="Didn't make it"))
         self.assertEqual(fraud['route'], 'fraud')
         self.assertIn('lock it straight away', fraud['security_guidance'])
