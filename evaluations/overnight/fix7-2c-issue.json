@@ -1,0 +1,1388 @@
+{
+  "executed_at": "2026-10-29T15:31:50+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "balance-and-duplicate",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-1584"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Sure \u2014 I\u2019ll need to verify it first so I can check your own account safely. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2538
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1319
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Great, that\u2019s checked out. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1430
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76.\n\nIf you want, I can also check the savings or card balance.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2331
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "I can do that. I\u2019m just pulling up the recent transactions now. Sure \u2014 here are the latest few.\n\n27 October, Uber Eats Sydney, $42.35 out, posted.  \n26 October, Paypal Gamevault, $249 out, posted.  \n25 October, Shell Coles Express Fairy Meadow, $50 out, pending.  \n24 October, Coles Wollongong Central, $84.20 out, posted.  \nIf you want, I can look at one of those in more detail for you.",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2542
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Right, let\u2019s have a look at that Coles charge. That does look like the same charge appearing twice.  That\u2019s been lodged as a duplicate transaction dispute. The reference is D, S, P, 1, 5, 8, 4.\n\nIt can take up to 45 days to look into. This is a demo record only, so no real bank staff will act on it, but if you want I can also help with anything else on your account.",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3965
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "Done \u2014 that dispute is already lodged for you, with reference D, S, P, 1, 5, 8, 4.\n\nIf you\u2019d like, I can help check anything else on your account.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1401
+        }
+      ]
+    },
+    {
+      "id": "balance-and-duplicate",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-6835"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "I can help with that, but I need to verify you first to protect your account.  Just your full name, please.",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2035
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1147
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Great, that matches. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1242
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76. If you want, I can also check the savings or credit card balance.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2353
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Sure \u2014 I\u2019ll pull up the recent transactions now. Here are the last 5 I can see. On 27 October, Uber Eats Sydney for $42.35. On 26 October, Paypal Gamevault for $249. On 25 October, Shell Coles Express Fairy Meadow for $50, pending. On 24 October, Coles Wollongong Central for $84.20, posted twice. If you want, I can look at any one of those in more detail.",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2706
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "I\u2019m sorry about that. I\u2019ll check those two Coles charges and work out which one matches. I\u2019ve found the matching pair. This one is the same amount and merchant as the other charge on the 24th.  That\u2019s lodged now. The dispute reference is D, S, P, 6, 8, 3, 5. It\u2019ll usually be reviewed within up to 45 days, and this is just a demo record so no real bank staff will act on it. If you\u2019d like, I can also check the status of any other transaction or case.",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4025
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "It\u2019s already lodged for that Coles charge. The reference is D, S, P, 6, 8, 3, 5, and it\u2019s under review. If you meant a different transaction, tell me which one and I\u2019ll check that next.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1181
+        }
+      ]
+    },
+    {
+      "id": "balance-and-duplicate",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-4609"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Sure \u2014 I can help with that, but I\u2019ll need to verify your identity first to protect your account. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2309
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s matched up nicely. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 897
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Great, that\u2019s all lining up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1182
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76.\n\nIf you want, I can also check the savings or credit card balance.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2030
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Absolutely \u2014 I\u2019ll pull up your recent transactions now. Sure \u2014 here are your last few transactions.\n\nOn 27 October, Uber Eats Sydney for $42.35, posted.\nOn 26 October, Paypal Gamevault for $249, posted.\nOn 25 October, Shell Coles Express Fairy Meadow for $50, pending.\nOn 24 October, Coles Wollongong Central for $84.20, posted.\nAnd another Coles Wollongong Central charge on 24 October for $84.20, posted.\n\nIf you want, I can look into any one of those in more detail.",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2760
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Right, that does look like a duplicate charge. I\u2019ll check the two Coles transactions now. Yep, I can see the duplicate.  I\u2019ve lodged that duplicate charge for you. The reference is D, S, P, 4, 6, 0, 9.\n\nIt\u2019s usually reviewed within up to 45 days. This is a demo record only, so no real bank staff will act on it, but the dispute is in the system. I can also look at anything else on your account if you want.",
+          "tools": [
+            "get_transaction_details",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4223
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "Already done \u2014 that duplicate charge has been lodged. The reference is D, S, P, 4, 6, 0, 9.\n\nIf you like, I can check whether there\u2019s anything else on the account.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1449
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-7549"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-4199"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "That sounds like fraud. Please lock your card in your app straight away. Could I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2511
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that\u2019s matched. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1271
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1291
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019m just checking that PayPal card payment now. Yep, that one\u2019s showing as Paypal Gamevault for 249 dollars on 26 October.  I\u2019ve found the payment. It\u2019s not one you recognise.  Yep, that\u2019s the one, and I\u2019m sorry this happened. I just need you to confirm: is that the PayPal Gamevault payment for 249 dollars on 26 October?",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4987
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Right, I\u2019ve got it.  Thanks, Emily. The fraud team will review it as a priority. Please lock that card in the app straight away and keep it locked until a replacement arrives.\n\nDon\u2019t share any passwords, PINs or one time codes. If anyone has remote access to your device, disconnect it from the internet.\n\nYour reference is F, R, D, 7, 5, 4, 9. Is there anything else you want to check while I\u2019ve got you?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2880
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-5164"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-8135"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "Okay \u2014 for a payment you didn\u2019t make, the safest thing is to lock the card in your app straight away. I\u2019ll need to check the transaction details on your account next so we can confirm it and report it properly. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2537
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1305
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1038
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019m just checking the PayPal card payment now, then I\u2019ll confirm exactly what I can see. Thanks, you\u2019re all set. I found a PayPal charge for 249 dollars on 26 October to Paypal Gamevault, and that does look like the one you\u2019re talking about. Is that the PayPal charge on 26 October for 249 dollars?",
+          "tools": [
+            "get_recent_transactions",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3747
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Got it, and that\u2019s enough for me to lodge it now. I\u2019ve lodged that as suspected fraud. The reference is F, R, D, 5, 1, 6, 4.\n\nLock the card in your app straight away and keep it locked until the replacement arrives. Don\u2019t share any passwords, PINs or one time codes, and if anyone has remote access to your device, disconnect it from the internet.\n\nThe fraud team will review it as a priority. This is a demo, so nobody will actually call you back, but if you want, I can help with anything else on your account.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2463
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-2493"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-7080"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "That sounds like suspected fraud. Please lock the card in your app straight away. Could I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2243
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that matches. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1506
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, that\u2019s lined up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1007
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019m checking that PayPal payment now. I\u2019ve found a PayPal transaction for 26 October, Paypal Gamevault, for 249 dollars. Is that the one you don\u2019t recognise?\n",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2256
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "That\u2019s not great, and I\u2019m sorry you\u2019re dealing with it.  That\u2019s been logged as suspected fraud. The fraud reference is F, R, D, 2, 4, 9, 3.\n\nPlease keep the card locked in the app until a replacement arrives. Don\u2019t share any passwords, PINs or one-time codes with anyone. If someone else might have access to your device, disconnect it from the internet.\n\nIf you want, I can also help with anything else on the account.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2661
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 1,
+      "passed": false,
+      "problems": [
+        "expected tool lodge_dispute was not called",
+        "expected a dispute record"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry that happened. If the TV never arrived, I can help raise a dispute for that charge. Could I get your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2784
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s matched. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 948
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that checks out. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1120
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019ll take care of the dispute for that TV order now. I couldn\u2019t find the transaction with that search, so I just need the card charge details to match it up \u2014 what\u2019s the merchant name and approximate date?\n",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2500
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Right, I\u2019ve got the one you mean. I\u2019ll find that charge and get the dispute moving. I found it. JB Hi-Fi Wollongong on 11 October for 399 dollars. If that\u2019s the right charge, I can lodge the dispute now \u2014 was this a genuine purchase that didn\u2019t arrive, or did you not make the payment at all?\n",
+          "tools": [
+            "get_recent_transactions",
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 3639
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that outcome. Once the dispute\u2019s lodged, the bank reviews it and then decides what happens next.\nIf you want, I can lodge it now for the undelivered TV, or I can help with anything else on the charge.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1530
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-8253"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry that\u2019s happened. If the TV never arrived, I can help lodge a dispute for the card payment, and I\u2019ll just need to check which transaction it was. Sure \u2014 what\u2019s your full name?\n",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2172
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1004
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1492
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. I can help with the missing TV payment now. You\u2019re all set. I found the JB Hi-Fi charge from 11 October for $399. Was that the TV payment that never arrived?\n",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2449
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Understood.  It\u2019s been recorded. The reference is D, S, P, 8, 2, 5, 3.\n\nIt\u2019ll be reviewed as a not received dispute, and the usual investigation time is up to 45 days. This is a demo, so no real bank staff will act on it, but the case is on the record here.\n\nIs there anything else you want me to look at?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2379
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that, Emily. The dispute will be reviewed, and the outcome depends on what the investigation finds.\n\nIf you want, I can also check the status of the dispute for you.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1146
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-7206"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry that\u2019s happened. I can help get that disputed. Can I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2601
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1419
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that matches. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1018
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019ll check the transaction and get this dispute moving. Right, that\u2019s the JB Hi-Fi charge I found. It\u2019s a posted card transaction for 11 October, for $399.00 at JB Hi-Fi Wollongong. This looks like a genuine purchase that didn\u2019t arrive.  Is it the JB Hi-Fi charge for 11 October, for $399, that you want me to dispute?",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 5564
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Right, I\u2019ve got it.  That\u2019s been lodged. The reference is D S P 7 2 0 6. \n\nIt usually takes up to 45 days to investigate. This is a demo, so no real bank staff will act on it, but if you want I can also help with anything else on your account.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2701
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that, sorry. It\u2019ll be looked at as part of the dispute, and the outcome depends on the investigation. If you\u2019d like, I can also explain how the dispute process usually works.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1986
+        }
+      ]
+    },
+    {
+      "id": "dispute-scam",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-3502"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-1146"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I think I've been scammed. I paid a seller through PayPal for a game console and now they've blocked me and nothing's come.",
+          "agent": "I\u2019m sorry, that sounds like a scam. Please lock the card in your app straight away if you paid by card through PayPal, and don\u2019t send any more money or messages. Alright, I\u2019ll help with that. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2793
+        },
+        {
+          "caller": "Not yet, I'll do that now. Can you report it? It was on my credit card.",
+          "agent": "Yes, I can report it. Because it\u2019s suspected fraud, I need to keep going with verification first so I can lodge it on the right record. What\u2019s your full name?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1043
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s matched. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1056
+        },
+        {
+          "caller": "fourteenth of March 1991",
+          "agent": "Great, that\u2019s all lined up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 948
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Thanks, Emily \u2014 you\u2019re all set. I\u2019m going to look up that payment now so I can confirm it and lodge the dispute. Perfect, I\u2019ve found it. The payment is Paypal Gamevault for $249 on 26 October. Was that the one you\u2019re calling about?\n",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2812
+        },
+        {
+          "caller": "Yes, that's the one, the PayPal GameVault payment, 249 dollars.",
+          "agent": "Right, I\u2019ve got it.  Done. Your fraud report is lodged under F, R, D, 3, 5, 0, 2.\n\nPlease lock the card in your app straight away and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one-time codes. If anyone has remote access to your device, disconnect it from the internet.\n\nThis is a demo, so no real bank staff will act on it, but the fraud team review is priority. If you want, I can also help with anything else on your account.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2720
+        },
+        {
+          "caller": "Am I going to get that back?",
+          "agent": "I can\u2019t promise that, sorry. The fraud team will review it, and they\u2019ll look at whether a refund or chargeback is possible based on the payment details and PayPal process.\n\nIf you want, I can help with anything else on the account or talk through the next steps.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1242
+        }
+      ]
+    },
+    {
+      "id": "dispute-scam",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-5011"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-6107"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I think I've been scammed. I paid a seller through PayPal for a game console and now they've blocked me and nothing's come.",
+          "agent": "That sounds really stressful. Lock the card in your app now if you can, just to stop any further card use. Okay, I can help with that. What\u2019s your full name?\n",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2333
+        },
+        {
+          "caller": "Not yet, I'll do that now. Can you report it? It was on my credit card.",
+          "agent": "Yes, I can report it, but I do need to finish the checks on your account first. What\u2019s your full name?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1092
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 982
+        },
+        {
+          "caller": "fourteenth of March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 972
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set now.  You\u2019re verified now, and I can see a PayPal charge for 249 dollars to Paypal Gamevault on 26 October. Was that the payment you want me to dispute?\n",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2700
+        },
+        {
+          "caller": "Yes, that's the one, the PayPal GameVault payment, 249 dollars.",
+          "agent": "Right, I\u2019ve got it.  I\u2019ve reported it as suspected fraud. The reference is F, R, D, 5, 0, 1, 1.\n\nLock the card in your app straight away if you haven\u2019t already, and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one time codes.\n\nThis is a demo, so no real bank staff will act on it, but the fraud team review is set up. If you want, I can also help with anything else on your account.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2570
+        },
+        {
+          "caller": "Am I going to get that back?",
+          "agent": "I can\u2019t promise that, because the outcome depends on the fraud review and PayPal\u2019s process. What I can say is it\u2019s been reported and escalated, so it\u2019s in the right queue now.\n\nIf you\u2019d like, I can also check any other recent transactions for you.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1657
+        }
+      ]
+    },
+    {
+      "id": "dispute-scam",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-8140"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-9329"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I think I've been scammed. I paid a seller through PayPal for a game console and now they've blocked me and nothing's come.",
+          "agent": "Oh no, that\u2019s really worrying. Lock the card in your app straight away if you paid by card, or if it was a bank transfer keep all the messages and payment details handy. Could you tell me your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2132
+        },
+        {
+          "caller": "Not yet, I'll do that now. Can you report it? It was on my credit card.",
+          "agent": "Yeah, I can help report it. Because it\u2019s a card payment, I still need to finish verification before I can lodge the dispute, so could you tell me your full name when you\u2019re ready?\nCould you tell me your full name, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1152
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s lined up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1017
+        },
+        {
+          "caller": "fourteenth of March 1991",
+          "agent": "Great, that\u2019s all matching so far. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1228
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019ll look into the transaction and report it now. I\u2019ve found it. It\u2019s the Paypal Gamevault payment for 249 dollars on 26 October.  Is that the Paypal Gamevault payment for 249 dollars on 26 October?",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 5022
+        },
+        {
+          "caller": "Yes, that's the one, the PayPal GameVault payment, 249 dollars.",
+          "agent": "Thanks, Emily.  It\u2019s been reported. The reference is F, R, D, 8, 1, 4, 0.\n\nLock the card in your app straight away and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one time codes, and if anyone has remote access to your device, disconnect it from the internet.\n\nThis is a demo, so no real bank staff will act on it, but the fraud team review has been logged. If you want, I can also help with anything else that\u2019s happened on the account.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2902
+        },
+        {
+          "caller": "Am I going to get that back?",
+          "agent": "I can\u2019t promise that, I\u2019m sorry. The fraud team will review it and decide what happens next. If you want, I can talk you through what usually happens next.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1958
+        }
+      ]
+    }
+  ]
+}

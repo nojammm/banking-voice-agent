@@ -1,0 +1,16 @@
+diff --git a/banking.py b/banking.py
+index a14497c..49b4535 100644
+--- a/banking.py
++++ b/banking.py
+@@ -236,8 +236,9 @@ class Workflow:
+                     if c['details'].get('transaction_id') == t['id'] and c['type'] in ('dispute', 'fraud')]
+         if existing: return {'error': 'already_lodged', 'reference': existing[0], 'say_reference': spoken(existing[0]), 'next': "Nothing new was lodged, and details can't be added to an existing case on this call. Give the existing reference and its status."}
+         if self.turn is not None and self.shown.get(t['id'], self.turn) >= self.turn:
+-            return {'error': 'not_confirmed', 'next': "The caller hasn't confirmed this transaction yet. Describe it briefly (merchant, "
+-                                                      "amount, date) and ask if it's the one; lodge it once they say yes."}
++            return {'error': 'not_confirmed', 'next': "Not lodged yet: check with the caller that this is the transaction. If you've "
++                                                      "already described it to them, ask whether that's the one without repeating its details; otherwise describe it once "
++                                                      "(merchant, amount, date) and ask. Don't say why you're checking. Lodge it once they say yes."}
+         details = {'transaction_id': t['id'], 'merchant': t['description'], 'amount': money(t['amount']),
+                    'dispute_type': dispute_type, 'customer_account': (description or '')[:500]}
+         if dispute_type in FRAUD_TYPES:
