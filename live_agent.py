@@ -134,6 +134,9 @@ ANNOUNCE = re.compile(r"\b(?:I['’]m|I am|I['’]ll|I will|I can|we can|let me|
                       r"(?:just\s+|now\s+|also\s+|going to\s+|go ahead and\s+|get (?:this|that|it|the [\w -]{1,25}?|a [\w -]{1,25}?)\s+)*"
                       r"(?:lodg|record|log(?:ging)?\b|add|updat|not(?:e|ing)\b|fil(?:e|ing)\b|rais|submit|pass|flag|escalat|creat|sort|arrang|set (?:\w+ )?up)"
                       r"|\bneed (?:a (?:couple|few) (?:of )?|some |a bit more |more )?(?:details|information|info)\b", re.I)
+# "Let me search our loan policies", "I'll just check that": the knowledge search speaks its own line, so the model's is dropped.
+SEARCHING = re.compile(r"\b(?:let me|I['’]ll|I will|I['’]m|I am|while I)\s+(?:just\s+|quickly\s+|going to\s+|go ahead and\s+)*"
+                       r"(?:search|check|find|look(?:ing)? (?:\w+ ){0,2}(?:up|into)|have a (?:quick )?look)", re.I)
 # The caller asking for their own records in plain words: the Worker starts verification itself, so the reply can explain and
 # ask straight away instead of after a tool call. Someone else's records ("my wife's balance"), fraud reports and general
 # questions don't match and take the usual path.
@@ -244,7 +247,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
     a tool call, the claim is never said: with flags, nothing held is said and flags['unbacked'] asks the caller to
     regenerate; without, only the claim sentences are left out."""
     audio_tags = AUDIO_TAGS if audio_tags is None else audio_tags
-    pending, held, tool_called, spoken, blocked = '', [], False, False, False
+    pending, held, tool_called, searched, spoken, blocked = '', [], False, False, False, False
     said = [] if said is None else said
     seen = set() if seen is None else seen
     earlier = list(seen)  # Said in this turn before a tool call.
@@ -252,7 +255,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
     def take(text):
         ready = []
         for sentence in sentences(text):
-            if (held or sentence.rstrip().endswith('?') or ANNOUNCE.search(sentence) or VERIFY_FIRST.search(sentence)
+            if (held or sentence.rstrip().endswith('?') or ANNOUNCE.search(sentence) or VERIFY_FIRST.search(sentence) or SEARCHING.search(sentence)
                     or (not backed and claims_record(sentence))): held.append(sentence)
             else: ready.append(sentence)
         return ready
@@ -262,10 +265,13 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
         ("I can log that now, and I can see why it's frustrating." -> "I can see why it's frustrating.")."""
         out = []
         for piece in pieces:
+            if not searched and SEARCHING.search(piece) and not ANNOUNCE.search(piece) and not piece.rstrip().endswith('?'):
+                out.append(piece); continue  # "Let me check your transactions" before another tool is still said.
             if piece.rstrip().endswith('?') or not ANNOUNCE.search(piece): break  # Later lines may depend on the result.
             for clause in re.split(r",\s*(?:and|but|so)\s+|;\s*|\s+[—–]\s+|\s+but\s+", piece.strip()):
                 clause = clause.strip(' ,.!…')
-                if len(clause.split()) >= 3 and not ANNOUNCE.search(clause) and not claims_record(clause):
+                if (len(clause.split()) >= 3 and not ANNOUNCE.search(clause) and not claims_record(clause)
+                        and not (searched and SEARCHING.search(clause))):
                     out.append(clause[0].upper() + clause[1:] + '. ')
         return out
 
@@ -304,7 +310,9 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
         else:
             text = chunk.delta.content if chunk.delta else None
             if chunk.delta is None or chunk.delta.tool_calls:
-                if chunk.delta and chunk.delta.tool_calls: tool_called = True
+                if chunk.delta and chunk.delta.tool_calls:
+                    tool_called = True
+                    searched |= any(c.name == 'search_banking_knowledge' for c in chunk.delta.tool_calls)
                 if chunk.delta: chunk.delta.content = None
                 yield chunk  # Tool calls and usage records go straight to the framework.
             if not text: continue
@@ -431,9 +439,10 @@ class VoiceAgent(Agent):
         turn_ctx.add_message(role='system', content='The Worker started identity verification for this turn.')
 
     def lookup_line(self, piece, said):
-        """A ready-made line the moment the model asks for a knowledge search, to fill the wait; none if it already spoke."""
+        """A ready-made line the moment the model asks for a knowledge search, to fill the wait; once per reply. The model's own
+        "let me search…" is held as an announcement and dropped with the tool call, so the search always sounds the same."""
         calls = (not isinstance(piece, str) and piece.delta and piece.delta.tool_calls) or []
-        if not any(c.name == 'search_banking_knowledge' for c in calls) or ''.join(said).strip(): return None
+        if not any(c.name == 'search_banking_knowledge' for c in calls) or set(said) & set(LOOKUP_LINES): return None
         self.last_lookup = random.choice([line for line in LOOKUP_LINES if line != self.last_lookup])
         said.append(self.last_lookup)
         return self.last_lookup

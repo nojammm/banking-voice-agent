@@ -165,6 +165,20 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         out, _ = await self.speak(['Is that the home loan? ', 'It was $9,999 last month.'])
         self.assertTrue(out.endswith(__import__("live_agent").UNSUPPORTED) and '9,999' not in out)
 
+    async def test_the_model_never_announces_a_knowledge_search_itself(self):
+        from livekit.agents import llm
+        def call(name): return llm.ChatChunk(id='x', delta=llm.ChoiceDelta(role='assistant', tool_calls=[
+            llm.FunctionToolCall(name=name, arguments='{}', call_id='c1')]))
+        search = call('search_banking_knowledge')
+        out, _ = await self.speak(["I can help with that. ", "Let me search our loan policies for you. ", search])
+        self.assertEqual(out, 'I can help with that. ')  # The tool's own lookup line fills the wait.
+        out, _ = await self.speak(["I'll just check that for you. ", search])
+        self.assertEqual(out, '')
+        out, _ = await self.speak(["Let me check your recent transactions. ", call('get_recent_transactions')])
+        self.assertEqual(out, 'Let me check your recent transactions. ')  # Other tools have no line of their own.
+        out, _ = await self.speak(['Lock your card in the app now, then check your statement. ', search])
+        self.assertEqual(out, 'Lock your card in the app now, then check your statement. ')
+
     async def test_an_announced_record_before_a_tool_call_is_dropped(self):
         from livekit.agents import llm
         call = llm.ChatChunk(id='x', delta=llm.ChoiceDelta(role='assistant', tool_calls=[
@@ -470,14 +484,16 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn(said[0], LOOKUP_LINES)
         self.assertEqual(said[1], 'A fixed rate stays the same for the fixed term.')
 
-    def test_lookup_line_only_when_silent_and_never_twice_in_a_row(self):
+    def test_lookup_line_once_per_reply_and_never_twice_in_a_row(self):
         from livekit.agents import llm
+        from live_agent import LOOKUP_LINES
         agent, _ = self.agent()
         search = llm.ChatChunk(id='a', delta=llm.ChoiceDelta(role='assistant', tool_calls=[llm.FunctionToolCall(
             name='search_banking_knowledge', arguments='{}', call_id='c1')]))
         other = llm.ChatChunk(id='b', delta=llm.ChoiceDelta(role='assistant', tool_calls=[llm.FunctionToolCall(
             name='get_account_summary', arguments='{}', call_id='c2')]))
-        self.assertIsNone(agent.lookup_line(search, ['Sure, let me check the rates. ']))  # The model already filled the gap itself.
+        self.assertIn(agent.lookup_line(search, ['I can help with that. ']), LOOKUP_LINES)  # Plain words before it don't replace it.
+        self.assertIsNone(agent.lookup_line(search, ['Let me look that up for you.']))  # Once per reply.
         self.assertIsNone(agent.lookup_line(other, []))
         self.assertIsNone(agent.lookup_line('Some text. ', []))
         lines = [agent.lookup_line(search, []) for _ in range(6)]
@@ -525,7 +541,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(prompt.index('# Identity verification') < prompt.index('# Natural Spoken Conversation'))
         for rule in ['open_callback_form', 'record_hardship_notice', 'lodge_dispute', 'never say you\'re transferring', '[sympathetic]',
                      '# How you sound', 'ellipsis', "Don't announce the search yourself", '# Staying on track',
-                     'pause_identity_verification', 'the bank\'s rates in general']:
+                     'pause_identity_verification', 'the bank\'s rates versus their own', 'Never ask this when they\'re talking about their own situation']:
             self.assertIn(rule, prompt)
         for secret in ['Wonderland', 'Minji', '1999', 'Newtown', '2,418']: self.assertNotIn(secret, prompt)
         with patch.object(live_agent, 'AUDIO_TAGS', False):

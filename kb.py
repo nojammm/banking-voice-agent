@@ -17,7 +17,8 @@ EXPAND = [  # Spoken phrasings mapped onto the vocabulary the documents use.
 ]
 STOP = set('''a about am an and any are as at be been but by can could do does did for from get got had has have how i if
 in is it its just me my of on or our please should so tell than that the their them there they this to up us was
-we what when where which who why will with would you your want need know like'''.split())
+we what when where which who why will with would you your want need know like
+policy policies information info detail details'''.split())  # Filler in "the loan policy": it matched policy titles, not loans.
 MIN_SCORE = 1.5
 LABELS = {'regulation': 'Regulatory summary', 'mock_policy': 'Demo policy (mock)', 'westpac_public': 'Westpac public page',
           'government': 'Australian Government source', 'ombudsman': 'AFCA (external dispute resolution)',
