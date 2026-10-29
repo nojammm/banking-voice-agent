@@ -1,0 +1,378 @@
+{
+  "executed_at": "2026-10-29T14:32:23+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "hardship-distressed",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-6706"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I don't even know where to start. I lost my job last week and I can't sleep, I've got the car loan and rent and I just don't know what to do.",
+          "agent": "I\u2019m sorry, that sounds really overwhelming. We can sort through it step by step\u2026 what\u2019s the main repayment that\u2019s worrying you most right now?\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1217
+        },
+        {
+          "caller": "Mostly the car loan. I don't know how long, until I find something. I just need some breathing room.",
+          "agent": "I\u2019m really sorry you\u2019re dealing with that. If you\u2019re feeling completely overwhelmed, I can also mention free financial counselling.  Right. I\u2019ve recorded a hardship notice for the car loan. The reference is H D S 6 7 0 6.\n\nA hardship specialist will assess the options, and nothing is approved on this call. If you want, I can also record a follow-up for a person to look at it. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2756
+        },
+        {
+          "caller": "Okay. Thank you.",
+          "agent": "You\u2019re welcome. Take care, and if you want to talk through anything else, I\u2019m here.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 972
+        }
+      ]
+    },
+    {
+      "id": "hardship-distressed",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-6021"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I don't even know where to start. I lost my job last week and I can't sleep, I've got the car loan and rent and I just don't know what to do.",
+          "agent": "I\u2019m really sorry you\u2019re dealing with that. We can sort through it one step at a time\u2026 what would help most right now, the car loan or the rent?\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1074
+        },
+        {
+          "caller": "Mostly the car loan. I don't know how long, until I find something. I just need some breathing room.",
+          "agent": "I\u2019m sorry \u2014 that\u2019s a lot to carry at once. We can see if a specialist follow-up makes sense too.  H, D, S, 6, 0, 2, 1. A hardship specialist will assess options, and nothing\u2019s approved in this call.\n\nThis is a demo, so no real bank staff will act on it. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling if you\u2019re feeling overwhelmed. Would you like me to record a specialist follow-up as well?",
+          "tools": [
+            "record_hardship_notice",
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 3185
+        },
+        {
+          "caller": "Okay. Thank you.",
+          "agent": "You\u2019re welcome. If you want, we can look at the rent side next, or anything else that\u2019s on your mind.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1358
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-7199"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry that happened.  Could I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2329
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth, please?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1214
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Nice, that\u2019s matched. Could I have your residential address, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1070
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Because this was a purchase you say never arrived, I can help lodge that dispute now. Great, that\u2019s verified and I\u2019ve found the JB Hi-Fi transaction. It\u2019s for $399.00 at JB Hi-Fi Wollongong on 11 October. It looks like that JB Hi-Fi charge is $399.00 on 11 October from JB Hi-Fi Wollongong. Is that the TV purchase you want to dispute?",
+          "tools": [
+            "get_recent_transactions",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3633
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Right, I\u2019ve got it. It\u2019s been recorded. The reference is D, S, P, 7, 1, 9, 9.\n\nThe dispute team will review it, and it usually takes up to 45 days. This is a demo, so no real bank staff will act on it, but the case has been lodged in the system here. Is there anything else you\u2019d like help with?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2903
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that. The dispute team will look at the transaction and decide the outcome after their review.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1285
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-6533"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry, that\u2019s frustrating.  Okay, I can help with that. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2570
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 998
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 943
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. I\u2019ll check the transaction and sort out the dispute. I\u2019ve found the JB Hi-Fi charge from 11 October for $399, and it sounds like this is the one you mean.  Brilliant, that\u2019s all verified.  Right, Emily \u2014 it\u2019s the JB Hi-Fi charge for 11 October, $399. Is that the one you want me to dispute?\n",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 5390
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Got it.  Done. The dispute is lodged, and the reference is D, S, P, 6, 5, 3, 3. It usually takes up to 45 days to investigate. This is a demo, so no real bank staff will act on it.\n\nIf you want, I can also help with anything else on that transaction.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2629
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that, sorry. The dispute will be investigated, and the outcome depends on what they find.\n\nIf you like, I can also explain what usually happens next with a card dispute.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1321
+        }
+      ]
+    },
+    {
+      "id": "complaint-fees-unverified",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-9543"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'm really annoyed. I got charged a 175 dollar annual fee on my credit card and nobody told me it was coming. I want it reversed.",
+          "agent": "I can help with that. I\u2019ll need to check the charge on your account first. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2165
+        },
+        {
+          "caller": "No, I don't want to go through security questions, I just want this complaint on record.",
+          "agent": "Fair enough. I won\u2019t keep asking you security questions.  It\u2019s recorded now. The reference is C, M, P, 9, 5, 4, 3, and the bank should respond within 30 days.\n\nThis is a demo record only, so no real staff will act on it. If you want, I can also help with what to do if they still don\u2019t reverse the fee.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "in_progress",
+          "ms": 3338
+        }
+      ]
+    },
+    {
+      "id": "complaint-fees-unverified",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-5339"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'm really annoyed. I got charged a 175 dollar annual fee on my credit card and nobody told me it was coming. I want it reversed.",
+          "agent": "I\u2019m sorry, that\u2019s frustrating. I can look into the fee and help you lodge a complaint about it, and if you want I can also check the card transaction after we verify your identity. It\u2019s recorded. The reference is C, M, P, 5, 3, 3, 9.\n\nWe\u2019ll have a response within 30 days. If you want, I can also help check the card transaction once we verify your identity.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2930
+        },
+        {
+          "caller": "No, I don't want to go through security questions, I just want this complaint on record.",
+          "agent": "That\u2019s all set then. The complaint is on record, and the reference is C, M, P, 5, 3, 3, 9.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1032
+        }
+      ]
+    }
+  ]
+}

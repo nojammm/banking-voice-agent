@@ -295,8 +295,9 @@ class Workflow:
         self.hardship_ref = ref
         counselling = kb.document('hardship-help')
         result = {'reference': ref, 'say_reference': spoken(ref), 'response_due_days': 21, 'free_counselling': counselling and counselling['text'],
-                  'next': 'Give the reference. A hardship specialist assesses options; nothing is approved on this call. Offer a specialist follow-up. '
-                          'If the caller sounds distressed or overwhelmed, also mention the free counselling in a sentence. ' + self._mock()}
+                  'next': 'This reply is only: the reference; one sentence that a hardship specialist assesses options and nothing is approved on '
+                          'this call; and a question offering a specialist follow-up. Save rights, options and timeframes for when they ask. '
+                          'Only if the caller sounds distressed or overwhelmed, add the free counselling in a sentence. ' + self._mock()}
         if not customer:
             result['identity'] = 'Not verified, so the notice is not yet linked to accounts. The caller can verify now, or a specialist will confirm identity first.'
         return result

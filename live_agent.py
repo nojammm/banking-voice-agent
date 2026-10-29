@@ -152,6 +152,10 @@ def claims_record(sentence):
 
 EMPATHY = re.compile(r"sorry|frustrat|hear you|understand|annoy|not good|rough|a pain|get (?:it|why)|makes sense|fair enough|"
                      r"disappoint|upset|tough|no wonder|see why|not on\b|unfair", re.I)  # An acknowledgement already said.
+FOLLOWUP_OFFER = re.compile(r"\b(?:would you like|do you want|want me to|if you(?:['’]d| would)? (?:like|want)|I can (?:also )?(?:record|arrange|ask|set|get|put|request))\b"
+                            r"[^.?!]*\b(?:follow[- ]?up|specialist|a (?:person|human)|someone)\b", re.I)
+OFFERED = ("You've already offered a human or specialist follow-up in this call. Don't offer it again unless the caller asks "
+           "for one or brings it up.")
 RECORD_TOOLS = {'record_hardship_notice', 'lodge_complaint', 'request_human_followup', 'lodge_dispute'}
 UNBACKED = ("Nothing was recorded or updated in this turn: no record tool has been called since the caller last spoke. "
             "If what they just said needs recording, call the tool now, saying nothing before the call: a new complaint or hardship "
@@ -302,6 +306,7 @@ class VoiceAgent(Agent):
         self.workflow, self.publish = workflow, publish
         self.raw_finals, self.seen, self.fresh, self.pending = [], set(), {}, set()
         self.current_said, self.last_lookup, self.opening, self.turn_seen = [], None, None, (None, set())
+        self.followup_offered = False  # Once offered, a human or specialist follow-up isn't offered again unasked.
 
     async def stt_node(self, audio, model_settings):
         async for event in Agent.default.stt_node(self, audio, model_settings):
@@ -349,7 +354,10 @@ class VoiceAgent(Agent):
             yield DECLINE['blocked_injection']
             return
         ctx = chat_ctx.copy()
-        ctx.add_message(role='system', content=self.workflow.state_note(self.fresh.get(last.id) if last is not None else None))
+        note = self.workflow.state_note(self.fresh.get(last.id) if last is not None else None)
+        if self.followup_offered and not self.workflow.followup_ref:
+            note += '\n\n' + OFFERED
+        ctx.add_message(role='system', content=note)
         allowed = allowed_numbers(ctx, self.workflow.facts)
         said = self.current_said = []
         turn_id = last.id if last is not None else None
@@ -376,6 +384,7 @@ class VoiceAgent(Agent):
             # Compatibility path: regex on what the agent actually said, even if it was interrupted.
             before = self.workflow.idv.status
             self.workflow.idv.observe_agent(''.join(said))
+            if any(FOLLOWUP_OFFER.search(line) for line in said): self.followup_offered = True
             if self.workflow.idv.status != before:
                 task = asyncio.ensure_future(self.workflow.auth_changed())
                 self.pending.add(task)
@@ -390,7 +399,7 @@ class VoiceAgent(Agent):
             await self.workflow.auth_changed()
             result['next'] = (f"The full name the caller already gave checked out, so don't ask for it. "
                               f"Ask for their {idv.STEP_LABEL[verification.step]}.")
-        if tool == 'lodge_complaint' and 'final_response_within_days' in result:  # A new complaint: acknowledge once.
+        if 'final_response_within_days' in result or 'response_due_days' in result:  # A new complaint or hardship notice: acknowledge once.
             felt = any(EMPATHY.search(line) for line in self.turn_seen[1])
             result['next'] = ("You've already acknowledged them this turn, so don't again. " if felt else
                               "Start with a brief, genuine acknowledgement of how they feel. ") + result['next']

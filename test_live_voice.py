@@ -242,6 +242,31 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         said = json.loads(await agent2._run('lodge_complaint', category='service', summary='Waited 40 minutes.'))
         self.assertTrue(said['next'].startswith("You've already acknowledged them"))
 
+    async def test_a_follow_up_is_offered_once_and_hardship_is_acknowledged_once(self):
+        from livekit.agents import Agent, llm
+        from live_agent import OFFERED
+        agent, wf = self.agent()
+        notes = []
+        async def fake_llm(self, chat_ctx, tools, settings):
+            notes.append(chat_ctx.items[-1].text_content)
+            yield 'Would you like me to record a specialist follow-up as well?'
+        ctx = llm.ChatContext()
+        ctx.add_message(role='user', content='My hours were cut.')
+        with patch.object(Agent.default, 'llm_node', fake_llm):
+            [p async for p in agent.llm_node(ctx, [], None)]
+            ctx.add_message(role='user', content="It's the home loan.")
+            [p async for p in agent.llm_node(ctx, [], None)]
+        self.assertNotIn(OFFERED, notes[0])
+        self.assertIn(OFFERED, notes[1])  # Offered once already: the next turn is told not to repeat it.
+        agent.turn_seen = ('m9', {"i'm so sorry, that's really tough."})
+        first = json.loads(await agent._run('record_hardship_notice', cause='reduced_income', situation='Hours cut.',
+                                            affected_products='home loan', expected_duration='unknown', support_wanted='unsure'))
+        self.assertTrue(first['next'].startswith("You've already acknowledged them"))
+        await agent._run('request_human_followup', reason='hardship_assessment', summary='Hours cut.')
+        with patch.object(Agent.default, 'llm_node', fake_llm):
+            [p async for p in agent.llm_node(ctx, [], None)]
+        self.assertNotIn(OFFERED, notes[-1])  # Once a follow-up exists, the note isn't needed.
+
     async def test_audio_tags_reach_a_tag_capable_voice_only(self):
         pieces = ['[sym', 'pathetic] Oh no, that sounds stressful. ', 'Let me [short ', 'pause] check.']
         self.assertEqual((await self.speak(pieces))[0], '[sympathetic] Oh no, that sounds stressful. Let me [short pause] check.')
