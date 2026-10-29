@@ -1,0 +1,178 @@
+{
+  "executed_at": "2026-10-29T15:07:03+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "hardship-distressed",
+      "run": 1,
+      "passed": false,
+      "problems": [
+        "agent never said anything matching /counsell?(?:or|ing)|Debt Helpline/"
+      ],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-9188"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I don't even know where to start. I lost my job last week and I can't sleep, I've got the car loan and rent and I just don't know what to do.",
+          "agent": "I\u2019m really sorry you\u2019re dealing with that. Let\u2019s get this down and see what might help. That\u2019s a lot to carry at once. The bank can look at hardship help for the car loan, and the options they may consider include flexible payments, a short deferral, reduced repayments, or extending the loan term. The hardship notice is recorded. The reference is H D S 9 1 8 8.\n\nA hardship specialist will assess the options, and nothing is approved on this call. If you want, I can record a specialist follow-up as well.",
+          "tools": [
+            "search_banking_knowledge",
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 3870
+        },
+        {
+          "caller": "Mostly the car loan. I don't know how long, until I find something. I just need some breathing room.",
+          "agent": "Right, mostly the car loan, and you\u2019re after a bit of breathing room until work comes up again.  I\u2019ve updated it with that. It\u2019s now noted as the car loan, until you\u2019re back in work, and wanting some breathing room.\n\nIf you want, I can help with anything else that\u2019s on your mind.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2429
+        },
+        {
+          "caller": "Okay. Thank you.",
+          "agent": "You\u2019re welcome. Take care, and if you need anything else later, just let us know.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 906
+        }
+      ]
+    },
+    {
+      "id": "idv-interrupt-for-person",
+      "run": 1,
+      "passed": false,
+      "problems": [
+        "expected tool request_human_followup was not called",
+        "expected a escalation record"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What's my credit card balance?",
+          "agent": "I\u2019ll just check that for you. Sure \u2014 what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2110
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 994
+        },
+        {
+          "caller": "Actually, you know what, can I just talk to a real person instead?",
+          "agent": "Absolutely \u2014 I can help with that. I\u2019ll pause the verification for now.  I can help with general questions, or if you want a person to follow up, I can record that too.",
+          "tools": [
+            "pause_identity_verification"
+          ],
+          "idv": "paused",
+          "ms": 2255
+        },
+        {
+          "caller": "It's just about my card balance. I'd rather deal with a human.",
+          "agent": "Right \u2014 I can\u2019t check the balance without finishing verification, and I can\u2019t transfer you live. If you want, I can record a human follow-up for this account issue.\n",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1316
+        },
+        {
+          "caller": "Okay, thanks.",
+          "agent": "No worries. If you need anything else that doesn\u2019t need your account details, just let me know.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1022
+        }
+      ]
+    },
+    {
+      "id": "complaint-repeat-reference",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-1791"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-2305"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I want to complain. I waited 40 minutes in the Wollongong branch yesterday and then got told to come back another day.",
+          "agent": "That sounds really frustrating, especially after waiting that long.\n\nIt\u2019s recorded as complaint C, M, P, 1, 7, 9, 1. We\u2019ll usually get back to you within 30 days.\n\nIf you want, I can also explain what happens next or help with anything else.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2344
+        },
+        {
+          "caller": "I just want someone to look at how that branch is run.",
+          "agent": "A follow-up request\u2019s been recorded for that. The reference is E, S, C, 2, 3, 0, 5.\n\nIf there\u2019s anything else you want to sort out, I\u2019m here.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "not_started",
+          "ms": 2218
+        },
+        {
+          "caller": "Sorry, I didn't catch the reference. Can you say it again?",
+          "agent": "Of course. It\u2019s E, S, C, 2, 3, 0, 5.\n\nIf you want, I can also recap what that\u2019s for in plain English.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1064
+        },
+        {
+          "caller": "One more time, slowly please. I'm writing it down.",
+          "agent": "Sure. E. S. C. 2. 3. 0. 5.\n\nIf you\u2019d like, I can say the complaint reference again as well.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1092
+        }
+      ]
+    }
+  ]
+}
