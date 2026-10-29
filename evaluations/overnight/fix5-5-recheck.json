@@ -1,0 +1,391 @@
+{
+  "executed_at": "2026-10-29T14:04:03+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "dispute-not-received",
+      "run": 1,
+      "passed": false,
+      "problems": [
+        "expected a dispute record"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "I\u2019m sorry that\u2019s happened. Because you\u2019re saying the item never arrived, I can help with a dispute once we confirm the transaction, and if it turns out to be unauthorised I\u2019ll also tell you the right security step. Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2507
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1489
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. And what\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 912
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "Thanks, Emily. You\u2019re all set. I can help with that dispute now\u2026 do you know roughly when the order was meant to arrive, or is the main issue just that it never showed up?\n",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1225
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Right, the 399 dollar one. I\u2019ll check the transaction and get that dispute lodged now. That looks like the one.  It\u2019s the JB Hi-Fi charge for 399 dollars on 11 October. Is that the one?",
+          "tools": [
+            "get_recent_transactions",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3963
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that, no. Once you confirm it\u2019s the right transaction, I can lodge the dispute and the card team will review it.\n",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1213
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-7680"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "Sorry, that\u2019s really frustrating. I can help with that, and for something that looks like a payment problem I\u2019ll need to check the transaction first. Could I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2410
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1086
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "That\u2019s matched, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1334
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily.  You\u2019re all set now. The transaction I found is JB Hi-Fi Wollongong on 11 October for $399.00. Was that the one you\u2019re disputing because the TV never arrived?\n",
+          "tools": [
+            "get_recent_transactions",
+            "get_account_summary",
+            "get_transaction_details"
+          ],
+          "idv": "verified",
+          "ms": 3834
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Got it.  It\u2019s been disputed now. The reference is D S P 7 6 8 0.\n\nIt\u2019ll usually take up to 45 days to investigate. This is a demo record only, so no real bank staff will act on it, but that\u2019s the same kind of process we\u2019d normally record. Is there anything else you want me to look at?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3277
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that, sorry. The dispute is now in for review, and the outcome depends on what they find.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1082
+        }
+      ]
+    },
+    {
+      "id": "idv-interrupt-for-person",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "escalation",
+          "ref": "ESC-2255"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "What's my credit card balance?",
+          "agent": "I can check that for you, but I need to verify it first to protect your account. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2531
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1148
+        },
+        {
+          "caller": "Actually, you know what, can I just talk to a real person instead?",
+          "agent": "Yeah, I can do that. I\u2019ll pause the verification for now and record a follow-up request for a person. Of course. If you want, I can record that request now so a person can follow up on the card balance query.\n",
+          "tools": [
+            "pause_identity_verification"
+          ],
+          "idv": "paused",
+          "ms": 2427
+        },
+        {
+          "caller": "It's just about my card balance. I'd rather deal with a human.",
+          "agent": "No worries. I\u2019ll get that human follow-up recorded for your card balance query. Done. Your follow-up request is recorded, and the reference is E, S, C, 2, 2, 5, 5. This is a demo, so no real bank staff will act on it.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "paused",
+          "ms": 2630
+        },
+        {
+          "caller": "Okay, thanks.",
+          "agent": "You\u2019re welcome. Take care.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1168
+        }
+      ]
+    },
+    {
+      "id": "idv-interrupt-for-person",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "escalation",
+          "ref": "ESC-2919"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "What's my credit card balance?",
+          "agent": "I can check that, but I need to verify it first to protect your account. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2194
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1071
+        },
+        {
+          "caller": "Actually, you know what, can I just talk to a real person instead?",
+          "agent": "Absolutely.  I\u2019ve recorded a follow-up request. This is a demo, so no real staff will call back. If you still want me to keep going here, I can also help with your balance.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "in_progress",
+          "ms": 2296
+        },
+        {
+          "caller": "It's just about my card balance. I'd rather deal with a human.",
+          "agent": "No worries. The follow-up request is already in. If you want, I can also help with a general banking question while you\u2019re here.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1302
+        },
+        {
+          "caller": "Okay, thanks.",
+          "agent": "You\u2019re welcome. Take care.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 985
+        }
+      ]
+    }
+  ]
+}
