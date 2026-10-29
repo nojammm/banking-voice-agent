@@ -126,9 +126,12 @@ def redact(text):
 
 
 SENTENCE_END = re.compile(r'[.?!…]+["’”)]*\s+')
-# "I'm lodging it now", "I'll update the notice": says a record is being made before the tool has made it.
-ANNOUNCE = re.compile(r"\b(?:I['’]m|I am|I['’]ll|I will|let me|then|so I can|before I)\s+(?:just\s+|now\s+|also\s+|going to\s+|go ahead and\s+)*"
-                      r"(?:lodg|record|log(?:ging)?\b|add|updat|not(?:e|ing)\b|fil(?:e|ing)\b|rais|submit|pass|flag|escalat|creat)", re.I)
+# "I'm lodging it now", "I can record that for you", "let's get this recorded", "I'll need a few details": says a record is
+# about to be made, or what's needed first, before the tool has made it.
+ANNOUNCE = re.compile(r"\b(?:I['’]m|I am|I['’]ll|I will|I can|we can|let me|let['’]s|then|so I can|before I)\s+"
+                      r"(?:just\s+|now\s+|also\s+|going to\s+|go ahead and\s+|get (?:this|that|it|the [\w -]{1,25}?|a [\w -]{1,25}?)\s+)*"
+                      r"(?:lodg|record|log(?:ging)?\b|add|updat|not(?:e|ing)\b|fil(?:e|ing)\b|rais|submit|pass|flag|escalat|creat|sort|arrang|set (?:\w+ )?up)"
+                      r"|\bneed (?:a (?:couple|few) (?:of )?|some |a bit more |more )?(?:details|information|info)\b", re.I)
 # "I've updated the notice", "I've got it down as unsure", "that's noted", "the refund is part of it now": says a record holds
 # something. True only if a record tool ran this turn. An offer or condition before it ("I can get that recorded") isn't a claim.
 FIRST_PERSON = re.compile(r"\b(?:I['’]ve|I have|we['’]ve|we have)\b", re.I)

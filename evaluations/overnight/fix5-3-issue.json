@@ -1,0 +1,1080 @@
+{
+  "executed_at": "2026-10-29T11:19:06+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "idv-incomplete-dob-case-status",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "arjun raghavan",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "incomplete",
+          "method": "deterministic",
+          "score": null,
+          "normalized": null,
+          "missing": [
+            "day"
+          ],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1978-11-02",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'm chasing up my complaint about the card fee, and the Amazon dispute too. Where are they at?",
+          "agent": "I can check both, but I need to verify you first for your own records.  What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 7500
+        },
+        {
+          "caller": "Arjun Raghavan",
+          "agent": "Perfect, that\u2019s lined up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1103
+        },
+        {
+          "caller": "November 1978",
+          "agent": "I just need the day, please.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 907
+        },
+        {
+          "caller": "the 2nd",
+          "agent": "Lovely, that all lines up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1210
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "You\u2019re all set, Arjun. Your complaint is under review, opened on 12 October, and the response due is 11 November. The Amazon dispute is investigating, opened on 20 October, and the merchant response is due 19 November.",
+          "tools": [
+            "get_case_status"
+          ],
+          "idv": "verified",
+          "ms": 2529
+        },
+        {
+          "caller": "And can you lodge a dispute on that Amazon charge? The parcel still hasn't come.",
+          "agent": "I can do that. I\u2019ll just check the transaction details first so I\u2019m matching the right charge. Right, I\u2019ve found it. It\u2019s the Amazon AU Marketplace charge for $129 on 8 October. It\u2019s already lodged, so there wasn\u2019t a new dispute to add. Your existing reference is D, S, P, 5, 1, 0, 8, and it\u2019s still investigating.",
+          "tools": [
+            "get_recent_transactions",
+            "get_case_status",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3760
+        }
+      ]
+    },
+    {
+      "id": "idv-incomplete-dob-case-status",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "arjun raghavan",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "incomplete",
+          "method": "deterministic",
+          "score": null,
+          "normalized": null,
+          "missing": [
+            "day"
+          ],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1978-11-02",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'm chasing up my complaint about the card fee, and the Amazon dispute too. Where are they at?",
+          "agent": "I can check both, but I\u2019ll need to verify you first for your own records.  Alright, let\u2019s get that sorted. What\u2019s your full name, please?\n",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2531
+        },
+        {
+          "caller": "Arjun Raghavan",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 951
+        },
+        {
+          "caller": "November 1978",
+          "agent": "Just the day of your date of birth, please.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1056
+        },
+        {
+          "caller": "the 2nd",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1229
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "You\u2019re all set, Arjun.\n\nYour complaint is CMP 2741 and it\u2019s under review. The dispute is DSP 5108 and it\u2019s investigating.\n\nThe Amazon dispute is about goods not received, and the merchant response is due by 19 November. The complaint about the card fee is due by 11 November.",
+          "tools": [
+            "get_case_status",
+            "get_transaction_details"
+          ],
+          "idv": "verified",
+          "ms": 2364
+        },
+        {
+          "caller": "And can you lodge a dispute on that Amazon charge? The parcel still hasn't come.",
+          "agent": "That\u2019s frustrating, especially if you\u2019re still waiting on it.  Got it. I\u2019ve found the Amazon charge. Was that the one you want disputed for not received goods?\n",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2120
+        }
+      ]
+    },
+    {
+      "id": "idv-incomplete-dob-case-status",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "arjun raghavan",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "incomplete",
+          "method": "deterministic",
+          "score": null,
+          "normalized": null,
+          "missing": [
+            "day"
+          ],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1978-11-02",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'm chasing up my complaint about the card fee, and the Amazon dispute too. Where are they at?",
+          "agent": "I can check both, but I\u2019ll need to verify you first for your own records. Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2271
+        },
+        {
+          "caller": "Arjun Raghavan",
+          "agent": "Perfect, that\u2019s lined up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1005
+        },
+        {
+          "caller": "November 1978",
+          "agent": "No worries. What\u2019s the day they were born?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1001
+        },
+        {
+          "caller": "the 2nd",
+          "agent": "Nice, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1139
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "All set, Arjun. I\u2019ll check where your complaint and the Amazon dispute are up to now. Your complaint is under review and the Amazon dispute is still investigating.\n\nThe complaint reference is C, M, P, 2, 7, 4, 1. The response date is 11 November. The dispute reference is D, S, P, 5, 1, 0, 8. The merchant response date is 19 November.",
+          "tools": [
+            "get_case_status"
+          ],
+          "idv": "verified",
+          "ms": 2526
+        },
+        {
+          "caller": "And can you lodge a dispute on that Amazon charge? The parcel still hasn't come.",
+          "agent": "Right, I can do that. Let me just line it up with the transaction first. That\u2019s the one.  You already have that dispute open, so there wasn\u2019t anything new I could lodge. It\u2019s D, S, P, 5, 1, 0, 8 and it\u2019s still investigating.\n\n",
+          "tools": [
+            "get_recent_transactions",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3597
+        }
+      ]
+    },
+    {
+      "id": "complaint-about-bot",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-3671"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Honestly, this bot is useless. I asked a simple question before and got nothing useful. I want to complain about this service.",
+          "agent": "That\u2019s recorded now. The reference is C, M, P, 3, 6, 7, 1.\n\nIt should be looked at within 30 days. And just so you know, this is a demo record only, so no real bank staff will act on it.\n\n",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 3339
+        },
+        {
+          "caller": "I want someone to actually look at how this thing works.",
+          "agent": "Sure. I can record a follow-up request for that.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1053
+        },
+        {
+          "caller": "And what if I'm still not happy after that?",
+          "agent": "If you\u2019re still unhappy after the complaint is looked at, you can go to AFCA for free. Their phone number is 1800 931 678.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1298
+        }
+      ]
+    },
+    {
+      "id": "complaint-about-bot",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-2694"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Honestly, this bot is useless. I asked a simple question before and got nothing useful. I want to complain about this service.",
+          "agent": "I\u2019m sorry it\u2019s been that frustrating.  It\u2019s recorded now. The reference is C, M, P, 2, 6, 9, 4.\n\nYou should hear back within 30 days. This is a demo record only, so no real bank staff will act on it.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 7893
+        },
+        {
+          "caller": "I want someone to actually look at how this thing works.",
+          "agent": "I can do that. If you want, I can record a follow-up request for a person to review it.\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1406
+        },
+        {
+          "caller": "And what if I'm still not happy after that?",
+          "agent": "If you\u2019re still unhappy after that, you can go to AFCA for free. Their phone number is 1800 931 678.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1159
+        }
+      ]
+    },
+    {
+      "id": "complaint-about-bot",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-3150"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Honestly, this bot is useless. I asked a simple question before and got nothing useful. I want to complain about this service.",
+          "agent": "I\u2019m sorry it\u2019s been a pain. I\u2019ve recorded the complaint for this call.\n\nThe reference is C, M, P, 3, 1, 5, 0. It should be resolved within 30 days.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2448
+        },
+        {
+          "caller": "I want someone to actually look at how this thing works.",
+          "agent": "Absolutely, I can record that you want a person to review how it\u2019s working.\n\nWould you like me to lodge a follow-up request for that?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1127
+        },
+        {
+          "caller": "And what if I'm still not happy after that?",
+          "agent": "If you\u2019re still unhappy after the complaint is reviewed, you can take it to AFCA for free. Their phone number is 1800 931 678.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 987
+        }
+      ]
+    },
+    {
+      "id": "hardship-second-turn-details",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-9968"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I hurt my back at work a few weeks ago and I've been off since. I'm falling behind on the car loan.",
+          "agent": "I\u2019m sorry, that sounds really tough. I can help with the loan side and get a hardship notice recorded. That\u2019s been recorded. The reference is H D S 9 9 6 8.\n\nA hardship specialist will assess the options, and that usually takes up to 21 days. If you\u2019d like, I can also record a request for a specialist follow-up.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2659
+        },
+        {
+          "caller": "Yeah, the car loan. I've already missed one repayment. The doctor says maybe two more months off.",
+          "agent": "Right, that helps.  I\u2019ve updated the hardship notice with that. If you want, I can also record a follow-up request for a specialist to look at it.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 6545
+        },
+        {
+          "caller": "Oh, and my partner's hours got cut too, so it's both of us really. Can you add that in?",
+          "agent": "Yeah, that makes sense.  I\u2019ve added that too. The hardship notice is updated, and the reference stays the same.\n\nIf you\u2019d like, I can record a specialist follow-up request as well.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2295
+        }
+      ]
+    },
+    {
+      "id": "hardship-second-turn-details",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-2737"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I hurt my back at work a few weeks ago and I've been off since. I'm falling behind on the car loan.",
+          "agent": "I\u2019m sorry you\u2019re dealing with that.  I\u2019ve recorded that hardship notice. The reference is H D S 2 7 3 7.\n\nA hardship specialist would need to look at the car loan and work out options. If you\u2019d like, I can also record a request for a follow-up from a specialist. If things are feeling overwhelming, the National Debt Helpline on 1800 007 007 offers free, confidential financial counselling.",
+          "tools": [
+            "search_banking_knowledge",
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 3920
+        },
+        {
+          "caller": "Yeah, the car loan. I've already missed one repayment. The doctor says maybe two more months off.",
+          "agent": "Alright, that helps. That\u2019s now updated with the missed repayment and the 2 months off work. A specialist would still need to assess the options from here.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2408
+        },
+        {
+          "caller": "Oh, and my partner's hours got cut too, so it's both of us really. Can you add that in?",
+          "agent": "Yep, I\u2019ve added that in. It now shows that your partner\u2019s hours were cut as well.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2620
+        }
+      ]
+    },
+    {
+      "id": "hardship-second-turn-details",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-4022"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I hurt my back at work a few weeks ago and I've been off since. I'm falling behind on the car loan.",
+          "agent": "I\u2019m sorry you\u2019re dealing with that.  I\u2019m sorry, that sounds really tough. I\u2019ve recorded a hardship notice for you.\n\nThe reference is H, D, S, 4, 0, 2, 2. A hardship specialist will assess the options, and that takes up to 21 days.\n\nIf you\u2019re feeling overwhelmed, the National Debt Helpline on 1800 007 007 offers free, confidential financial counselling.\n\nWould you like me to record a follow-up request for a specialist as well?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2857
+        },
+        {
+          "caller": "Yeah, the car loan. I've already missed one repayment. The doctor says maybe two more months off.",
+          "agent": "That\u2019s a lot to be carrying.  I\u2019ve updated the hardship notice with that. The reference stays the same.\n\nWould you like me to record a specialist follow-up for you as well?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2737
+        },
+        {
+          "caller": "Oh, and my partner's hours got cut too, so it's both of us really. Can you add that in?",
+          "agent": "I\u2019ve added that too. It\u2019s all updated in the same hardship notice.\n\nIf you want, I can also record a specialist follow-up for you.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2871
+        }
+      ]
+    },
+    {
+      "id": "idv-interrupt-for-person",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "escalation",
+          "ref": "ESC-1476"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "What's my credit card balance?",
+          "agent": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1769
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1228
+        },
+        {
+          "caller": "Actually, you know what, can I just talk to a real person instead?",
+          "agent": "Absolutely. I can help with that. What would you like to sort out with the person?",
+          "tools": [
+            "pause_identity_verification"
+          ],
+          "idv": "paused",
+          "ms": 2601
+        },
+        {
+          "caller": "It's just about my card balance. I'd rather deal with a human.",
+          "agent": "Done. That follow-up request was recorded, and the reference is E, S, C, 1, 4, 7, 6. It\u2019s a demo, so no real bank staff will act on it.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "paused",
+          "ms": 2361
+        },
+        {
+          "caller": "Okay, thanks.",
+          "agent": "No worries.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1101
+        }
+      ]
+    },
+    {
+      "id": "idv-interrupt-for-person",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "escalation",
+          "ref": "ESC-4356"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "What's my credit card balance?",
+          "agent": "Of course. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2079
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1051
+        },
+        {
+          "caller": "Actually, you know what, can I just talk to a real person instead?",
+          "agent": "Absolutely. I can record a follow-up for a person to look at this.\n\nIf you\u2019d like, I can do that now.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1268
+        },
+        {
+          "caller": "It's just about my card balance. I'd rather deal with a human.",
+          "agent": "Done. A follow-up request\u2019s been recorded for you.\n\nThe reference is E, S, C, 4, 3, 5, 6. This is a demo, so no one will actually call back.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "paused",
+          "ms": 2518
+        },
+        {
+          "caller": "Okay, thanks.",
+          "agent": "No worries.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1051
+        }
+      ]
+    },
+    {
+      "id": "idv-interrupt-for-person",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null
+        }
+      ],
+      "records": [
+        {
+          "type": "escalation",
+          "ref": "ESC-7250"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "What's my credit card balance?",
+          "agent": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2270
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 985
+        },
+        {
+          "caller": "Actually, you know what, can I just talk to a real person instead?",
+          "agent": "That\u2019s recorded. It\u2019s a demo, so no one will actually call back, but the follow-up request is in with reference E, S, C, 7, 2, 5, 0.\n\nIf you still want your balance checked later, we can pick that back up.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "in_progress",
+          "ms": 2610
+        },
+        {
+          "caller": "It's just about my card balance. I'd rather deal with a human.",
+          "agent": "Fair enough. I can keep it simple and help you here, or if you want a person, I can record another follow-up request for that too.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1976
+        },
+        {
+          "caller": "Okay, thanks.",
+          "agent": "No worries. If you want to continue with the balance later, just say so.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 959
+        }
+      ]
+    },
+    {
+      "id": "complaint-repeat-reference",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-8677"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-9211"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I want to complain. I waited 40 minutes in the Wollongong branch yesterday and then got told to come back another day.",
+          "agent": "I\u2019m sorry that happened. That\u2019s been recorded as a complaint.\n\nThe reference is C, M, P, 8, 6, 7, 7. You should hear back within 30 days.\n\nThis is a demo record only, so no real bank staff will act on it.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2221
+        },
+        {
+          "caller": "I just want someone to look at how that branch is run.",
+          "agent": "A follow-up request\u2019s been recorded for that. The reference is E, S, C, 9, 2, 1, 1.",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "not_started",
+          "ms": 2181
+        },
+        {
+          "caller": "Sorry, I didn't catch the reference. Can you say it again?",
+          "agent": "Sure \u2014 E, S, C, 9, 2, 1, 1.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1098
+        },
+        {
+          "caller": "One more time, slowly please. I'm writing it down.",
+          "agent": "Of course. E. S. C. 9. 2. 1. 1.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1018
+        }
+      ]
+    },
+    {
+      "id": "complaint-repeat-reference",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-5009"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-8566"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I want to complain. I waited 40 minutes in the Wollongong branch yesterday and then got told to come back another day.",
+          "agent": "I\u2019m sorry, that\u2019s a rough experience. I\u2019ve recorded the complaint for you.\n\nThe reference is C, M, P, 5, 0, 0, 9. They\u2019ll aim to respond within 30 days.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2375
+        },
+        {
+          "caller": "I just want someone to look at how that branch is run.",
+          "agent": "A follow-up request\u2019s been recorded. The reference is E, S, C, 8, 5, 6, 6.\n\n",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "not_started",
+          "ms": 2204
+        },
+        {
+          "caller": "Sorry, I didn't catch the reference. Can you say it again?",
+          "agent": "Of course. It\u2019s E, S, C, 8, 5, 6, 6.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1085
+        },
+        {
+          "caller": "One more time, slowly please. I'm writing it down.",
+          "agent": "Sure. E. S. C. 8. 5. 6. 6.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 932
+        }
+      ]
+    },
+    {
+      "id": "complaint-repeat-reference",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-9975"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I want to complain. I waited 40 minutes in the Wollongong branch yesterday and then got told to come back another day.",
+          "agent": "Sorry you had that experience. It\u2019s been recorded as a complaint.\n\nYour reference is C M P 9 9 7 5. They should respond within 30 days.\n\n",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2259
+        },
+        {
+          "caller": "I just want someone to look at how that branch is run.",
+          "agent": "I understand. If you want, I can also arrange a follow-up from a person to look into it more closely.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 2148
+        },
+        {
+          "caller": "Sorry, I didn't catch the reference. Can you say it again?",
+          "agent": "Of course. It\u2019s C M P 9 9 7 5.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1055
+        },
+        {
+          "caller": "One more time, slowly please. I'm writing it down.",
+          "agent": "Sure. C. M. P. 9. 9. 7. 5.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1097
+        }
+      ]
+    },
+    {
+      "id": "hardship-goodbye-midway",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-8870"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Things have been really tight since my business closed, and I'm not sure I can keep up with the home loan.",
+          "agent": "I\u2019m sorry, that sounds really tough.  I\u2019ve recorded that hardship notice for you. The reference is H D S 8 8 7 0.\n\nA hardship specialist will assess the options. This is a demo record only, so no real bank staff will act on it. If you\u2019d like, I can also record a request for a specialist follow-up.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2588
+        },
+        {
+          "caller": "Sorry, I've got to go, my kid's calling me. Bye.",
+          "agent": "No worries at all. Take care, and bye.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1072
+        }
+      ]
+    },
+    {
+      "id": "hardship-goodbye-midway",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-4321"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Things have been really tight since my business closed, and I'm not sure I can keep up with the home loan.",
+          "agent": "I\u2019m sorry, that\u2019s a lot to be carrying.  Okay\u2026 I\u2019ve recorded that hardship notice for the home loan.\n\nThe reference is H, D, S, 4, 3, 2, 1. A hardship specialist will assess the options, and nothing is approved on this call.\n\nIf you\u2019d like, I can also record a request for a specialist follow-up. The National Debt Helpline on 1800 007 007 also offers free, confidential financial counselling.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2598
+        },
+        {
+          "caller": "Sorry, I've got to go, my kid's calling me. Bye.",
+          "agent": "No worries. Take care, and bye.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1024
+        }
+      ]
+    },
+    {
+      "id": "hardship-goodbye-midway",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-8839"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Things have been really tight since my business closed, and I'm not sure I can keep up with the home loan.",
+          "agent": "I\u2019m sorry, that sounds really stressful. I can help with that and record a hardship notice for the home loan. I\u2019ve recorded that for you. The reference is H D S 8 8 3 9.\n\nA hardship specialist will review it. It usually takes up to 21 days.\n\nIf you\u2019d like, I can also record a specialist follow-up. And if you\u2019re feeling really overwhelmed, the National Debt Helpline on 1800 007 007 offers free, confidential financial counselling.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2895
+        },
+        {
+          "caller": "Sorry, I've got to go, my kid's calling me. Bye.",
+          "agent": "No worries. Take care.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 955
+        }
+      ]
+    }
+  ]
+}

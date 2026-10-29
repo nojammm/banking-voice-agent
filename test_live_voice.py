@@ -172,6 +172,12 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(out, "I'll update the notice with that. Take your time.")  # No tool: said, in order.
         out, _ = await self.speak(["I'm not sure about that one. ", call])
         self.assertEqual(out, "I'm not sure about that one. ")
+        for offer in ["I can lodge that now for goods not received. ", "Let's get this recorded. ", "I'll get that sorted now. ",
+                      "I'll just need a couple of details first. "]:
+            out, _ = await self.speak(["That's frustrating. ", offer, call])
+            self.assertEqual(out, "That's frustrating. ")  # The result says what happened; the offer would stack on it.
+        out, _ = await self.speak(["If you want, I can also record a follow-up. ", 'Just say the word.'])
+        self.assertEqual(out, "If you want, I can also record a follow-up. Just say the word.")
 
     async def test_a_record_update_claimed_without_a_tool_is_retried_once(self):
         from livekit.agents import Agent, llm
