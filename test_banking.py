@@ -18,8 +18,8 @@ import kb
 import server
 
 TODAY = date(2026, 10, 28)
-EMILY = ['Emily Carter', 'fourteenth of March 1991', 'unit 4 56 Harbour Street Wollongong NSW 2500']
-ARJUN = ['Arjun Raghavan', 'two eleven seventy eight', '17 Kooyong Road Caulfield North Victoria 3161']
+ALICE = ['Alice Wonderland', 'first of September 1999', '50 Alice Street Newtown NSW 2020']
+MINJI = ['Minji Kim', 'twenty four ten ninety eight', '17 Kooyong Road Caulfield North Victoria 3161']
 
 
 def run(coro):
@@ -43,7 +43,7 @@ class TempDB(unittest.TestCase):
         return banking.Workflow.create(session, conn=self.conn, judge=judge, publish=publish,
                                        config=idv.validate_config(json.loads(json.dumps(idv.DEFAULTS))), today=TODAY)
 
-    def verify(self, wf, answers=EMILY):
+    def verify(self, wf, answers=ALICE):
         wf.idv.begin('tool')
         for text in answers: run(wf.idv.answer(text))
         self.assertTrue(wf.idv.verified)
@@ -73,12 +73,12 @@ class AccessControlTests(TempDB):
         self.assertEqual(summary['accounts'][2]['owing'], '$1,284.60')
         self.assertNotIn('48213307', json.dumps(summary))  # Full account numbers never reach the model.
         other = run(wf.call('get_transaction_details', transaction_id='TXN-2001-01'))
-        self.assertEqual(other['error'], 'not_found')  # Arjun's transaction isn't visible to Emily.
+        self.assertEqual(other['error'], 'not_found')  # Minji's transaction isn't visible to Alice.
 
     def test_failed_verification_keeps_records_locked(self):
         wf = self.workflow()
         wf.idv.begin()
-        run(wf.idv.answer('Emily Carter'))
+        run(wf.idv.answer('Alice Wonderland'))
         run(wf.idv.answer('1 January 1990'))
         run(wf.idv.answer('2 January 1990'))
         self.assertEqual(run(wf.call('get_loans'))['error'], 'verification_failed')
@@ -98,7 +98,7 @@ class AccessControlTests(TempDB):
 
     def test_loans_applications_and_cases(self):
         wf = self.workflow()
-        self.verify(wf, ARJUN)
+        self.verify(wf, MINJI)
         loan = run(wf.call('get_loans'))['loans'][0]
         self.assertEqual((loan['balance_owing'], loan['interest_rate'], loan['repayment'], loan['next_due']),
                          ('$612,304.88', '6.24% p.a. variable', '$4,012.55', '1 November'))
@@ -122,8 +122,8 @@ class AccessControlTests(TempDB):
     def test_transaction_descriptions_are_ready_to_say(self):
         for raw, said in [('PAYPAL *GAMEVAULT 4029357733', 'Paypal Gamevault'), ('AMAZON AU Marketplace', 'Amazon AU Marketplace'),
                           ('Pending: Shell Coles Express Fairy Meadow', 'Shell Coles Express Fairy Meadow'),
-                          ('Rent - Harbour Property Mgmt', 'Rent, Harbour Property Management'), ('Netflix.com', 'Netflix'),
-                          ('Car loan repayment LN-2001', 'Car loan repayment'), ('JB Hi-Fi Wollongong', 'JB Hi-Fi Wollongong'),
+                          ('Rent - Newtown Property Mgmt', 'Rent, Newtown Property Management'), ('Netflix.com', 'Netflix'),
+                          ('Car loan repayment LN-2001', 'Car loan repayment'), ('JB Hi-Fi Newtown', 'JB Hi-Fi Newtown'),
                           ('AGL Energy', 'AGL Energy'), ("St Mary's Primary School fees", "St Mary's Primary School fees"),
                           ('AMAZON AU Marketplace $129.00: goods not received', 'Amazon AU Marketplace $129.00: goods not received')]:
             with self.subTest(raw): self.assertEqual(banking.say_description(raw), said)
@@ -245,7 +245,7 @@ class CaseWorkflowTests(TempDB):
         wf = self.workflow()
         run(wf.call('record_hardship_notice', cause='reduced_income', situation='Hours cut', affected_products='home loan',
                     expected_duration='unknown', support_wanted='unsure'))
-        self.verify(wf, ARJUN)
+        self.verify(wf, MINJI)
         self.assertIn('$4,012.55', json.dumps(run(wf.call('get_loans'))))
         run(wf.call('lodge_complaint', category='fees_and_charges', summary='Card fee after downgrade, third time chasing'))
         run(wf.call('request_human_followup', reason='hardship_assessment', summary='Hardship and complaint follow-up'))
@@ -278,7 +278,7 @@ class CallbackFormTests(TempDB):
         self.assertEqual((ref, set(errors)), (None, {'name', 'phone', 'consent'}))
         error_reply = wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'error', 'fields': ['phone']})
         self.assertIn('phone', error_reply)
-        _, ref, errors = bank.submit_callback(self.conn, form_id, {'name': 'Emily Carter', 'phone': '+61 491 570 006', 'consent': True})
+        _, ref, errors = bank.submit_callback(self.conn, form_id, {'name': 'Alice Wonderland', 'phone': '+61 491 570 006', 'consent': True})
         self.assertEqual(errors, {})
         saved = bank.cases(self.conn, session_id=wf.session_id)[0]
         self.assertEqual((saved['ref'], saved['details']['phone'], saved['details']['mock']), (ref, '0491570006', True))
@@ -286,7 +286,7 @@ class CallbackFormTests(TempDB):
         self.assertIn(ref, reply)
         self.assertIn("nobody will actually call", reply)
         self.assertIsNone(wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'submitted', 'reference': ref}))
-        self.assertEqual(bank.submit_callback(self.conn, form_id, {'name': 'Emily', 'phone': '0491570006', 'consent': True})[2],
+        self.assertEqual(bank.submit_callback(self.conn, form_id, {'name': 'Alice', 'phone': '0491570006', 'consent': True})[2],
                          {'form': 'This form was already submitted.'})
 
     def test_cancel_close_and_forged_events(self):
@@ -359,14 +359,14 @@ class EndpointTests(TempDB):
         self.assertEqual(self.post('/api/forms/submit', {'form_id': form_id, 'name': 'A', 'phone': 'x', 'consent': True}, token='bad')[0], 403)
         code, body = self.post('/api/forms/submit', {'form_id': form_id, 'name': 'A', 'phone': '12', 'consent': True})
         self.assertEqual((code, set(body['errors'])), (400, {'name', 'phone'}))
-        code, body = self.post('/api/forms/submit', {'form_id': form_id, 'name': 'Arjun R', 'phone': '03 9555 0100', 'consent': True})
+        code, body = self.post('/api/forms/submit', {'form_id': form_id, 'name': 'Minji K', 'phone': '03 9555 0100', 'consent': True})
         self.assertEqual((code, body['agent_notified']), (200, True))
         room, event = self.sent[-1]
         self.assertEqual((room, event['status'], event['reference']), (wf.session_id, 'submitted', body['reference']))
         self.assertNotIn('phone', json.dumps(event))  # The agent learns the outcome, not the number.
         log = [e for e in bank.latest_session(self.conn)['events'] if e['kind'] == 'form_event_sent']
         self.assertEqual([e['data']['status'] for e in log], ['error', 'submitted'])
-        self.assertEqual(self.post('/api/forms/submit', {'form_id': form_id, 'name': 'Arjun R', 'phone': '0395550100', 'consent': True})[0], 400)
+        self.assertEqual(self.post('/api/forms/submit', {'form_id': form_id, 'name': 'Minji K', 'phone': '0395550100', 'consent': True})[0], 400)
 
     def test_form_close_and_unknown_forms(self):
         wf = self.workflow()
@@ -380,7 +380,7 @@ class EndpointTests(TempDB):
 
     def test_inspector_endpoints_and_reset(self):
         overview = self.get('/api/demo/overview')
-        self.assertEqual([c['first_name'] for c in overview['customers']], ['Emily', 'Arjun'])
+        self.assertEqual([c['first_name'] for c in overview['customers']], ['Alice', 'Minji'])
         self.assertTrue(overview['scenarios'])
         wf = self.workflow()
         self.verify(wf)

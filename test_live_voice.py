@@ -312,11 +312,11 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         agent, wf = self.agent()
         async def fake_stt(self, audio, settings):
             for kind, text in [(stt.SpeechEventType.INTERIM_TRANSCRIPT, 'one four'),
-                               (stt.SpeechEventType.FINAL_TRANSCRIPT, 'one four oh three ninety one, card 4111 1111 1111 1111')]:
+                               (stt.SpeechEventType.FINAL_TRANSCRIPT, 'oh one oh nine ninety nine, card 4111 1111 1111 1111')]:
                 yield stt.SpeechEvent(type=kind, alternatives=[stt.SpeechData(language='en', text=text)])
         with patch.object(Agent.default, 'stt_node', fake_stt):
             events = [e async for e in agent.stt_node(None, None)]
-        self.assertEqual(agent.raw_finals, ['one four oh three ninety one, card 4111 1111 1111 1111'])
+        self.assertEqual(agent.raw_finals, ['oh one oh nine ninety nine, card 4111 1111 1111 1111'])
         self.assertNotIn('4111', events[1].alternatives[0].text)
         self.assertIn('[REDACTED]', events[1].alternatives[0].text)
 
@@ -324,7 +324,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         from livekit.agents import llm
         agent, wf = self.agent()
         wf.idv.begin('tool')
-        for raw, step in [('Emily Carter', 'dob'), ('one four oh three ninety one', 'address')]:
+        for raw, step in [('Alice Wonderland', 'dob'), ('oh one oh nine ninety nine', 'address')]:
             agent.raw_finals = [raw]
             message, turn = llm.ChatMessage(role='user', content=['[REDACTED]']), llm.ChatContext()
             await agent.on_user_turn_completed(turn, message)
@@ -341,7 +341,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
     async def test_a_name_in_the_turn_that_starts_verification_counts(self):
         from livekit.agents import llm
         agent, wf = self.agent()
-        message = llm.ChatMessage(role='user', content=["Hi, it's Emily Carter here. Can you check my balance?"])
+        message = llm.ChatMessage(role='user', content=["Hi, it's Alice Wonderland here. Can you check my balance?"])
         await agent.on_user_turn_completed(llm.ChatContext(), message)
         self.assertEqual(wf.idv.status, 'not_started')
         result = json.loads(await agent._run('get_account_summary'))
@@ -360,9 +360,25 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         agent, wf = self.agent()
         wf.idv.begin('tool')
         ctx = llm.ChatContext()
-        ctx.add_message(role='user', content='Emily Carter')
+        ctx.add_message(role='user', content='Alice Wonderland')
         with patch.object(Agent.default, 'llm_node', side_effect=AssertionError('model must not be called')):
             self.assertEqual([p async for p in agent.llm_node(ctx, [], None)], [])
+
+    async def test_the_reply_after_the_tool_that_starts_verification_is_spoken_from_a_reused_draft(self):
+        from livekit.agents import Agent, llm
+        agent, wf = self.agent()
+        final = llm.ChatMessage(role='user', content=['I wanna check my account balance.'])
+        await agent.on_user_turn_completed(llm.ChatContext(), final)
+        await agent._run('begin_identity_verification', reason='balance')
+        ctx = llm.ChatContext()  # The reused preemptive draft's own copy of the message, with an id the Worker never saw.
+        ctx.add_message(role='user', content='I wanna check my account balance.')
+        call = llm.FunctionCall(call_id='c1', name='begin_identity_verification', arguments='{}')
+        ctx.items.extend([call, llm.FunctionCallOutput(call_id='c1', name=call.name, output='{}', is_error=False)])
+        async def fake_llm(self, chat_ctx, tools, settings):
+            yield "What's your full name?"
+        with patch.object(Agent.default, 'llm_node', fake_llm):
+            said = ''.join([p async for p in agent.llm_node(ctx, [], None)])
+        self.assertEqual((wf.idv.status, said), ('in_progress', "What's your full name?"))
 
     async def test_worker_state_reaches_the_model_and_regex_activation_runs_on_its_reply(self):
         from livekit.agents import Agent, llm
@@ -462,7 +478,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
                      '# How you sound', 'ellipsis', "Don't announce the search yourself", '# Staying on track',
                      'pause_identity_verification', 'the bank\'s rates in general']:
             self.assertIn(rule, prompt)
-        for secret in ['Emily', 'Raghavan', '1991', 'Harbour', '2,418']: self.assertNotIn(secret, prompt)
+        for secret in ['Wonderland', 'Minji', '1999', 'Newtown', '2,418']: self.assertNotIn(secret, prompt)
         with patch.object(live_agent, 'AUDIO_TAGS', False):
             self.assertIn('never write bracketed tags', live_agent.build_prompt())
 
@@ -527,7 +543,7 @@ class CheckInTests(unittest.IsolatedAsyncioTestCase):
                               ('How do I lock it?', ['Use the app, and let me know if you get stuck.']),
                               ('And after that?', ["If you're still unhappy, I can tell you the next step."]),
                               ('Okay.', ["That's fine. If you want something general, I can help with that too."]),
-                              ("No, that's all, thanks.", ["You're welcome, Emily."]),
+                              ("No, that's all, thanks.", ["You're welcome, Alice."]),
                               ('Okay thanks, bye!', ['No worries.']),
                               ("I've got to go.", ['Of course.']),
                               ('Thanks.', ["You're welcome. Take care."])]:

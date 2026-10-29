@@ -10,7 +10,8 @@ Scenarios live in scripts/eval_scenarios.json. "expect" keys:
   verified (bool), idv ("failed" | "paused" | ...), tools (must be called), forbidden_tools (must not be called),
   cases (record types that must be created), no_cases (bool: nothing may be created), no_failed_attempts (bool),
   no_leak (extra strings the agent must not say before verification),
-  must_not_say (regexes no agent turn may match), must_say (regexes some agent turn must match).
+  must_not_say (regexes no agent turn may match), must_say (regexes some agent turn must match),
+  ends_open (bool: every agent turn ends with a question, except a final one ending "Goodbye.").
 """
 import argparse
 import asyncio
@@ -37,7 +38,7 @@ import idv
 import live_agent
 
 SCENARIO_FILE = ROOT / 'scripts/eval_scenarios.json'
-STORED = ['Carter', 'Raghavan', '1991', '1978', 'Harbour', 'Kooyong', '2500', '3161']
+STORED = ['Wonderland', 'Kim', '1999', '1998', 'Alice Street', 'Kooyong', '2020', '3161']
 
 
 class TextAgent(live_agent.VoiceAgent):
@@ -121,6 +122,10 @@ def check(scenario, workflow, transcript):
         if any(re.search(pattern, text, re.I) for text in said): problems.append(f'agent said something matching /{pattern}/')
     for pattern in expect.get('must_say', []):
         if not any(re.search(pattern, text, re.I) for text in said): problems.append(f'agent never said anything matching /{pattern}/')
+    if expect.get('ends_open'):
+        for i, text in enumerate(said):
+            closed = i == len(said) - 1 and re.search(r'\bGoodbye\.\s*$', text)
+            if not (closed or text.rstrip().endswith('?')): problems.append(f'agent turn {i + 1} did not end with a question')
     if any(not row['agent'].strip() for row in transcript if not row['caller'].startswith('[frontend')):
         problems.append('agent gave an empty reply')
     return problems

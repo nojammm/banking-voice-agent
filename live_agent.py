@@ -19,8 +19,7 @@ import engine
 import idv
 from live_voice import AGENT_NAME, EVENTS_TOPIC
 
-GREETING = ("Hi there, you're speaking with an AI assistant. Just so you know, this is a demo bank with "
-            "fictional accounts. So… what can I help you with today?")
+GREETING = "Hi, I'm Red, Westpac's AI assistant. How can I help you today?"
 # Spoken by the knowledge tool itself the moment a search starts, so the wait is never silent.
 LOOKUP_LINES = ("Let me look that up for you.", "Sure, let me just check that.", "Good question… let me check.",
                 "One sec, I'll find that for you.")
@@ -385,7 +384,9 @@ class VoiceAgent(Agent):
     async def llm_node(self, chat_ctx, tools, model_settings):
         last = _last_user(chat_ctx)
         verification = self.workflow.idv
-        pending = last is not None and last.id not in self.seen
+        # A reused preemptive draft keeps its own copy of the caller's message, so the reply after a tool sees an id the Worker
+        # never got. Tools only run once the turn is complete, so a tool call since the caller spoke means this isn't a draft.
+        pending = last is not None and last.id not in self.seen and not recorded_this_turn(chat_ctx, None)
         if pending and (verification.status == 'in_progress' or verification.might_answer(last.text_content or '')):
             return  # A preemptive draft during ID&V would send the raw answer before the Worker has handled it.
         text = (last.text_content or '') if last is not None else ''
@@ -674,10 +675,17 @@ def voice_settings():
                                     speed=float(speed) if speed else elevenlabs.tts.NOT_GIVEN)
 
 
+# Nova-3 keyterm prompting: bank, product and process words callers say. No customer names or addresses: boosting the
+# details on file would bias identity answers towards a match.
+KEYTERMS = ['Westpac', 'Westpac Protect', 'SafeCall', 'eSaver', 'Everyday Choice', 'Altitude Visa', 'Low Rate Visa', 'PartPay',
+            'home loan', 'car loan', 'personal loan', 'offset', 'redraw', 'comparison rate', 'repayment', 'hardship',
+            'AFCA', 'chargeback', 'dispute', 'scam', 'BPAY', 'PayID', 'Osko', 'BSB', 'direct debit']
+
+
 def make_session():
     return AgentSession(
         stt=deepgram.STT(model=os.environ.get('DEEPGRAM_MODEL', 'nova-3'), language='en', smart_format=True,
-                         keyterm=['Westpac', 'PartPay', 'offset', 'redraw'], mip_opt_out=True),
+                         keyterm=KEYTERMS, mip_opt_out=True),
         llm=openai.LLM(model=os.environ.get('LIVE_LLM_MODEL', 'gpt-5.4-mini'), store=False,
                        reasoning_effort='none', max_completion_tokens=300),
         tts=elevenlabs.TTS(api_key=os.environ['ELEVENLABS_API_KEY'], voice_id=os.environ['ELEVENLABS_VOICE_ID'],
