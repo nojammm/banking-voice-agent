@@ -150,6 +150,8 @@ def claims_record(sentence):
     return bool(found) and not NOT_CLAIM.search(clause)
 
 
+EMPATHY = re.compile(r"sorry|frustrat|hear you|understand|annoy|not good|rough|a pain|get (?:it|why)|makes sense|fair enough|"
+                     r"disappoint|upset|tough|no wonder|see why|not on\b|unfair", re.I)  # An acknowledgement already said.
 RECORD_TOOLS = {'record_hardship_notice', 'lodge_complaint', 'request_human_followup', 'lodge_dispute'}
 UNBACKED = ("Nothing was recorded or updated in this turn: no record tool has been called since the caller last spoke. "
             "If what they just said needs recording, call the tool now, saying nothing before the call: a new complaint or hardship "
@@ -180,7 +182,8 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
 
     Speech goes out a sentence at a time. A question, or an announcement that a record is being made, waits for the
     reply to end; if the reply calls a tool, it and anything after it are dropped, so the agent never asks something
-    and then answers it from the result, or says "I'm lodging it now" before a result that says otherwise. A sentence
+    and then answers it from the result, or says "I'm lodging it now" before a result that says otherwise. A clause of
+    an announcement that isn't one ("…, and I can see why that's frustrating") is still said. A sentence
     already said this turn (seen), or one close to a line said before the tool call, isn't said again. After an
     unsupported number the reply goes quiet, but its tool calls still go through; the fallback line is said only if
     there were none (the reply after the tool result speaks instead).
@@ -201,6 +204,18 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
                     or (not backed and claims_record(sentence))): held.append(sentence)
             else: ready.append(sentence)
         return ready
+
+    def salvage(pieces):
+        """With a tool call: keep the parts of a held announcement that aren't one
+        ("I can log that now, and I can see why it's frustrating." -> "I can see why it's frustrating.")."""
+        out = []
+        for piece in pieces:
+            if piece.rstrip().endswith('?') or not ANNOUNCE.search(piece): break  # Later lines may depend on the result.
+            for clause in re.split(r",\s*(?:and|but|so)\s+|;\s*|\s+[—–]\s+|\s+but\s+", piece.strip()):
+                clause = clause.strip(' ,.!…')
+                if len(clause.split()) >= 3 and not ANNOUNCE.search(clause) and not claims_record(clause):
+                    out.append(clause[0].upper() + clause[1:] + '. ')
+        return out
 
     def unclaimed(pieces):
         if backed or not any(claims_record(p) for p in pieces): return pieces
@@ -247,7 +262,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
         if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
         for piece in out: yield piece
     if not blocked:
-        out, blocked = speak(take(pending) + ([] if tool_called else unclaimed(held)))
+        out, blocked = speak(take(pending) + (salvage(held) if tool_called else unclaimed(held)))
         if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
         for piece in out: yield piece
     if blocked and not tool_called: yield (' ' if spoken else '') + UNSUPPORTED
@@ -375,6 +390,10 @@ class VoiceAgent(Agent):
             await self.workflow.auth_changed()
             result['next'] = (f"The full name the caller already gave checked out, so don't ask for it. "
                               f"Ask for their {idv.STEP_LABEL[verification.step]}.")
+        if tool == 'lodge_complaint' and 'final_response_within_days' in result:  # A new complaint: acknowledge once.
+            felt = any(EMPATHY.search(line) for line in self.turn_seen[1])
+            result['next'] = ("You've already acknowledged them this turn, so don't again. " if felt else
+                              "Start with a brief, genuine acknowledgement of how they feel. ") + result['next']
         return json.dumps(result)
 
     @function_tool()

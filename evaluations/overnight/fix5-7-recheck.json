@@ -1,0 +1,241 @@
+{
+  "executed_at": "2026-10-29T14:28:39+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "idv-incomplete-dob-case-status",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "arjun raghavan",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "incomplete",
+          "method": "deterministic",
+          "score": null,
+          "normalized": null,
+          "missing": [
+            "day"
+          ],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1978-11-02",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'm chasing up my complaint about the card fee, and the Amazon dispute too. Where are they at?",
+          "agent": "I can check both for you, but I\u2019ll need to verify you first to protect your account.  Could I get your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2194
+        },
+        {
+          "caller": "Arjun Raghavan",
+          "agent": "Perfect, that\u2019s matched. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 960
+        },
+        {
+          "caller": "November 1978",
+          "agent": "What\u2019s the day, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1162
+        },
+        {
+          "caller": "the 2nd",
+          "agent": "Good, that lines up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1192
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "All set, Arjun. I\u2019m checking the complaint about the card fee and the Amazon dispute now. You\u2019re all set. I\u2019ve got both updates.\n\nThe complaint is under review. Reference C, M, P, 2, 7, 4, 1, and the response date is 11 November.\n\nThe Amazon dispute is being investigated. Reference D, S, P, 5, 1, 0, 8, and the merchant response is due 19 November.\n\nIf you want, I can also check whether there\u2019s anything else happening on your accounts.",
+          "tools": [
+            "get_case_status",
+            "get_transaction_details"
+          ],
+          "idv": "verified",
+          "ms": 3446
+        },
+        {
+          "caller": "And can you lodge a dispute on that Amazon charge? The parcel still hasn't come.",
+          "agent": "Right, I can do that. I just need to confirm the Amazon charge first so I lodge the right one. That\u2019s the one.  It\u2019s already been lodged, so nothing new was added. That one is DSP-5108, and it\u2019s already under investigation.\n\nIf you want, I can check whether there\u2019s anything else on that case, or look up another account issue for you.",
+          "tools": [
+            "get_recent_transactions",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3902
+        }
+      ]
+    },
+    {
+      "id": "idv-incomplete-dob-case-status",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "arjun raghavan",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "incomplete",
+          "method": "deterministic",
+          "score": null,
+          "normalized": null,
+          "missing": [
+            "day"
+          ],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1978-11-02",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'm chasing up my complaint about the card fee, and the Amazon dispute too. Where are they at?",
+          "agent": "I can check both of those for you. I\u2019ll need to verify your identity first for the complaint status and the dispute. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2013
+        },
+        {
+          "caller": "Arjun Raghavan",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth, please?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1345
+        },
+        {
+          "caller": "November 1978",
+          "agent": "Just the day of your date of birth, please.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1036
+        },
+        {
+          "caller": "the 2nd",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1082
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "You\u2019re all set, Arjun. The Amazon dispute is already investigating, reference D, S, P, 5, 1, 0, 8, and the card fee complaint is under review, reference C, M, P, 2, 7, 4, 1.\n\nThe dispute was opened on 20 October, with the merchant response due by 19 November. The complaint was opened on 12 October, with a response due by 11 November. Is there anything else you\u2019d like me to check?",
+          "tools": [
+            "get_case_status",
+            "get_transaction_details"
+          ],
+          "idv": "verified",
+          "ms": 2449
+        },
+        {
+          "caller": "And can you lodge a dispute on that Amazon charge? The parcel still hasn't come.",
+          "agent": "Understood. I\u2019ll check the Amazon transaction and lodge the dispute if it matches what you\u2019re referring to. Yep, that\u2019s the one.  It\u2019s already on file, Arjun. The dispute reference is D, S, P, 5, 1, 0, 8, and it\u2019s showing as investigating. If you want, I can also check the card fee complaint status again or help with something else.",
+          "tools": [
+            "get_recent_transactions",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3602
+        }
+      ]
+    }
+  ]
+}

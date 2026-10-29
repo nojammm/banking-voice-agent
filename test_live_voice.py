@@ -176,6 +176,10 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
                       "I'll just need a couple of details first. "]:
             out, _ = await self.speak(["That's frustrating. ", offer, call])
             self.assertEqual(out, "That's frustrating. ")  # The result says what happened; the offer would stack on it.
+        out, _ = await self.speak(["I can log the complaint now, and I can see why that fee's frustrating. ", call])
+        self.assertEqual(out, "I can see why that fee's frustrating. ")  # Empathy sharing a sentence with the offer survives.
+        out, _ = await self.speak(["I'll record it now, and then I'll update the notice. ", "What's your name? ", call])
+        self.assertEqual(out, '')
         out, _ = await self.speak(["If you want, I can also record a follow-up. ", 'Just say the word.'])
         self.assertEqual(out, "If you want, I can also record a follow-up. Just say the word.")
 
@@ -224,6 +228,19 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(''.join(p for p in out if isinstance(p, str)), 'That makes sense. ')
         self.assertEqual(prompts[1], UNBACKED + ' You already said this turn: "That makes sense." Carry on from there without repeating or rephrasing it.')
         self.assertEqual(out[-1].delta.tool_calls[0].name, 'record_hardship_notice')
+
+    async def test_a_new_complaint_is_acknowledged_once(self):
+        agent, _ = self.agent()
+        agent.turn_seen = ('m1', {'sure.'})
+        first = json.loads(await agent._run('lodge_complaint', category='service', summary='Waited 40 minutes at a branch.'))
+        self.assertTrue(first['next'].startswith('Start with a brief, genuine acknowledgement'))
+        agent.turn_seen = ('m2', {"i'm sorry, that's really frustrating."})
+        update = json.loads(await agent._run('lodge_complaint', category='service', summary='Also wants the branch reviewed.'))
+        self.assertNotIn('acknowledge', update['next'])  # An update isn't a new complaint.
+        agent2, _ = self.agent()
+        agent2.turn_seen = ('m3', {"i'm sorry, that's really frustrating."})
+        said = json.loads(await agent2._run('lodge_complaint', category='service', summary='Waited 40 minutes.'))
+        self.assertTrue(said['next'].startswith("You've already acknowledged them"))
 
     async def test_audio_tags_reach_a_tag_capable_voice_only(self):
         pieces = ['[sym', 'pathetic] Oh no, that sounds stressful. ', 'Let me [short ', 'pause] check.']
