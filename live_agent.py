@@ -163,6 +163,20 @@ UNBACKED = ("Nothing was recorded or updated in this turn: no record tool has be
             "If what they just said needs recording, call the tool now, saying nothing before the call: a new complaint or hardship "
             "notice, or details for a record made earlier in this call (call the tool that made it again with everything so far). "
             "Otherwise reply without saying you recorded, noted, added or updated anything.")
+# A finished reply leaves the caller something to respond to. When one ends flat, a short check-in is written by a second
+# call and said after it; the call runs while the reply is being spoken, so the caller doesn't wait for it.
+INVITATION = re.compile(r"\?|\b(?:let me know|feel free|just (?:say|ask|tell me)|tell me|go ahead|take your time|no rush|"
+                        r"whenever you['’]re ready|if you(?:['’]d| would)? (?:like|want)|if (?:that|it)(?: would)? helps?|happy to|"
+                        r"I['’]m here|anything else|I can (?:also |still )?(?:tell you|give you|explain|walk you|go through|run through|talk you))\b", re.I)
+WRAP_UP = re.compile(r"\b(?:that['’]?s (?:all|it|everything)|that(?:['’]ll| will) be all|nothing else|(?:good)?bye|see ya|"
+                     r"(?:got|have|gotta) (?:to )?go|I['’]m (?:all )?(?:good|done|sorted)|all good|have a good)\b", re.I)
+FAREWELL = re.compile(r"\b(?:take care|(?:good)?bye|have a (?:good|great|lovely|nice)|all the best|enjoy the rest)\b", re.I)
+INTERNAL = re.compile(r"\b(?:worker|tools?|function|system|prompt|instructions?|json|note|check-?in)\b|_", re.I)
+CHECK_IN = ("Your reply above finished what they asked, but it leaves the caller nothing to respond to. Write one short sentence "
+            "to say straight after it, in your own words, that fits what you just said: check in with them, or offer more on it "
+            "that you can actually give. "
+            "Don't repeat anything, add facts or numbers, or offer to record, arrange or follow up anything. Make it a question "
+            "or an open invitation, worded differently from any check-in earlier in this call. Write only that sentence.")
 
 
 def split_ready(pending):
@@ -304,6 +318,27 @@ def recorded_this_turn(chat_ctx, names=RECORD_TOOLS):
     return False
 
 
+def ends_flat(reply, caller=''):
+    """Whether a finished reply leaves the caller nothing to respond to: it asks and invites nothing, and it isn't
+    a goodbye or a reply to a caller who is wrapping up ("that's all, thanks", "bye")."""
+    reply = AUDIO_TAG.sub('', reply).strip()
+    wrapping_up = WRAP_UP.search(caller) and '?' not in caller
+    offer = reply and re.search(r"\bI can (?:also |still )?help\b|\bchange your mind\b", sentences(reply)[-1], re.I)  # Ends on its own offer.
+    return bool(reply) and not (INVITATION.search(reply) or FAREWELL.search(reply) or offer or wrapping_up)
+
+
+def usable_check_in(text, earlier=(), allowed=SMALL):
+    """The check-in as one short spoken line, or None if it isn't one: too long, not a question or invitation,
+    internal words, a number nobody supplied, an offer to record something, or a repeat of an earlier check-in."""
+    text = ' '.join(AUDIO_TAG.sub('', text).split()).strip('"“”‘’\' ')
+    if not text or len(text.split()) > 25 or len(sentences(text)) > 2 or not INVITATION.search(text): return None
+    if INTERNAL.search(text) or ANNOUNCE.search(text) or FOLLOWUP_OFFER.search(text) or claims_record(text): return None
+    if numbers(text) - set(allowed): return None
+    key = re.sub(r"[^a-z' ]", '', text.lower())
+    if any(difflib.SequenceMatcher(None, key, re.sub(r"[^a-z' ]", '', e.lower())).ratio() >= 0.8 for e in earlier): return None
+    return text
+
+
 class VoiceAgent(Agent):
     def __init__(self, workflow, publish):
         super().__init__(instructions=build_prompt())
@@ -311,6 +346,7 @@ class VoiceAgent(Agent):
         self.raw_finals, self.seen, self.fresh, self.pending = [], set(), {}, set()
         self.current_said, self.last_lookup, self.opening, self.turn_seen = [], None, None, (None, set())
         self.followup_offered = False  # Once offered, a human or specialist follow-up isn't offered again unasked.
+        self.check_ins = []  # Check-ins added after flat replies, so the next one is worded differently.
 
     async def stt_node(self, audio, model_settings):
         async for event in Agent.default.stt_node(self, audio, model_settings):
@@ -375,14 +411,22 @@ class VoiceAgent(Agent):
             async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen,
                                        backed=backed, flags=flags):
                 yield piece
+            tool_called = not flags.get('no_tool')
             # One retry: a record change claimed with no tool, or verification just finished and nothing was looked up.
             retry = UNBACKED if flags.get('unbacked') else VERIFIED_NOW if just_verified and flags.get('no_tool') else None
             if retry:
                 already = ' '.join(AUDIO_TAG.sub('', ''.join(said)).split())
                 ctx.add_message(role='system', content=retry + (f' You already said this turn: "{already}" Carry on from there '
                                                                    "without repeating or rephrasing it." if already else ''))
+                tool_called = False
                 async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen,
                                            backed=backed):
+                    if not isinstance(piece, str) and piece.delta and piece.delta.tool_calls: tool_called = True
+                    yield piece
+            # The reply is final and ends flat: add a short check-in. Not while a form or verification waits on the caller.
+            if (not tool_called and ends_flat(''.join(said), text) and verification.status != 'in_progress'
+                    and not any(f['status'] == 'open' for f in self.workflow.forms.values())):
+                async for piece in self._check_in(ctx, said, allowed, seen, backed):
                     yield piece
         except asyncio.CancelledError:
             raise
@@ -398,6 +442,38 @@ class VoiceAgent(Agent):
                 task = asyncio.ensure_future(self.workflow.auth_changed())
                 self.pending.add(task)
                 task.add_done_callback(self.pending.discard)
+
+    async def _check_in(self, ctx, said, allowed, seen, backed):
+        """One short check-in in the agent's own words, written by a second call without tools and spoken after a flat
+        reply. It goes through the same guard; anything that isn't a short, new question or invitation is dropped."""
+        ctx = ctx.copy()
+        ctx.add_message(role='assistant', content=AUDIO_TAG.sub('', ''.join(said)).strip())
+        earlier = ' '.join(f'"{line}"' for line in self.check_ins[-4:])
+        ctx.add_message(role='system', content=CHECK_IN + (f' Earlier check-ins: {earlier}' if earlier else ''))
+        try:
+            text = await self.write_check_in(ctx)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            return  # The reply has been said; a missing check-in is better than an error line.
+        line = usable_check_in(text, self.check_ins, allowed)
+        if not line: return
+        self.check_ins.append(line)
+        lead = '' if not said or said[-1][-1:].isspace() else ' '
+
+        async def one():
+            yield lead + line
+        async for piece in guarded(one(), allowed, self.publish, said=said, seen=seen, backed=backed):
+            yield piece
+
+    async def write_check_in(self, ctx):
+        """The session's model, called without tools."""
+        activity = self._get_activity_or_raise()
+        text = ''
+        async with activity.llm.chat(chat_ctx=ctx, conn_options=activity.session.conn_options.llm_conn_options) as stream:
+            async for chunk in stream:
+                if chunk.delta and chunk.delta.content: text += chunk.delta.content
+        return text
 
     async def _run(self, tool, **args):
         verification, opening = self.workflow.idv, self.opening

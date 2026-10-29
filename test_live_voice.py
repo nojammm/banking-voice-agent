@@ -484,3 +484,87 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(session._opts.turn_handling['turn_detection'].model, 'turn-detector-v1')
         self.assertFalse(session._opts.turn_handling['turn_detection']._local_fallback)
         await session.aclose()
+
+
+@unittest.skipUnless(SDK, 'Optional LiveKit SDK requires .venv-livekit')
+class CheckInTests(unittest.IsolatedAsyncioTestCase):
+    """A finished reply that ends flat gets one short check-in, written by a second call, unless the caller is wrapping up."""
+
+    def setUp(self):
+        LiveAgentTests.setUp(self)
+
+    async def publish(self, payload):
+        self.events.append(payload)
+
+    agent = LiveAgentTests.agent
+
+    async def turn(self, agent, caller, reply, check_in='Is there anything else I can help with today?'):
+        from livekit.agents import Agent, llm
+        ctx = llm.ChatContext()
+        ctx.add_message(role='user', content=caller)
+        agent.seen.add(ctx.items[-1].id)  # The Worker has already handled this turn.
+        prompts = []
+        async def fake_llm(self, chat_ctx, tools, settings):
+            for piece in reply: yield piece
+        async def write(ctx):
+            prompts.append(ctx.items[-1].text_content)
+            return check_in
+        with patch.object(Agent.default, 'llm_node', fake_llm), patch.object(agent, 'write_check_in', write):
+            out = [p async for p in agent.llm_node(ctx, [], None)]
+        return ''.join(p for p in out if isinstance(p, str)), prompts
+
+    async def test_a_flat_ending_gets_a_check_in(self):
+        from live_agent import CHECK_IN
+        agent, _ = self.agent()
+        said, prompts = await self.turn(agent, 'Is that the real rate?', ["No, it isn't. ", "It's a demo rate only."])
+        self.assertEqual(said, "No, it isn't. It's a demo rate only. Is there anything else I can help with today?")
+        self.assertTrue(prompts[0].startswith(CHECK_IN))
+        self.assertIn('Is there anything else I can help with today?', ''.join(agent.current_said))
+
+    async def test_no_check_in_after_a_question_a_goodbye_or_while_the_caller_has_something_to_do(self):
+        agent, wf = self.agent()
+        for caller, reply in [('What is the rate?', ["It's a demo rate only. ", 'Want the fixed rates too?']),
+                              ('How do I lock it?', ['Use the app, and let me know if you get stuck.']),
+                              ('And after that?', ["If you're still unhappy, I can tell you the next step."]),
+                              ('Okay.', ["That's fine. If you want something general, I can help with that too."]),
+                              ("No, that's all, thanks.", ["You're welcome, Emily."]),
+                              ('Okay thanks, bye!', ['No worries.']),
+                              ("I've got to go.", ['Of course.']),
+                              ('Thanks.', ["You're welcome. Take care."])]:
+            with self.subTest(caller):
+                said, prompts = await self.turn(agent, caller, reply)
+                self.assertEqual((said, prompts), (''.join(reply), []))
+        wf.forms['f1'] = {'status': 'open', 'purpose': 'home_loan'}  # The caller is filling in the callback form.
+        self.assertEqual(await self.turn(agent, 'Yes please.', ["It's on your screen now."]), ("It's on your screen now.", []))
+        wf.forms['f1']['status'] = 'submitted'
+        agent2, wf2 = self.agent()
+        wf2.idv.begin('tool')  # Verification is waiting on the caller.
+        self.assertEqual(await self.turn(agent2, 'Hang on.', ['Sure.']), ('Sure.', []))
+
+    async def test_check_ins_vary_and_go_through_the_guard(self):
+        agent, _ = self.agent()
+        first, _ = await self.turn(agent, 'How do I contact AFCA?', ['You can call them.'], 'Anything else on your mind?')
+        self.assertEqual(first, 'You can call them. Anything else on your mind?')
+        said, prompts = await self.turn(agent, 'And the website?', ["It's on their site."], 'Anything else on your mind?')
+        self.assertEqual(said, "It's on their site.")  # The same check-in twice in a call isn't said.
+        self.assertIn('Earlier check-ins: "Anything else on your mind?"', prompts[0])
+        said, _ = await self.turn(agent, 'Okay.', ['Sure.'], 'Want me to go through what happens next?')
+        self.assertEqual(said, 'Sure. Want me to go through what happens next?')
+        for bad in ['Your balance is $9,999 by the way, anything else?', 'Would you like me to record a follow-up for you?',
+                    'Should I pass that to the Worker?', 'Anything else? ' * 10, 'I hope that helps.']:
+            with self.subTest(bad):
+                self.assertEqual((await self.turn(agent, 'Okay.', ['Right.'], bad))[0], 'Right.')
+        self.assertIsNone(__import__('live_agent').usable_check_in('I can lodge that for you now if you like?'))
+        said, _ = await self.turn(agent, 'Can you help?', ['I can help with that. ', 'You need two payslips.'], 'Want the full list of documents?')
+        self.assertEqual(said, 'I can help with that. You need two payslips. Want the full list of documents?')  # An opener isn't an offer.
+
+    async def test_a_failed_check_in_call_leaves_the_reply_as_is(self):
+        from livekit.agents import Agent, llm
+        agent, _ = self.agent()
+        ctx = llm.ChatContext()
+        ctx.add_message(role='user', content='Is that the real rate?')
+        async def fake_llm(self, chat_ctx, tools, settings):
+            yield "It's a demo rate."
+        with patch.object(Agent.default, 'llm_node', fake_llm):  # No session: the check-in call fails quietly.
+            out = [p async for p in agent.llm_node(ctx, [], None)]
+        self.assertEqual(''.join(out), "It's a demo rate.")
