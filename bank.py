@@ -204,11 +204,17 @@ def submit_callback(conn, form_id, body):
     lending = record['kind'] == 'loan_callback'
     clean, errors = validate_callback(body, consent=lending)
     if errors: return record, None, errors
-    customer_id = (session_state(conn, record['session_id']) or {}).get('verified_customer')
+    state = session_state(conn, record['session_id']) or {}
+    customer_id = state.get('verified_customer')
     details = {'name': clean['name'], 'phone': clean['phone'], 'purpose': record['purpose'], 'mock': True}
-    if lending: details['consent'] = True
-    ref = create_case(conn, 'callback', f"{FORM_KINDS[record['kind']]}: {record['purpose'].replace('_', ' ')}", details,
-                      customer_id=customer_id, session_id=record['session_id'])
+    summary = f"{FORM_KINDS[record['kind']]}: {record['purpose'].replace('_', ' ')}"
+    if lending:
+        details['consent'] = True
+        needs = state.get('loan_needs') or {}  # What the caller told the agent, so the specialist doesn't ask again.
+        if needs:
+            details['needs'] = needs
+            summary += ''.join(f", {needs[k]}" for k in ('purpose', 'amount', 'timeframe') if k in needs)
+    ref = create_case(conn, 'callback', summary, details, customer_id=customer_id, session_id=record['session_id'])
     conn.execute('UPDATE forms SET status=?, updated_at=?, result=? WHERE id=?', ('submitted', now(), json.dumps({'reference': ref}), form_id))
     return record, ref, {}
 

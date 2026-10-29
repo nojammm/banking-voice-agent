@@ -391,6 +391,9 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         agent.callback_offered = 'm1'  # Offered in this same reply: the caller hasn't said yes.
         self.assertEqual(json.loads(await agent.open_callback_form(None, 'car_loan'))['error'], 'not_offered')
         agent.turn_seen = ('m2', set())  # They said yes in the next turn.
+        self.assertEqual(json.loads(await agent.open_callback_form(None, 'car_loan'))['error'], 'needs_first')
+        await wf.call('note_loan_needs', loan_type='car_loan', purpose='used car', amount='20k', timeframe='next month')
+        wf.loan_answer('Yes.')
         self.assertNotIn('error', json.loads(await agent.open_callback_form(None, 'car_loan')))
         self.assertEqual([f['status'] for f in wf.forms.values()], ['open'])
 
@@ -494,6 +497,27 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
             await agent.on_user_turn_completed(llm.ChatContext(), llm.ChatMessage(role='user', content=['C U S 10482']))
         agent.raw_finals = ['Where do I find it?']
         await agent.on_user_turn_completed(llm.ChatContext(), llm.ChatMessage(role='user', content=['Where do I find it?']))
+
+    async def test_the_worker_starts_the_loan_questions_and_records_the_answers(self):
+        from livekit.agents import llm
+        agent, wf = self.agent()
+        async def turn(text):
+            message, ctx = llm.ChatMessage(role='user', content=[text]), llm.ChatContext()
+            agent.raw_finals = [text]
+            await agent.on_user_turn_completed(ctx, message)
+            return ctx
+        await turn("I'm thinking about buying my first place. What's the difference between fixed and variable?")
+        self.assertIsNone(wf.loan_stage)  # A rates question, not an application.
+        await turn("I want to apply for a loan, but I don't know how.")
+        self.assertIsNone(wf.loan_stage)  # No kind yet: the agent asks.
+        agent.asked_loan_kind = True  # It asked "a home loan, a car loan or a personal loan?"
+        ctx = await turn('A home loan.')
+        self.assertEqual((wf.loan_needs['loan_type'], wf.loan_stage), ('home_loan', 'asking'))
+        self.assertIn('first home, your next home', wf.state_note())
+        await turn('My first home.')
+        await turn('Maybe 600k, in the next few months.')
+        await turn('Yep.')
+        self.assertEqual((wf.loan_stage, wf.loan_summary()), ('confirmed', 'home loan, My first home, around $600,000, in the next few months'))
 
     async def test_preemptive_drafts_during_verification_never_reach_the_model(self):
         from livekit.agents import Agent, llm
@@ -601,6 +625,8 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         from livekit import rtc
         from live_agent import backend_instructions
         agent, wf = self.agent()
+        await wf.call('note_loan_needs', loan_type='home_loan', purpose='first home', amount='600k', timeframe='next year')
+        wf.loan_answer('Yes.')
         await wf.call('open_callback_form', purpose='home_loan')
         form_id = self.events[-1]['form_id']
         event = json.dumps({'type': 'form_event', 'form_id': form_id, 'status': 'cancelled'}).encode()
@@ -628,7 +654,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(names, {'begin_identity_verification', 'get_account_summary', 'get_recent_transactions', 'get_transaction_details',
                                  'get_loans', 'get_loan_applications', 'get_case_status', 'lodge_dispute', 'search_banking_knowledge',
                                  'estimate_loan_repayment', 'record_hardship_notice', 'lodge_complaint', 'request_human_followup',
-                                 'open_callback_form', 'open_contact_form', 'pause_identity_verification'})
+                                 'note_loan_needs', 'open_callback_form', 'open_contact_form', 'pause_identity_verification'})
 
     async def test_provider_and_audio_detector_configuration(self):
         from live_agent import make_session

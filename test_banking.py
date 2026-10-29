@@ -43,6 +43,11 @@ class TempDB(unittest.TestCase):
         return banking.Workflow.create(session, conn=self.conn, judge=judge, publish=publish,
                                        config=idv.validate_config(json.loads(json.dumps(idv.DEFAULTS))), today=TODAY)
 
+    def noted(self, wf, loan_type='home_loan'):
+        """What the caller told the agent about a new loan, as the call back form requires."""
+        run(wf.call('note_loan_needs', loan_type=loan_type, purpose='first home', amount='about 600k', timeframe='next few months'))
+        self.assertTrue(wf.loan_answer('Yes, that is right.'))  # They confirmed the read-back.
+
     def verify(self, wf, answers=ALICE):
         wf.idv.begin('tool')
         wf.idv.enter_customer_number(answers[0])  # Typed into the box on screen.
@@ -286,6 +291,7 @@ class CaseWorkflowTests(TempDB):
 
 class CallbackFormTests(TempDB):
     def open(self, wf):
+        self.noted(wf)
         result = run(wf.call('open_callback_form', purpose='home_loan'))
         self.assertEqual(result['status'], 'opened')
         return next(e for e in self.ui if e['type'] == 'form')['form_id']
@@ -342,6 +348,45 @@ class CallbackFormTests(TempDB):
         reply = wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'cancelled'})
         self.assertIn('without submitting', reply)
         self.assertIsNone(bank.close_form(self.conn, form_id, 'closed'))
+        self.assertEqual(bank.cases(self.conn, session_id=wf.session_id), [])
+
+
+class LoanNeedsTests(TempDB):
+    def test_the_worker_records_each_answer_and_the_read_back_before_the_call_back(self):
+        wf = self.workflow()
+        self.assertEqual(run(wf.call('open_callback_form', purpose='home_loan'))['error'], 'needs_first')
+        self.assertFalse(wf.loan_answer('A home loan.'))  # Nothing asked yet: an ordinary turn.
+        first = run(wf.call('note_loan_needs', loan_type='home_loan'))
+        self.assertIn('your first home, your next home, or an investment property', first['next'])
+        self.assertTrue(wf.loan_answer('My first home.'))
+        self.assertIn('how much are you hoping to borrow', wf.state_note())
+        self.assertNotIn('income', wf.state_note())
+        self.assertFalse(wf.loan_answer("What's your variable rate?"))  # Their own question gets answered, not recorded.
+        self.assertTrue(wf.loan_answer('Maybe 600k, in the next few months.'))  # One answer, two questions.
+        self.assertEqual((wf.loan_needs['amount'], wf.loan_needs['timeframe'], wf.loan_stage),
+                         ('around $600,000', 'in the next few months', 'read_back'))
+        self.assertIn('Just to make sure', wf.state_note())
+        self.assertEqual(run(wf.call('open_callback_form', purpose='home_loan'))['error'], 'needs_first')  # Not confirmed yet.
+        self.assertTrue(wf.loan_answer('Actually more like 700k.'))
+        self.assertEqual((wf.loan_needs['amount'], wf.loan_stage), ('$700,000', 'read_back'))
+        self.assertTrue(wf.loan_answer('Yep.'))
+        self.assertIn("I'll pass this on to our lending specialist", wf.state_note())
+        self.assertEqual(run(wf.call('open_callback_form', purpose='other'))['status'], 'opened')
+        self.assertNotIn('pass this on', wf.state_note())  # Opened: not offered again.
+        form_id = next(f for f, v in wf.forms.items() if v['kind'] == 'loan_callback')
+        _, ref, _ = bank.submit_callback(self.conn, form_id, {'name': 'Sam Lee', 'phone': '0491 570 157', 'consent': True})
+        case = next(c for c in bank.cases(self.conn) if c['ref'] == ref)
+        self.assertEqual(case['summary'], 'Lending specialist callback: home loan, My first home, $700,000, in the next few months')
+        self.assertEqual(case['details']['needs']['timeframe'], 'in the next few months')
+
+    def test_not_sure_comes_only_from_the_caller_and_declining_saves_nothing(self):
+        wf = self.workflow()
+        run(wf.call('note_loan_needs', loan_type='car_loan', purpose='new car', amount='not sure', timeframe="don't know"))
+        self.assertEqual(wf.loan_missing(), ['roughly how much', 'when'])  # The model can't fill a gap for them.
+        wf.loan_answer('No idea yet, honestly.')
+        wf.loan_answer('Whenever, really.')
+        self.assertEqual((wf.loan_needs['amount'], wf.loan_needs['timeframe'], wf.loan_stage),
+                         ('No idea yet, honestly', 'Whenever', 'read_back'))
         self.assertEqual(bank.cases(self.conn, session_id=wf.session_id), [])
 
 
@@ -480,6 +525,7 @@ class EndpointTests(TempDB):
 
     def test_form_submit_saves_then_notifies_the_calls_room(self):
         wf = self.workflow()
+        self.noted(wf)
         run(wf.call('open_callback_form', purpose='refinance'))
         form_id = self.ui[-1]['form_id']
         self.assertEqual(self.post('/api/forms/submit', {'form_id': form_id, 'name': 'A', 'phone': 'x', 'consent': True}, token='bad')[0], 403)
@@ -510,6 +556,7 @@ class EndpointTests(TempDB):
 
     def test_typing_in_the_box_reaches_the_calls_room(self):
         wf = self.workflow()
+        self.noted(wf)
         run(wf.call('open_callback_form', purpose='refinance'))
         self.assertEqual(self.post('/api/forms/typing', {'form_id': self.ui[-1]['form_id']})[0], 400)  # Not a callback form.
         run(wf.call('begin_identity_verification', reason='balance'))
@@ -520,6 +567,7 @@ class EndpointTests(TempDB):
 
     def test_form_close_and_unknown_forms(self):
         wf = self.workflow()
+        self.noted(wf)
         run(wf.call('open_callback_form', purpose='home_loan'))
         form_id = self.ui[-1]['form_id']
         self.assertEqual(self.post('/api/forms/close', {'form_id': form_id, 'reason': 'deleted'})[0], 400)

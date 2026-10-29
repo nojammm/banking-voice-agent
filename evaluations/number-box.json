@@ -1,10 +1,10 @@
 {
-  "executed_at": "2026-10-30T00:09:27+11:00",
+  "executed_at": "2026-10-30T00:39:21+11:00",
   "model": "gpt-5.4-mini",
   "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
   "results": [
     {
-      "id": "idv-wrong-dob-then-right",
+      "id": "balance-and-duplicate",
       "run": 1,
       "passed": true,
       "problems": [],
@@ -28,18 +28,6 @@
           "method": "exact",
           "score": 1.0,
           "normalized": "alice wonderland",
-          "missing": [],
-          "components": {},
-          "llm": null,
-          "reason": null
-        },
-        {
-          "step": "dob",
-          "field": "dob",
-          "outcome": "fail",
-          "method": "exact",
-          "score": null,
-          "normalized": "1998-09-01",
           "missing": [],
           "components": {},
           "llm": null,
@@ -76,57 +64,83 @@
           "reason": null
         }
       ],
-      "records": [],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-3108"
+        }
+      ],
       "transcript": [
         {
-          "caller": "Can you tell me my credit card balance?",
-          "agent": "I can help with that. Could you type your customer number into the box on your screen for me?",
-          "spoken": "I can help with that. Could you type your customer number into the box on your screen for me?",
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Absolutely. Could you type your customer number into the box on your screen for me?",
+          "spoken": "Absolutely. Could you type your customer number into the box on your screen for me?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1152
+          "ms": 1232
         },
         {
           "caller": "[frontend: typed customer number CUS-10482]",
-          "agent": "Thanks. For your security, I just need three quick details to confirm it\u2019s you. What\u2019s your full name?",
-          "spoken": "Thanks. For your security, I just need three quick details to confirm it\u2019s you. What\u2019s your full name?",
+          "agent": "Thanks, that matched. For your security, I just need three quick details to confirm it\u2019s you. What\u2019s your full name?",
+          "spoken": "Thanks, that matched. For your security, I just need three quick details to confirm it\u2019s you. What\u2019s your full name?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1058
+          "ms": 1286
         },
         {
           "caller": "Alice Wonderland",
-          "agent": "That matches, thanks. What\u2019s your date of birth?\n",
-          "spoken": "That matches, thanks. What\u2019s your date of birth?",
+          "agent": "Lovely, that\u2019s matched. What\u2019s your date of birth?",
+          "spoken": "Lovely, that\u2019s matched. What\u2019s your date of birth?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 2534
+          "ms": 1013
         },
         {
-          "caller": "1 September 1998",
-          "agent": "Sorry, I didn\u2019t catch that clearly. Could you say your date of birth again?",
-          "spoken": "Sorry, I didn\u2019t catch that clearly. Could you say your date of birth again?",
+          "caller": "oh one, oh nine, ninety nine",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "spoken": "Great, that\u2019s matched. What\u2019s your residential address?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1329
-        },
-        {
-          "caller": "Oh sorry, I meant 1 September 1999",
-          "agent": "That\u2019s all good. What\u2019s your residential address?\n",
-          "spoken": "That\u2019s all good. What\u2019s your residential address?",
-          "tools": [],
-          "idv": "in_progress",
-          "ms": 1264
+          "ms": 1109
         },
         {
           "caller": "50 Alice Street, Newtown NSW 2020",
-          "agent": "All set, Alice. Your credit card has 1,284.60 owing and 3,715.40 available credit.\n\nIs there anything else I can help you with today?",
-          "spoken": "All set, Alice. Your credit card has 1,284.60 owing and 3,715.40 available credit.\n\nIs there anything else I can help you with today?",
+          "agent": "All sorted, Alice. Your accounts are open now. Your Everyday Choice account has a balance of $2,418.76 and available funds of $2,368.76, and your eSaver has a balance of $12,950.00. Which account did you want to know more about?",
+          "spoken": "All sorted, Alice. Your accounts are open now. Your Everyday Choice account has a balance of $2,418.76 and available funds of $2,368.76, and your eSaver has a balance of $12,950.00. Which account did you want to know more about?",
           "tools": [
             "get_account_summary"
           ],
           "idv": "verified",
-          "ms": 3329
+          "ms": 2818
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Right, let me pull those up. Sure. Your last few transactions are Uber Eats Sydney for $42.35 on 27 October, Paypal Gamevault for $249 on 26 October, Shell Coles Express Fairy Meadow for $50 pending on 25 October, and two Coles Newtown transactions for $84.20 each on 24 October. Do you want me to check one of those in more detail?",
+          "spoken": "Right, let me pull those up.Sure. Your last few transactions are Uber Eats Sydney for $42.35 on 27 October, Paypal Gamevault for $249 on 26 October, Shell Coles Express Fairy Meadow for $50 pending on 25 October, and two Coles Newtown transactions for $84.20 each on 24 October. Do you want me to check one of those in more detail?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2981
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "I\u2019m sorry about that. I\u2019ll help get it to the right team. That\u2019s lodged now. The reference is D S P 3 1 0 8. It can take up to 45 days for the dispute team to look into it\u2026 is there anything else I can help you with today?",
+          "spoken": "I\u2019m sorry about that. I\u2019ll help get it to the right team.That\u2019s lodged now. The reference is D S P 3 1 0 8. It can take up to 45 days for the dispute team to look into it\u2026 is there anything else I can help you with today?",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4015
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "Done. That dispute is already lodged for you, with reference D S P 3 1 0 8. What else would you like me to help with?",
+          "spoken": "Done. That dispute is already lodged for you, with reference D S P 3 1 0 8. What else would you like me to help with?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1043
         }
       ]
     },
@@ -194,53 +208,53 @@
       "records": [
         {
           "type": "hardship",
-          "ref": "HDS-6689"
+          "ref": "HDS-2210"
         }
       ],
       "transcript": [
         {
           "caller": "I don't even know where to start. I lost my job last week and I can't sleep, I've got the car loan and rent and I just don't know what to do.",
-          "agent": "I\u2019m really sorry. Let me help you with this. Could you type your customer number into the box on your screen for me?",
-          "spoken": "I\u2019m really sorry. Let me help you with this.Could you type your customer number into the box on your screen for me?",
+          "agent": "I\u2019m really sorry, that\u2019s a lot to be carrying. Let me help you with this. Could you type your customer number into the box on your screen for me?",
+          "spoken": "I\u2019m really sorry, that\u2019s a lot to be carrying. Let me help you with this.Could you type your customer number into the box on your screen for me?",
           "tools": [
             "begin_identity_verification"
           ],
           "idv": "in_progress",
-          "ms": 2238
+          "ms": 2437
         },
         {
           "caller": "[frontend: typed customer number CUS-20917]",
-          "agent": "Thanks. For your security, I just need your full name.",
-          "spoken": "Thanks. For your security, I just need your full name.",
+          "agent": "Thanks, that\u2019s matched up. For your security, I just need your full name.",
+          "spoken": "Thanks, that\u2019s matched up. For your security, I just need your full name.",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1063
+          "ms": 1165
         },
         {
           "caller": "Minji Kim",
-          "agent": "That\u2019s matched, thank you. What\u2019s your date of birth?\n",
-          "spoken": "That\u2019s matched, thank you. What\u2019s your date of birth?",
+          "agent": "Thanks, that\u2019s matched. What\u2019s your date of birth?",
+          "spoken": "[warm] Thanks, that\u2019s matched. What\u2019s your date of birth?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1174
+          "ms": 1195
         },
         {
           "caller": "24th of October 1998",
-          "agent": "That\u2019s matched, thanks. What\u2019s your residential address?",
-          "spoken": "That\u2019s matched, thanks. What\u2019s your residential address?",
+          "agent": "All good. What\u2019s your residential address?",
+          "spoken": "All good. What\u2019s your residential address?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1000
+          "ms": 1089
         },
         {
           "caller": "17 Kooyong Road, Caulfield North VIC 3161",
-          "agent": "You\u2019re all checked through now.  You\u2019re all set, Minji. We\u2019ve noted it down and passed it to the team who can help with this. Your reference is H, D, S, 6, 6, 8, 9. We\u2019ll respond within 21 days, and no change to your repayments has been agreed yet. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Is there anything else I can help you with today?",
-          "spoken": "[warm] You\u2019re all checked through now. You\u2019re all set, Minji. We\u2019ve noted it down and passed it to the team who can help with this. Your reference is H, D, S, 6, 6, 8, 9. We\u2019ll respond within 21 days, and no change to your repayments has been agreed yet. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Is there anything else I can help you with today?",
+          "agent": "Thanks, Minji. The checks are all done now. I\u2019ve noted it down and passed it on to the team who can help. H, D, S, 2, 2, 1, 0. We\u2019ll respond within 21 days, and no change to your repayments has been agreed yet. If you\u2019re feeling this overwhelmed, the National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Is there anything else I can help you with today?",
+          "spoken": "Thanks, Minji. The checks are all done now.I\u2019ve noted it down and passed it on to the team who can help. H, D, S, 2, 2, 1, 0. We\u2019ll respond within 21 days, and no change to your repayments has been agreed yet. If you\u2019re feeling this overwhelmed, the National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Is there anything else I can help you with today?",
           "tools": [
             "record_hardship_notice"
           ],
           "idv": "verified",
-          "ms": 2703
+          "ms": 3224
         },
         {
           "caller": "Okay. Thank you.",
@@ -248,7 +262,145 @@
           "spoken": "You\u2019re welcome, Minji. Is there anything else I can help you with today?",
           "tools": [],
           "idv": "verified",
-          "ms": 1286
+          "ms": 1148
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "customer_number",
+          "field": "customer_number",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "CUS-10482",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-8856"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "I can help with all three. Could you type your customer number into the box on your screen for me?",
+          "spoken": "I can help with all three. Could you type your customer number into the box on your screen for me?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1414
+        },
+        {
+          "caller": "[frontend: typed customer number CUS-10482]",
+          "agent": "Thanks. For your security, I just need three quick details to confirm it\u2019s you. Let me look that up for you. For your security, I just need your full name next, please.",
+          "spoken": "[warm] Thanks. For your security, I just need three quick details to confirm it\u2019s you. Let me look that up for you.For your security, I just need your full name next, please.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2608
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "I can hear why that\u2019s frustrating. I can help with the fee complaint, and I still need your full name to keep checking your balance and sort the account side \u2014 what\u2019s your full name?",
+          "spoken": "I can hear why that\u2019s frustrating. I can help with the fee complaint, and I still need your full name to keep checking your balance and sort the account side \u2014 what\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1199
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Great, that matched. One sec, I'll find that for you. What\u2019s your date of birth?",
+          "spoken": "Great, that matched. One sec, I'll find that for you.What\u2019s your date of birth?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2267
+        },
+        {
+          "caller": "1 September 1999",
+          "agent": "That\u2019s all good. What\u2019s your residential address?",
+          "spoken": "That\u2019s all good. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1022
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "All set, Alice. Good question\u2026 let me check. Your balance is 2,418 dollars and 76 cents, and the available balance is 2,368 dollars and 76 cents in your Everyday Choice account ending 3307. Your complaint is logged too, and the reference is C, M, P, 8, 8, 5, 6. It should come back to you within 30 days.\n\nOn the term deposit rate, I don\u2019t have a term deposit rate from the information I can see here. What would you like to do next?",
+          "spoken": "All set, Alice. Good question\u2026 let me check.Your balance is 2,418 dollars and 76 cents, and the available balance is 2,368 dollars and 76 cents in your Everyday Choice account ending 3307. Your complaint is logged too, and the reference is C, M, P, 8, 8, 5, 6. It should come back to you within 30 days.\n\nOn the term deposit rate, I don\u2019t have a term deposit rate from the information I can see here. What would you like to do next?",
+          "tools": [
+            "get_account_summary",
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "verified",
+          "ms": 3327
         }
       ]
     },
@@ -329,55 +481,55 @@
       "transcript": [
         {
           "caller": "What's my credit card balance?",
-          "agent": "Sure \u2014 I\u2019ll help with that. Could you type your customer number into the box on your screen for me?",
-          "spoken": "Sure \u2014 I\u2019ll help with that. Could you type your customer number into the box on your screen for me?",
+          "agent": "No worries. Could you type your customer number into the box on your screen for me?",
+          "spoken": "No worries. Could you type your customer number into the box on your screen for me?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1371
+          "ms": 987
         },
         {
           "caller": "[frontend: typed customer number CUS-10428]",
-          "agent": "That looks like a small typo. Could you check it and type it in again for me?",
-          "spoken": "That looks like a small typo. Could you check it and type it in again for me?",
+          "agent": "That looks like it might have been a typo. Please type it in again. Could you check it and type it in again for me?",
+          "spoken": "That looks like it might have been a typo. Please type it in again. Could you check it and type it in again for me?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1972
+          "ms": 1028
         },
         {
           "caller": "[frontend: typed customer number CUS-10482]",
-          "agent": "Thanks. For your security, I just need three quick details to confirm it\u2019s you.\n\nWhat\u2019s your full name?",
-          "spoken": "[warm] Thanks. For your security, I just need three quick details to confirm it\u2019s you.\n\nWhat\u2019s your full name?",
+          "agent": "Thanks. For your security, I just need three quick details to confirm it\u2019s you. What\u2019s your full name?",
+          "spoken": "Thanks. For your security, I just need three quick details to confirm it\u2019s you. What\u2019s your full name?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1247
+          "ms": 1267
         },
         {
           "caller": "Alice Wonderland",
-          "agent": "Great, that\u2019s matched. What\u2019s your date of birth?",
-          "spoken": "Great, that\u2019s matched. What\u2019s your date of birth?",
+          "agent": "Nice, that\u2019s matched. What\u2019s your date of birth?\n",
+          "spoken": "[warm] Nice, that\u2019s matched. What\u2019s your date of birth?",
           "tools": [],
           "idv": "in_progress",
-          "ms": 1145
+          "ms": 1192
         },
         {
           "caller": "1 September 1999",
-          "agent": "That\u2019s all matched nicely.  Lovely, thanks. What\u2019s your residential address?",
-          "spoken": "[warm] That\u2019s all matched nicely. Lovely, thanks. What\u2019s your residential address?",
+          "agent": "Good, that\u2019s through.  That\u2019s all matched. What\u2019s your residential address?",
+          "spoken": "[warm] Good, that\u2019s through. That\u2019s all matched. What\u2019s your residential address?",
           "tools": [
             "get_account_summary"
           ],
           "idv": "in_progress",
-          "ms": 2761
+          "ms": 3074
         },
         {
           "caller": "50 Alice Street, Newtown NSW 2020",
-          "agent": "All done \u2014 you\u2019re through the checks now. I\u2019m getting your credit card balance for you. All set, Alice. Your Low Rate Visa has 1,284.60 owing and 3,715.40 available credit. Is there anything else I can help you with today?",
-          "spoken": "All done \u2014 you\u2019re through the checks now. I\u2019m getting your credit card balance for you.All set, Alice. Your Low Rate Visa has 1,284.60 owing and 3,715.40 available credit. Is there anything else I can help you with today?",
+          "agent": "All set. I\u2019m checking that for you now. All done, Alice. Your Low Rate Visa is owing 1,284 dollars and 60 cents, and your available credit is 3,715 dollars and 40 cents. Is there anything else I can help you with today?",
+          "spoken": "All set. I\u2019m checking that for you now.All done, Alice. Your Low Rate Visa is owing 1,284 dollars and 60 cents, and your available credit is 3,715 dollars and 40 cents. Is there anything else I can help you with today?",
           "tools": [
             "get_account_summary"
           ],
           "idv": "verified",
-          "ms": 2477
+          "ms": 2982
         }
       ]
     }

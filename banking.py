@@ -20,6 +20,65 @@ FOLLOWUP_REASONS = {'lending_decision', 'complex_dispute', 'hardship_assessment'
                     'unsupported_request', 'verification_failed', 'other'}
 CONTACT_REASONS = {'hardship', 'dispute', 'complaint', 'account', 'other'}
 LOAN_PURPOSES = {'home_loan', 'refinance', 'personal_loan', 'car_loan', 'other'}
+# What a lending specialist needs to know before calling back, per loan type, in the order it's asked. Never income, debts or
+# credit history: that's the specialist's assessment.
+LOAN_QUESTIONS = {
+    'home_loan': {'purpose': 'Is this your first home, your next home, or an investment property?',
+                  'amount': 'Roughly how much are you hoping to borrow? A ballpark is fine.',
+                  'timeframe': 'And when are you thinking of buying?'},
+    'car_loan': {'purpose': 'Is it a new or a used car?', 'amount': 'Roughly how much do you need? A ballpark is fine.',
+                 'timeframe': 'And when do you need it by?'},
+    'personal_loan': {'purpose': "What's the loan for?", 'amount': 'Roughly how much do you need? A ballpark is fine.',
+                      'timeframe': 'And when do you need it by?'},
+    'other': {'purpose': "What's the loan for?", 'amount': 'Roughly how much do you need? A ballpark is fine.',
+              'timeframe': 'And when do you need it by?'},
+}
+LOAN_FIELD = {'purpose': 'what it is for', 'amount': 'roughly how much', 'timeframe': 'when'}
+# The Worker records each answer from the caller's own words, so the model can't skip one or fill a gap with "not sure".
+NOT_SAID = re.compile(r"\b(?:not sure|unsure|unknown|n/?a|tbc|tbd|don['’]?t know|no idea)\b", re.I)
+WHEN = re.compile(r"\b(?:(?:in|within|over|by)\s+(?:the\s+)?(?:next\s+)?(?:a\s+)?(?:few|couple(?:\s+of)?|\d+|one|two|three|four|five|"
+                  r"six|nine|twelve)?\s*(?:days?|weeks?|months?|years?)|next\s+(?:week|month|year|summer|spring|autumn|winter)|"
+                  r"this\s+(?:week|month|year)|asap|soon|right away|straight away|whenever)\b", re.I)
+# The caller names a kind of loan: the Worker starts finding out what it's for, as the bank's own records start ID&V.
+LOAN_KIND = [('other', re.compile(r"\brefinanc", re.I)),
+             ('home_loan', re.compile(r"\b(?:home loan|mortgage|first (?:home|place)|investment property|buy(?:ing)? (?:a |my )?(?:house|home|place|unit|apartment))\b", re.I)),
+             ('personal_loan', re.compile(r"\bpersonal loan\b", re.I)),
+             ('car_loan', re.compile(r"\bcar loan|\b(?:new|used|a) car\b", re.I))]
+LOAN_INTENT = re.compile(r"\b(?:apply|application|take out|could someone|someone (?:to |who can )?(?:talk|help|call|go through)|"
+                         r"talk (?:to|with) (?:someone|somebody|a person|a specialist)|talk me through|call me|call back|"
+                         r"(?:get|want|need|after|looking for)(?: to get)? (?:a|an|my)\b[^.?!]{0,25}\bloan|"
+                         r"help (?:me )?(?:get|with)\b[^.?!]{0,25}\bloan|refinanc\w* (?:my|our|the)\b)", re.I)
+
+
+LOAN_PURPOSE = [('first home', re.compile(r"\bfirst (?:home|place|house)\b", re.I)), ('next home', re.compile(r"\bnext (?:home|place)\b", re.I)),
+                ('investment property', re.compile(r"\binvest(?:ment|ing)\b", re.I)), ('new car', re.compile(r"\bnew car\b", re.I)),
+                ('used car', re.compile(r"\bused car\b", re.I)), ('refinance', re.compile(r"\brefinanc", re.I))]
+
+
+def loan_kind(text):
+    """The kind of loan a caller names, if any."""
+    return next((kind for kind, pattern in LOAN_KIND if pattern.search(text)), None)
+
+
+def loan_details(text):
+    """What else the same words say about the loan: what it's for, how much, when."""
+    found = {'purpose': next((label for label, pattern in LOAN_PURPOSE if pattern.search(text)), '')}
+    found['amount'] = '' if loan_amount(text) == text else loan_amount(text)
+    found['timeframe'] = (WHEN.search(text) or [''])[0]
+    return found
+
+
+YES = re.compile(r"^\W*(?:yes|yep|yeah|yup|correct|right|exactly|spot on|sure|ok(?:ay)?|that['’]?s (?:right|correct|it))\b", re.I)
+LOAN_LABEL = {'home_loan': 'home loan', 'car_loan': 'car loan', 'personal_loan': 'personal loan', 'other': 'loan'}
+READ_BACK = ("That's everything the specialist needs. Before anything else, check you've got it right: in the spirit of \"Just to make "
+             "sure I've got this right…\", say it back as one easy sentence in your own natural words, the way a person would, not a "
+             "list of what they said, and ask if that's right. Don't offer the call back in this reply.")
+OFFER_MADE = ("You've offered the lending specialist call back. If they've just said yes, call open_callback_form now, saying "
+              "nothing before it. If they said no or not now, that's the end of it: don't offer again or bring the loan up unless they do.")
+OFFER_CALLBACK = ("They've confirmed it's right, so offer the call back, in the spirit of \"Great. I'll pass this on to our lending "
+                  "specialist, who can work through the application with you. Would you like me to arrange a call back?\", mentioning "
+                  "that a short form will pop up on their screen for their name, number and consent. If they correct something, call "
+                  "note_loan_needs with the change.")
 FAILED_NEXT = ("Verification can't be retried and records can't be accessed or noted against an account on this call. Tell them "
                "kindly that you weren't able to verify them, and that the team can call them back; in that same reply, without asking "
                "first, call open_contact_form to put a short form on their screen for their name and number.")
@@ -35,6 +94,15 @@ OTHER_ASKS = ("If they asked for other things too that you haven't mentioned yet
 def short_reason(reason):
     """A model-written reason worth carrying: a few plain words."""
     return isinstance(reason, str) and 0 < len(reason) <= 80 and '\n' not in reason
+
+
+def loan_amount(text):
+    """'600k', '$600,000' or '1.2 million' as a figure ready to say; anything else ('not sure') as it was said."""
+    m = re.search(r'(\d[\d,]*(?:\.\d+)?)\s*(k|thousand|m|mil|million)?\b', text.lower())
+    if not m: return text
+    value = float(m.group(1).replace(',', '')) * {'k': 1e3, 'thousand': 1e3, 'm': 1e6, 'mil': 1e6, 'million': 1e6}.get(m.group(2), 1)
+    if value < 1000: return text  # Not an amount on its own ("about 6"): keep their words.
+    return ('around ' if re.search(r'about|around|roughly|maybe|ish|approx', text.lower()) else '') + f'${value:,.0f}'
 
 
 def money(value):
@@ -81,6 +149,9 @@ class Workflow:
         self.publish = publish
         self.forms, self.created, self.facts, self.hardship_ref, self.complaint_ref = {}, [], set(), None, None
         self.followup_ref, self.mock_given = None, False
+        self.loan_needs = None  # What the caller wants a new loan for. Kept for this call only; it reaches the team only with a call back.
+        self.loan_stage = None  # asking -> read_back -> confirmed, set by the Worker from the caller's turns.
+        self.loan_offered = None  # The caller turn in which the agent offered the lending call back.
         self.acknowledged = False  # Set by the agent before a tool call: it already responded to how the caller feels this turn.
         self.turn, self.shown = None, {}  # Caller turns (set by the voice agent) and when each transaction was first shown.
         self.verified_turn = None  # The caller turn in which verification passed.
@@ -108,7 +179,7 @@ class Workflow:
 
     def snapshot(self):
         return {'idv': self.idv.snapshot(), 'verified_customer': self.idv.customer_id if self.idv.verified else None,
-                'forms': self.forms, 'cases_created': self.created}
+                'forms': self.forms, 'cases_created': self.created, 'loan_needs': self.loan_needs}
 
     def audit(self, kind, data):
         if kind == 'idv_complete' and data.get('status') == 'verified': self.verified_turn = self.turn
@@ -161,6 +232,16 @@ class Workflow:
         """The open customer number box, if the caller has started typing into it."""
         return next((f for f, v in self.forms.items() if v['status'] == 'open' and v.get('kind') == 'customer_number' and v.get('typing')), None)
 
+    def loan_missing(self):
+        """What's still to find out about the caller's loan needs, in words."""
+        needs = self.loan_needs or {}
+        return [LOAN_FIELD[k] for k in LOAN_QUESTIONS[needs['loan_type']] if k not in needs] if needs else []
+
+    def loan_summary(self):
+        """The caller's loan needs in a line, for the specialist."""
+        n = self.loan_needs or {}
+        return ', '.join([LOAN_LABEL[n['loan_type']]] + [n[k] for k in ('purpose', 'amount', 'timeframe') if k in n]) if n else ''
+
     def state_note(self, fresh=None):
         contact = [f['status'] for f in self.forms.values() if f.get('kind') == 'contact_callback']
         if self.idv.status == 'failed' and contact:  # Told once and the form is up or done: don't start it over.
@@ -175,6 +256,16 @@ class Workflow:
         if self.typing():
             lines.append("They're typing their customer number into the box right now. Don't ask for it again or explain why it's "
                          "needed: if they say something, answer in a few words and let them finish.")
+        if self.loan_needs and not any(f.get('kind') == 'loan_callback' for f in self.forms.values()):  # No call back form yet.
+            # The Worker keeps track, so nothing depends on the model remembering what's been asked.
+            if self.loan_stage == 'asking':
+                lines.append(f"Loan needs so far: {self.loan_summary()}. {self._loan_next()['next']}")
+            elif self.loan_stage == 'read_back':
+                lines.append(f"Loan needs for this call: {self.loan_summary()}. {READ_BACK}")
+            elif self.loan_stage == 'confirmed' and self.loan_offered is None:
+                lines.append(f"Loan needs for this call, confirmed by the caller: {self.loan_summary()}. {OFFER_CALLBACK}")
+            elif self.loan_stage == 'confirmed' and self.turn != self.loan_offered:
+                lines.append(OFFER_MADE)
         open_forms = [f for f, v in self.forms.items() if v['status'] == 'open' and v.get('kind') != 'customer_number']
         if open_forms:
             lines.append('A callback form is open on the caller\'s screen. Wait for its form event; never assume it was submitted.')
@@ -356,7 +447,9 @@ class Workflow:
             return {'results': [], 'next': "No guidance found. Say once that you don't have reviewed information on that; don't guess, and don't offer to search again."}
         return {'results': [{'title': r['title'], 'label': r['type'], 'source': r['source'], 'text': r['text']} for r in results],
                 'next': "These are the closest matches, not necessarily answers. Say only what they directly state about the question; "
-                        "if none of them covers it, say you don't have that information. Never fill the gap from general knowledge, and don't offer to search again for the same thing."}
+                        "if none of them covers it, say you don't have that information. Never fill the gap from general knowledge, and don't offer to search again for the same thing. "
+                        "Answer like a person on the phone, not a document being read out: pick what matters for their question and put it in "
+                        "your own plain, spoken words, keeping the facts exact, with no lists, headings or phrases like \"the policy states\"."}
 
     async def estimate_loan_repayment(self, amount, annual_rate_percent, years, frequency='monthly'):
         per_year = {'weekly': 52, 'fortnightly': 26, 'monthly': 12}.get(frequency)
@@ -434,16 +527,79 @@ class Workflow:
         return {'reference': ref, 'say_reference': spoken(ref),
                 'next': 'Tell the caller a follow-up request was recorded. No live transfer happened. ' + self._mock()}
 
+    async def note_loan_needs(self, loan_type, purpose='', amount='', timeframe=''):
+        """Start understanding what a new loan is for, with anything the caller has already said. The Worker records their
+        answers to the questions after this itself. Nothing is saved for the team yet."""
+        if loan_type not in LOAN_QUESTIONS: return {'error': 'invalid_loan_type', 'allowed': sorted(LOAN_QUESTIONS)}
+        needs = self.loan_needs if self.loan_needs and self.loan_needs['loan_type'] == loan_type else {'loan_type': loan_type}
+        for key, value in (('purpose', purpose), ('amount', amount), ('timeframe', timeframe)):
+            value = ' '.join(str(value or '').split())[:80]
+            if value and not NOT_SAID.search(value): needs[key] = loan_amount(value) if key == 'amount' else value
+        self.loan_needs = needs
+        if self.loan_stage == 'confirmed' or (self.loan_stage == 'read_back' and not self.loan_missing()):
+            self.loan_stage = 'read_back'  # A correction: check it back again.
+        self.audit('loan_needs_noted', {**needs, 'source': 'model'})
+        return self._loan_next()
+
+    def loan_answer(self, text):
+        """The caller's turn while the agent is finding out about their loan: their answer to the question asked, or their
+        reply to the read-back. A question of their own isn't an answer."""
+        if self.loan_stage not in ('asking', 'read_back') or idv.is_question(text): return False
+        needs, words = self.loan_needs, ' '.join(text.split()).strip(' .')
+        if not words: return False
+        if self.loan_stage == 'read_back':
+            if YES.search(words) and not re.search(r"\b(?:but|actually|no|not)\b", words, re.I):
+                self.loan_stage = 'confirmed'
+                self.audit('loan_needs_confirmed', {})
+                return True
+            changed = self._fill(words, needs, only_found=True)  # "Actually more like 700k": update what they changed.
+            if changed: self.audit('loan_needs_noted', {**needs, 'source': 'caller'})
+            return bool(changed)
+        if YES.search(words) and len(words.split()) <= 4 or re.fullmatch(r"\W*no\W*", words, re.I):
+            return False  # "Yes, that's right" answers none of these questions.
+        pending = next(k for k in LOAN_QUESTIONS[needs['loan_type']] if k not in needs)
+        self._fill(words, needs)
+        if pending not in needs: needs[pending] = loan_amount(words) if pending == 'amount' else words[:80]
+        if not self.loan_missing(): self.loan_stage = 'read_back'
+        self.audit('loan_needs_noted', {**needs, 'source': 'caller'})
+        return True
+
+    @staticmethod
+    def _fill(words, needs, only_found=False):
+        """Take an amount and a timeframe out of what they said, whichever question it answered."""
+        changed = []
+        amount = loan_amount(words)
+        if amount != words and (only_found or 'amount' not in needs): needs['amount'] = amount; changed.append('amount')
+        when = WHEN.search(words)
+        if when and (only_found or 'timeframe' not in needs): needs['timeframe'] = when.group(0); changed.append('timeframe')
+        return changed
+
+    def _loan_next(self):
+        missing = [k for k in LOAN_QUESTIONS[self.loan_needs['loan_type']] if k not in self.loan_needs]
+        if missing:
+            self.loan_stage = 'asking'
+            return {'noted': self.loan_needs, 'next': f"Ask, in your own words but close to: \"{LOAN_QUESTIONS[self.loan_needs['loan_type']][missing[0]]}\" "
+                                                      "One question only; the Worker records their answer."}
+        self.loan_stage = self.loan_stage if self.loan_stage == 'confirmed' else 'read_back'
+        return {'noted': self.loan_needs, 'next': READ_BACK}
+
     async def open_callback_form(self, purpose):
         if purpose not in LOAN_PURPOSES: return {'error': 'invalid_purpose', 'allowed': sorted(LOAN_PURPOSES)}
+        needs = self.loan_needs or {}
+        if self.loan_stage != 'confirmed':  # The specialist needs to know what for, checked back with the caller.
+            return {'error': 'needs_first', 'next': "Not yet. " + (f"Still to find out: {', '.join(self.loan_missing())}; ask, one question "
+                                                    "at a time." if needs and self.loan_missing() else "Check what they need back with "
+                                                    "them first." if needs else "First find out what kind of loan, then call note_loan_needs.")}
+        purpose = needs['loan_type']
         if any(f['status'] == 'open' for f in self.forms.values()):
             return {'status': 'already_open', 'next': 'A form is already on screen; wait for the caller to finish it.'}
         form_id = bank.open_form(self.conn, self.session_id, 'loan_callback', purpose)
-        self.forms[form_id] = {'status': 'open', 'purpose': purpose}
+        self.forms[form_id] = {'status': 'open', 'purpose': purpose, 'kind': 'loan_callback'}
         self.audit('form_opened', {'form_id': form_id, 'purpose': purpose})
         await self.emit({'type': 'form', 'action': 'open', 'form_id': form_id, 'kind': 'loan_callback', 'purpose': purpose})
-        return {'status': 'opened', 'next': "Tell the caller the form is on their screen for their name, number and consent. "
-                                            "Don't say it's submitted until a form event arrives."}
+        return {'status': 'opened', 'next': "Tell the caller the form is on their screen for their name, number and consent, then "
+                                            "let them fill it in: ask nothing else in this reply. Don't say it's submitted until a "
+                                            "form event arrives."}
 
     async def open_contact_form(self, reason):
         """A call back for a caller who couldn't be verified: a form for their name and number only."""

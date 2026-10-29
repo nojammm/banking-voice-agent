@@ -75,6 +75,8 @@
         "I'm thinking about buying my first place. What's the difference between a fixed and a variable rate?",
         "What would repayments roughly be on 500,000 dollars over 30 years at your variable rate?",
         "That sounds good. Could someone help me with an application?",
+        "It's a home loan for my first place, about 500 thousand, probably in the next six months.",
+        "Yes, that's right.",
         "Yes please.",
         {
           "form": "submit",
@@ -96,7 +98,10 @@
         "cases": [
           "callback"
         ],
-        "must_not_say": []
+        "must_not_say": [],
+        "must_say": [
+          "(?:make sure|check)[^.?!]*(?:got|have) (?:this|that|it|everything) right"
+        ]
       }
     },
     {
@@ -680,6 +685,8 @@
       "id": "loan-callback-cancel",
       "turns": [
         "I'm thinking about refinancing my mortgage with you. Could someone talk me through it?",
+        "I want a better rate. About 450 thousand left, and I'd like to switch in the next couple of months.",
+        "Yes.",
         "Yes please, set that up.",
         {
           "form": "cancel"
@@ -702,6 +709,8 @@
       "id": "loan-callback-bad-phone",
       "turns": [
         "I'd like to talk to someone about a personal loan for a car.",
+        "A used car, about 15 thousand, in the next few weeks.",
+        "Yes, that's right.",
         "Yes, a callback would be great.",
         {
           "form": "submit",
@@ -741,6 +750,9 @@
       "turns": [
         "I want to get a loan.",
         "A car loan.",
+        "A used one.",
+        "About 25 thousand, next month.",
+        "That's right.",
         "Yes please.",
         {
           "form": "submit",
@@ -764,7 +776,8 @@
         ],
         "must_not_say": [
           "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
-          "transferring you|put(?:ting)? you through|(?<!no )(?<!real bank )(?<!bank )(?<!real )(?:someone|a specialist|they|an agent|a person|staff) (?:will|['\u2019]ll|is going to|are going to) (?:call|ring|phone|contact) you"
+          "transferring you|put(?:ting)? you through|(?<!no )(?<!real bank )(?<!bank )(?<!real )(?:someone|a specialist|they|an agent|a person|staff) (?:will|['\u2019]ll|is going to|are going to) (?:call|ring|phone|contact) you",
+          "\\b(?:income|salary|earn(?:ing)?s?|debts?|credit (?:history|score)|how much do you (?:make|earn))\\b"
         ]
       }
     },
@@ -1574,6 +1587,108 @@
         "must_not_say": [
           "10428",
           "\\b(?:Worker|dash)\\b"
+        ]
+      }
+    },
+    {
+      "id": "loan-home-first-time",
+      "turns": [
+        "I want to apply for a loan, but I don't know how.",
+        "A home loan.",
+        "My first home.",
+        "Maybe 600k, in the next few months.",
+        "Yep.",
+        "Yes please.",
+        {
+          "form": "submit",
+          "fields": {
+            "name": "Sam Lee",
+            "phone": "0491 570 157",
+            "consent": true
+          }
+        },
+        "No, that's all, thanks."
+      ],
+      "expect": {
+        "verified": false,
+        "tools": [
+          "open_callback_form"
+        ],
+        "cases": [
+          "callback"
+        ],
+        "must_say": [
+          "(?:make sure|check)[^.?!]*(?:got|have) (?:this|that|it|everything) right",
+          "pass (?:this|that|it|these) on[^.?!]*lending specialist",
+          "first home|next home|investment"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "\\b(?:income|salary|earn(?:ing)?s?|debts?|credit (?:history|score)|how much do you (?:make|earn))\\b",
+          "(?:policy|document) (?:states|says)"
+        ]
+      }
+    },
+    {
+      "id": "loan-not-sure",
+      "turns": [
+        "Can I get a car loan? I'd like someone to call me about it.",
+        "New.",
+        "No idea yet, honestly.",
+        "Not sure, whenever really.",
+        "Yes.",
+        "Sure.",
+        {
+          "form": "submit",
+          "fields": {
+            "name": "Sam Lee",
+            "phone": "0491 570 157",
+            "consent": true
+          }
+        },
+        "That's it, thanks."
+      ],
+      "expect": {
+        "verified": false,
+        "tools": [
+          "open_callback_form"
+        ],
+        "cases": [
+          "callback"
+        ],
+        "must_say": [
+          "(?:make sure|check)[^.?!]*(?:got|have) (?:this|that|it|everything) right"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "\\b(?:income|salary|earn(?:ing)?s?|debts?|credit (?:history|score)|how much do you (?:make|earn))\\b"
+        ]
+      }
+    },
+    {
+      "id": "loan-decline-callback",
+      "turns": [
+        "I want to apply for a loan, but I don't know how.",
+        "A home loan.",
+        "An investment property.",
+        "Around 800 thousand, maybe next year.",
+        "Yes, that's right.",
+        "No thanks, I'll think about it.",
+        "No, that's all."
+      ],
+      "expect": {
+        "verified": false,
+        "tools": [],
+        "forbidden_tools": [
+          "open_callback_form"
+        ],
+        "no_cases": true,
+        "must_say": [
+          "(?:make sure|check)[^.?!]*(?:got|have) (?:this|that|it|everything) right"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "\\b(?:income|salary|earn(?:ing)?s?|debts?|credit (?:history|score)|how much do you (?:make|earn))\\b"
         ]
       }
     }

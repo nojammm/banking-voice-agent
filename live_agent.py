@@ -193,6 +193,7 @@ LEAVING = ("The caller is leaving before verification is finished. If they raise
 NOT_OFFERED = ("Don't open the form yet. Explain briefly that a lending specialist works through their situation and handles the "
                "application, so you can arrange a callback, and ask if they'd like one; a short form will come up on their screen "
                "for their name, number and consent. Open it only after they say yes.")
+LOAN_KIND_ASKED = re.compile(r"\bhome loan\b[^.?!]*\bcar loan\b[^.?!]*\?", re.I)  # "…a home loan, a car loan or a personal loan?"
 OFFERED = ("You've already offered a human or specialist follow-up in this call. Don't offer it again unless the caller asks "
            "for one or brings it up.")
 VERIFIED_NOW = ("Verification has just finished, but no tool was called. Call the tool for what they asked, as they last put it, "
@@ -412,6 +413,7 @@ class VoiceAgent(Agent):
         self.callback_offered = None  # The caller turn in which the agent explained the lending callback.
         self.check_ins = []  # Check-ins added after flat replies, so the next one is worded differently.
         self.started = set()  # Caller turns in which the Worker started verification from their words.
+        self.asked_loan_kind = False  # The agent's last reply asked which kind of loan.
         self.heard = False  # Speech-to-text is in use, so every real caller turn brings new final transcripts.
         self.last_turn = None  # (message id, content the model saw, raw words, when) for the caller's previous turn.
 
@@ -442,6 +444,17 @@ class VoiceAgent(Agent):
         if self.workflow.typing() and not (idv.is_question(raw) or '?' in (new_message.text_content or '')):
             raise StopResponse()  # They're typing the number and talking to themselves (or reading it out): let them finish.
         verification = self.workflow.idv
+        kind = banking.loan_kind(raw)
+        if (kind and verification.status != 'in_progress' and self.workflow.loan_stage is None
+                and (self.asked_loan_kind or banking.LOAN_INTENT.search(raw))):
+            # They named the kind of loan they want: start finding out what it's for, so the first question is the Worker's.
+            await self.workflow.call('note_loan_needs', loan_type=kind, **banking.loan_details(redact(raw)))
+            turn_ctx.add_message(role='system', content='The Worker started the loan enquiry for this turn.')
+            return
+        if verification.status != 'in_progress' and self.workflow.loan_answer(redact(raw)):
+            # Their answer about the loan they want. Changing the turn's context stops a draft written before it was recorded.
+            turn_ctx.add_message(role='system', content='The Worker recorded this turn for the loan enquiry.')
+            return
         # A name said before verification starts counts if a tool starts verification in this same turn.
         self.opening = (new_message.id, raw) if verification.status == 'not_started' else None
         if verification.status == 'not_started' and OWN_RECORDS.search(raw):
@@ -579,7 +592,11 @@ class VoiceAgent(Agent):
             before = self.workflow.idv.status
             self.workflow.idv.observe_agent(''.join(said))
             if any(FOLLOWUP_OFFER.search(line) for line in said): self.followup_offered = True
-            if CALLBACK_OFFER.search(AUDIO_TAG.sub('', ''.join(said))): self.callback_offered = turn_id
+            if CALLBACK_OFFER.search(AUDIO_TAG.sub('', ''.join(said))):
+                self.callback_offered = turn_id
+                if self.workflow.loan_stage == 'confirmed' and self.workflow.loan_offered is None:
+                    self.workflow.loan_offered = self.workflow.turn
+            self.asked_loan_kind = bool(LOAN_KIND_ASKED.search(''.join(said)))
             if self.workflow.idv.status != before:
                 task = asyncio.ensure_future(self.workflow.auth_changed())
                 self.pending.add(task)
@@ -739,7 +756,7 @@ class VoiceAgent(Agent):
             amount: Loan amount in dollars.
             annual_rate_percent: Interest rate, e.g. 6.09, from the caller or the knowledge base.
             years: Loan term in years.
-            frequency: Repayment frequency.
+            frequency: Repayment frequency. Monthly unless they asked for another; don't ask first.
         """
         return await self._run('estimate_loan_repayment', amount=amount, annual_rate_percent=annual_rate_percent,
                                years=years, frequency=frequency)
@@ -790,6 +807,21 @@ class VoiceAgent(Agent):
             urgency: urgent only for suspected fraud or safety.
         """
         return await self._run('request_human_followup', reason=reason, summary=summary, urgency=urgency)
+
+    @function_tool()
+    async def note_loan_needs(self, context: RunContext, loan_type: Literal['home_loan', 'car_loan', 'personal_loan', 'other'],
+                              purpose: str = '', amount: str = '', timeframe: str = '') -> str:
+        """Start finding out what a new loan is for, so a lending specialist knows before calling back. Call it once you know
+        the loan type, with anything else they've actually said; the Worker records their answers to the questions after that
+        itself. Call it again only if they correct something. It says what to ask next.
+
+        Args:
+            loan_type: The kind of loan. Refinancing an existing loan is other, with purpose refinance.
+            purpose: What it's for, in a few words, e.g. first home, next home, investment property, used car.
+            amount: Roughly how much, as they said it. Leave empty if they haven't said.
+            timeframe: When, as they said it. Leave empty if they haven't said.
+        """
+        return await self._run('note_loan_needs', loan_type=loan_type, purpose=purpose, amount=amount, timeframe=timeframe)
 
     @function_tool()
     async def open_callback_form(self, context: RunContext,
