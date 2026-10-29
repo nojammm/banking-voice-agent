@@ -173,6 +173,52 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         out, _ = await self.speak(["I'm not sure about that one. ", call])
         self.assertEqual(out, "I'm not sure about that one. ")
 
+    async def test_a_record_update_claimed_without_a_tool_is_retried_once(self):
+        from livekit.agents import Agent, llm
+        from live_agent import UNBACKED, guarded, recorded_this_turn
+        claim = ["That makes sense. ", "I've updated the hardship notice with that. ", 'Anything else?']
+        async def run(pieces, **kw):
+            async def stream():
+                for piece in pieces: yield piece
+            return ''.join([p async for p in guarded(stream(), {'0', '1', '2'}, self.publish, False, **kw) if isinstance(p, str)])
+        self.assertEqual(await run(claim), ''.join(claim))  # A record tool ran this turn: said as is.
+        flags = {}
+        self.assertEqual(await run(claim, backed=False, flags=flags), 'That makes sense. ')
+        self.assertTrue(flags['unbacked'])
+        self.assertEqual(await run(claim, backed=False), "That makes sense. Anything else?")  # The retry leaves the claim out.
+        for claim_only in ['The refund request is part of it now.', "I've got it down as unsure for now.",
+                           "I have recorded that you want the fee reviewed.", "Got it, that's noted.",
+                           "I've got the refund request and the call back part noted in the complaint.",
+                           "I can't refund fees from here, but I've already lodged the complaint with those details."]:
+            self.assertEqual(await run([claim_only], backed=False), '')
+        ok = ["The complaint's already on file. ", "I've got that. ", "I can add that in now. ", "Once it's recorded, a specialist looks at it. ",
+              "Your complaint was lodged last week."]
+        flags = {}
+        self.assertEqual((await run(ok, backed=False, flags=flags), flags), (''.join(ok), {}))
+
+        ctx = llm.ChatContext()
+        ctx.add_message(role='user', content="It's the home loan.")
+        self.assertFalse(recorded_this_turn(ctx))
+        ctx.items.append(llm.FunctionCall(name='record_hardship_notice', arguments='{}', call_id='c1'))
+        self.assertTrue(recorded_this_turn(ctx))
+        ctx.add_message(role='user', content='About three months.')
+        self.assertFalse(recorded_this_turn(ctx))
+
+        agent, _ = self.agent()
+        prompts = []
+        async def fake_llm(self, chat_ctx, tools, settings):
+            prompts.append(chat_ctx.items[-1].text_content)
+            if len(prompts) == 1:
+                for piece in claim: yield piece
+            else:
+                yield llm.ChatChunk(id='a', delta=llm.ChoiceDelta(role='assistant', tool_calls=[llm.FunctionToolCall(
+                    name='record_hardship_notice', arguments='{}', call_id='c2')]))
+        with patch.object(Agent.default, 'llm_node', fake_llm):
+            out = [p async for p in agent.llm_node(ctx, [], None)]
+        self.assertEqual(''.join(p for p in out if isinstance(p, str)), 'That makes sense. ')
+        self.assertEqual(prompts[1], UNBACKED + ' You already said this turn: "That makes sense." Carry on from there without repeating or rephrasing it.')
+        self.assertEqual(out[-1].delta.tool_calls[0].name, 'record_hardship_notice')
+
     async def test_audio_tags_reach_a_tag_capable_voice_only(self):
         pieces = ['[sym', 'pathetic] Oh no, that sounds stressful. ', 'Let me [short ', 'pause] check.']
         self.assertEqual((await self.speak(pieces))[0], '[sympathetic] Oh no, that sounds stressful. Let me [short pause] check.')

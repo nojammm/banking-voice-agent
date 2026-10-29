@@ -129,6 +129,29 @@ SENTENCE_END = re.compile(r'[.?!…]+["’”)]*\s+')
 # "I'm lodging it now", "I'll update the notice": says a record is being made before the tool has made it.
 ANNOUNCE = re.compile(r"\b(?:I['’]m|I am|I['’]ll|I will|let me|then|so I can|before I)\s+(?:just\s+|now\s+|also\s+|going to\s+|go ahead and\s+)*"
                       r"(?:lodg|record|log(?:ging)?\b|add|updat|not(?:e|ing)\b|fil(?:e|ing)\b|rais|submit|pass|flag|escalat|creat)", re.I)
+# "I've updated the notice", "I've got it down as unsure", "that's noted", "the refund is part of it now": says a record holds
+# something. True only if a record tool ran this turn. An offer or condition before it ("I can get that recorded") isn't a claim.
+FIRST_PERSON = re.compile(r"\b(?:I['’]ve|I have|we['’]ve|we have)\b", re.I)
+RECORDED = re.compile(r"\b(?:updated|added|noted|captured|included|amended|recorded|logged|lodged)\b"
+                      r"|\b(?:got|put|have|marked|left) (?:it|that|this|you|the [\w ’']{1,30}?) (?:down|as|in|on)\b", re.I)
+NOW_RECORDED = re.compile(r"\b(?:been|now|is|are|['’]s)\s+(?:also\s+|now\s+|already\s+)*(?:updated|added|noted|captured|included|amended)\b"
+                          r"|\bpart of (?:it|that|the (?:complaint|notice|request|case))\b", re.I)
+NOT_CLAIM = re.compile(r"\b(?:can|could|will|would|if|want|need|going to|once|when|until|before|not|nothing|was|were)\b|['’](?:ll|d)\b|n['’]t\b", re.I)
+
+
+def claims_record(sentence):
+    """Whether a sentence says a record now holds something ("I've added that", "it's been updated")."""
+    found = NOW_RECORDED.search(sentence)
+    if not found and (first := FIRST_PERSON.search(sentence)): found = RECORDED.search(sentence, first.end())
+    clause = found and re.split(r"[,;:—–]|\b(?:but|and|so)\b", sentence[:found.start()])[-1]  # "I can't…, but I've added it" claims.
+    return bool(found) and not NOT_CLAIM.search(clause)
+
+
+RECORD_TOOLS = {'record_hardship_notice', 'lodge_complaint', 'request_human_followup', 'lodge_dispute'}
+UNBACKED = ("Nothing was recorded or updated in this turn: no record tool has been called since the caller last spoke. "
+            "If what they just said needs recording, call the tool now, saying nothing before the call: a new complaint or hardship "
+            "notice, or details for a record made earlier in this call (call the tool that made it again with everything so far). "
+            "Otherwise reply without saying you recorded, noted, added or updated anything.")
 
 
 def split_ready(pending):
@@ -149,7 +172,7 @@ def sentences(text):
     return out + ([text[start:]] if text[start:] else [])
 
 
-async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=None):
+async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=None, backed=True, flags=None):
     """Pass tool calls through untouched; stop speech that states a number nobody supplied.
 
     Speech goes out a sentence at a time. A question, or an announcement that a record is being made, waits for the
@@ -157,7 +180,11 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
     and then answers it from the result, or says "I'm lodging it now" before a result that says otherwise. A sentence
     already said this turn (seen), or one close to a line said before the tool call, isn't said again. After an
     unsupported number the reply goes quiet, but its tool calls still go through; the fallback line is said only if
-    there were none (the reply after the tool result speaks instead)."""
+    there were none (the reply after the tool result speaks instead).
+
+    Unless a record tool ran this turn (backed), a claim that a record was updated waits too. If the reply ends without
+    a tool call, the claim is never said: with flags, nothing held is said and flags['unbacked'] asks the caller to
+    regenerate; without, only the claim sentences are left out."""
     audio_tags = AUDIO_TAGS if audio_tags is None else audio_tags
     pending, held, tool_called, spoken, blocked = '', [], False, False, False
     said = [] if said is None else said
@@ -167,9 +194,17 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
     def take(text):
         ready = []
         for sentence in sentences(text):
-            if held or sentence.rstrip().endswith('?') or ANNOUNCE.search(sentence): held.append(sentence)
+            if (held or sentence.rstrip().endswith('?') or ANNOUNCE.search(sentence)
+                    or (not backed and claims_record(sentence))): held.append(sentence)
             else: ready.append(sentence)
         return ready
+
+    def unclaimed(pieces):
+        if backed or not any(claims_record(p) for p in pieces): return pieces
+        if flags is not None:
+            flags['unbacked'] = True
+            return []
+        return [p for p in pieces if not claims_record(p)]
 
     def close(key, before):
         """A paraphrase ("I'm sorry you're going through that.") or a short part ("I'm sorry.") of an earlier line."""
@@ -209,7 +244,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
         if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
         for piece in out: yield piece
     if not blocked:
-        out, blocked = speak(take(pending) + ([] if tool_called else held))
+        out, blocked = speak(take(pending) + ([] if tool_called else unclaimed(held)))
         if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
         for piece in out: yield piece
     if blocked and not tool_called: yield (' ' if spoken else '') + UNSUPPORTED
@@ -233,6 +268,14 @@ async def display_text(text):
 
 def _last_user(chat_ctx):
     return next((item for item in reversed(chat_ctx.items) if isinstance(item, llm.ChatMessage) and item.role == 'user'), None)
+
+
+def recorded_this_turn(chat_ctx):
+    """Whether a record tool has been called since the caller last spoke."""
+    for item in reversed(chat_ctx.items):
+        if isinstance(item, llm.ChatMessage) and item.role == 'user': return False
+        if isinstance(item, llm.FunctionCall) and item.name in RECORD_TOOLS: return True
+    return False
 
 
 class VoiceAgent(Agent):
@@ -294,9 +337,18 @@ class VoiceAgent(Agent):
         turn_id = last.id if last is not None else None
         if self.turn_seen[0] != turn_id: self.turn_seen = (turn_id, set())  # Sentences said so far this turn.
         seen = self.turn_seen[1]
+        backed, flags = recorded_this_turn(chat_ctx), {}
         try:
-            async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen):
+            async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen,
+                                       backed=backed, flags=flags):
                 yield piece
+            if flags.get('unbacked'):  # Claimed a record changed with no tool: one retry, told to call the tool or not claim it.
+                already = ' '.join(AUDIO_TAG.sub('', ''.join(said)).split())
+                ctx.add_message(role='system', content=UNBACKED + (f' You already said this turn: "{already}" Carry on from there '
+                                                                   "without repeating or rephrasing it." if already else ''))
+                async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen,
+                                           backed=backed):
+                    yield piece
         except asyncio.CancelledError:
             raise
         except Exception:
