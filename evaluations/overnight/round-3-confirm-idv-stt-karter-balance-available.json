@@ -1,0 +1,309 @@
+{
+  "executed_at": "2026-10-29T14:46:12+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "idv-stt-karter-balance-available",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.909,
+          "normalized": "emily karter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": null,
+            "last": 0.833,
+            "whole": 0.909
+          },
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my everyday account balance please.",
+          "agent": "Sure, I can help with that. I\u2019ll need to verify you first to protect your account. Can I get your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2103
+        },
+        {
+          "caller": "Emily Karter",
+          "agent": "Perfect, that\u2019s matched. Could I have your date of birth, please?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1068
+        },
+        {
+          "caller": "fourteenth of March, nineteen ninety one",
+          "agent": "Great, that\u2019s all lined up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1106
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76. Is there anything else you\u2019d like me to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2275
+        },
+        {
+          "caller": "Why are the balance and the available amount different?",
+          "agent": "One sec, I'll find that for you. That usually means some of the money is still set aside for pending card purchases or holds, so it\u2019s not fully available to spend yet. I can check recent transactions if you want me to see what might be holding it up.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "verified",
+          "ms": 3508
+        }
+      ]
+    },
+    {
+      "id": "idv-stt-karter-balance-available",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.909,
+          "normalized": "emily karter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": null,
+            "last": 0.833,
+            "whole": 0.909
+          },
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my everyday account balance please.",
+          "agent": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2671
+        },
+        {
+          "caller": "Emily Karter",
+          "agent": "Perfect, that\u2019s matched. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2367
+        },
+        {
+          "caller": "fourteenth of March, nineteen ninety one",
+          "agent": "Great, that all lines up. What\u2019s your residential address?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2230
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76. Is there anything else you\u2019d like to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2839
+        },
+        {
+          "caller": "Why are the balance and the available amount different?",
+          "agent": "Good question\u2026 let me check. It usually means there are some pending card transactions or holds that haven\u2019t fully cleared yet. The balance is the total in the account, and the available amount is what you can use right now. Anything else you want me to explain?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "verified",
+          "ms": 2401
+        }
+      ]
+    },
+    {
+      "id": "idv-stt-karter-balance-available",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.909,
+          "normalized": "emily karter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": null,
+            "last": 0.833,
+            "whole": 0.909
+          },
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my everyday account balance please.",
+          "agent": "I can help with that, and I\u2019ll just need to verify it\u2019s you first to protect your account. Could I get your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2559
+        },
+        {
+          "caller": "Emily Karter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth, please?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1084
+        },
+        {
+          "caller": "fourteenth of March, nineteen ninety one",
+          "agent": "Brilliant, that\u2019s matched. What\u2019s your residential address, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1169
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Let me check your everyday account balance now. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76. If you want, I can also check any recent transactions for that account.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2298
+        },
+        {
+          "caller": "Why are the balance and the available amount different?",
+          "agent": "Sure \u2014 the balance is the total in the account, and the available amount is what you can use right now. The difference is usually pending transactions, card holds, or other items that haven\u2019t fully cleared yet.\nIf you want, I can also check whether there are any pending transactions on that account.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1237
+        }
+      ]
+    }
+  ]
+}

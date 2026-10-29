@@ -1,0 +1,323 @@
+{
+  "executed_at": "2026-10-29T14:45:52+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "fraud",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-1284"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-8118"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "Right, let\u2019s get that looked at straight away. Please lock the card in your app now if you can, then I\u2019ll check the transaction once we\u2019ve confirmed your account. What\u2019s your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2801
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 999
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1060
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "You\u2019re all set now. I\u2019m going to check that PayPal transaction. That\u2019s the PayPal transaction I can see. It\u2019s for PayPal Gamevault on 26 October for 249 dollars. Right, that\u2019s been checked. This looks like an unauthorised PayPal transaction for 249 dollars, and there aren\u2019t any matching same-day duplicates.\n\n Yep, I\u2019ve found it. PayPal Gamevault, 26 October, for 249 dollars \u2014 is that the one you didn\u2019t make?",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 5205
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Okay, thanks.  That\u2019s lodged, and the fraud team will review it. The reference is F, R, D, 1, 2, 8, 4.\n\nLock the card in your app straight away and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one time codes, and if anyone has remote access to your device, disconnect it from the internet.\n\nIf you want, I can also help with anything else on your account.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2447
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-2256"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-5458"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "That sounds worrying. Lock your card in the app straight away if you can, so nothing else can go through. Can I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2121
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1048
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Brilliant, that checks out. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 938
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "Right, I\u2019ve found it. It\u2019s a PayPal charge for Gamevault on 26 October, for 249 dollars. You\u2019re all set, Emily. That PayPal charge isn\u2019t one you made.  Sorry, that one needs your yes before I can lodge it. It\u2019s the PayPal Gamevault charge for 249 dollars on 26 October. Is that the one you\u2019re disputing?\n",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 5003
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Got it \u2014 that\u2019s enough to lodge it now. Thanks, Emily. The fraud report is lodged, and the reference is F, R, D, 2, 2, 5, 6.\n\nLock that card in your app straight away if you haven\u2019t already, and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one time codes. If anything on your device might be compromised, disconnect it from the internet.\n\nThe fraud team will review it as a priority. If you want, I can also help with anything else on the account.",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2627
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily rose carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour st wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-6678"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-9097"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "Please lock your card in your app right away. That\u2019s the quickest way to stop any further card payments while we look at this. Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2275
+        },
+        {
+          "caller": "Emily Rose Carter",
+          "agent": "Perfect, that matches. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 933
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, that\u2019s lined up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 976
+        },
+        {
+          "caller": "4/56 Harbour St Wollongong New South Wales 2500",
+          "agent": "You\u2019re all set. I\u2019ll check that PayPal card transaction now. Right, I\u2019ve found a PayPal payment for 249 dollars to Paypal Gamevault on 26 October. Was that the one you\u2019re referring to?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2254
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Got it. I\u2019m treating that as an unauthorised card payment.  Thanks, Emily. That\u2019s been reported as suspected fraud, and the reference is F, R, D, 6, 6, 7, 8.\n\nPlease keep the card locked in the app. If anyone has remote access to your device, disconnect it from the internet now. And don\u2019t share any passwords, PINs or one-time codes with anyone.\n\nThis is a demo, so no real bank staff will act on it, but the fraud team review has been queued. Is there anything else you want to check on the account?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2904
+        }
+      ]
+    }
+  ]
+}
