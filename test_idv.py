@@ -61,7 +61,20 @@ class DobNormaliserTests(unittest.TestCase):
         self.assertEqual(self.parse('1 2 08').value, '2008-02-01')
         self.assertEqual(self.parse('1 2 09').value, '1909-02-01')
         self.assertEqual(self.parse('1 11 1988').value, '1988-11-01')  # DD/MM first, as in Australia.
-        self.assertEqual(self.parse('12 25 1990').value, '1990-12-25')  # Only month-first is valid.
+        month_first = self.parse('12 25 1990')  # Only month-first is valid, which Australian callers don't say.
+        self.assertEqual((month_first.status, month_first.candidates, month_first.month_first), ('ambiguous', ['1990-12-25'], True))
+
+    def test_a_month_first_only_reading_is_a_guess_not_a_wrong_answer(self):
+        cfg = config()['dob_match']
+        spoken = 'I said three. Okay. $19.91.'  # "nineteen ninety one" heard as money.
+        self.assertEqual(self.parse(spoken).status, 'ambiguous')
+        self.assertEqual(run(idv.match_dob(spoken, '1991-03-14', cfg, today=TODAY)).outcome, 'uncertain')  # No fallback: clarify.
+        judge = Judge({'status': 'complete', 'date': '1991-03-19', 'missing': []})
+        self.assertEqual(run(idv.match_dob(spoken, '1991-03-14', cfg, judge, TODAY)).outcome, 'uncertain')
+        judge = Judge({'status': 'complete', 'date': '1990-12-25', 'missing': []})
+        self.assertEqual(run(idv.match_dob('12 25 1990', '1990-12-25', cfg, judge, TODAY)).outcome, 'pass')
+        judge = Judge({'status': 'unclear', 'date': '', 'missing': []})
+        self.assertEqual(run(idv.match_dob('12 25 1990', '1990-12-25', cfg, judge, TODAY)).outcome, 'uncertain')
 
     def test_partial_dates_are_incomplete_not_wrong(self):
         self.assertEqual(self.parse('14th of March').missing, ['year'])
@@ -472,6 +485,40 @@ class DobAcrossTurnsTests(unittest.TestCase):
         run(v.answer('November 1978'))
         self.assertEqual(run(v.answer('Is it the 2nd you have?')).outcome, 'no_answer')
         self.assertEqual(run(v.answer('the 2nd')).outcome, 'pass')
+
+
+class SplitUtteranceTests(unittest.TestCase):
+    """Speech-to-text can cut one answer into two turns; the tail belongs to the step that just passed."""
+    def make(self):
+        v = idv.Verification(CUSTOMERS, config(), None, TODAY)
+        v.begin('tool')
+        run(v.answer('Emily Carter'))
+        return v
+
+    def test_the_tail_of_a_date_of_birth_never_counts_as_an_address(self):
+        # The call that found this: "1991. March fourteenth" arrived as two turns about a second apart.
+        for turns in [['fourteenth of March', '1991.', 'March fourteenth'], ['14 March 1991', 'March fourteenth'],
+                      ['14 March 1991', 'the 14th'], ['14th of March 1991', '1991']]:
+            with self.subTest(turns=turns):
+                v = self.make()
+                for text in turns[:-1]: run(v.answer(text))
+                self.assertEqual(v.step, 'address')
+                tail = run(v.answer(turns[-1]))
+                self.assertEqual((tail.outcome, tail.reason), ('no_answer', 'previous_step'))
+                self.assertEqual(v.steps['address']['attempts'], 0)
+                note = v.note(v.last)
+                self.assertIn('end of their previous answer', note)
+                self.assertNotIn("didn't catch", note.replace("Don't react to them or say you didn't catch", ''))
+                self.assertEqual(run(v.answer('Unit 4, 56 Harbour Street, Wollongong NSW 2500')).outcome, 'pass')
+                self.assertEqual(v.status, 'verified')
+
+    def test_addresses_with_dates_or_months_in_them_still_count(self):
+        for text in ['Unit 4, 56 Harbour Street, Wollongong NSW 2500', 'Wollongong, 2500', 'New South Wales', '12 May Street',
+                     '14th Avenue, Wollongong', '4/56 Harbour St Wollongong New South Wales 2500']:
+            with self.subTest(text): self.assertFalse(idv._dob_fragment(text))
+        v = self.make()
+        run(v.answer('14 March 1991'))
+        self.assertEqual(run(v.answer('Unit 4, 57 Harbour Street, Wollongong NSW 2500')).outcome, 'fail')  # A wrong address still fails.
 
 
 EMILY_ANSWERS = ['Emily Carter', '14 March 1991', 'unit 4 56 Harbour Street Wollongong NSW 2500']

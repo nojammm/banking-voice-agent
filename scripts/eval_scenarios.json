@@ -1247,6 +1247,52 @@
           "(?:likely|probably|definitely|should|will) (?:be|get) approved|approval is likely|you(?:['\u2019]re| are) approved|(?:I|we) (?:can )?guarantee"
         ]
       }
+    },
+    {
+      "id": "idv-dob-split-tail",
+      "turns": [
+        "What's the balance on my everyday account?",
+        "Emily Carter",
+        "fourteenth of March",
+        "1991.",
+        "March fourteenth",
+        "Unit 4, 56 Harbour Street, Wollongong NSW 2500"
+      ],
+      "expect": {
+        "verified": true,
+        "tools": [
+          "get_account_summary"
+        ],
+        "no_cases": true,
+        "no_failed_attempts": true,
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "(?:didn['\u2019]t|did not|couldn['\u2019]t) (?:quite )?(?:catch|get|hear)|say (?:it|that|your address) again|try (?:that|it) again"
+        ]
+      }
+    },
+    {
+      "id": "idv-dob-heard-as-money",
+      "turns": [
+        "Can you check my credit card balance?",
+        "Emily Carter",
+        "the fourteenth",
+        "I said three. Okay. $19.91.",
+        "14 March 1991",
+        "Unit 4, 56 Harbour Street, Wollongong NSW 2500"
+      ],
+      "expect": {
+        "verified": true,
+        "tools": [
+          "get_account_summary"
+        ],
+        "no_cases": true,
+        "no_failed_attempts": true,
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "19 March|March 19"
+        ]
+      }
     }
   ]
 }

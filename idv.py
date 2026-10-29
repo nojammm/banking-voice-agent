@@ -188,6 +188,7 @@ class FieldResult:
     components: dict = field(default_factory=dict)
     llm: dict | None = None
     customer_id: str | None = None
+    reason: str | None = None  # Why an answer didn't count, e.g. previous_step: it finished the last answer.
 
     def public(self, debug=True):
         data = asdict(self)
@@ -411,6 +412,7 @@ class DobParse:
     candidates: list = field(default_factory=list)
     missing: list = field(default_factory=list)
     parts: dict = field(default_factory=dict)  # For an incomplete date: the parts that were clear.
+    month_first: bool = False  # The only reading puts the month first, which Australian callers don't do.
 
 
 def _year(text, today, pivot):
@@ -438,7 +440,8 @@ def _best(found):
 
 
 def _partitions(pieces, today, pivot):
-    """Split spoken number pieces into day, month and year; DD/MM/YYYY first, as in Australia."""
+    """Split spoken number pieces into day, month and year; DD/MM/YYYY first, as in Australia.
+    Returns the readings and the order that produced them."""
     n, orders = len(pieces), {'dmy': [], 'mdy': [], 'ymd': []}
     for i in range(1, n - 1):
         for j in range(i + 1, n):
@@ -451,8 +454,8 @@ def _partitions(pieces, today, pivot):
                     bonus = 0.5 if any(p.ordinal for p in groups[d]) else 0
                     orders[order].append((natural + bonus, value))
     for order in ('dmy', 'ymd', 'mdy'):
-        if (best := _best(orders[order])): return best
-    return []
+        if (best := _best(orders[order])): return best, order
+    return [], None
 
 
 def parse_dob(text, today, pivot=8):
@@ -483,12 +486,13 @@ def parse_dob(text, today, pivot=8):
             year = _year(value, today, pivot)
             return DobParse('incomplete', missing=['day'], parts={'month': month, 'year': year} if year else {})
         return DobParse('unparsed')
-    candidates = _partitions(nums, today, pivot)
+    candidates, order = _partitions(nums, today, pivot)
     if not candidates and any(len(n.digits) > 4 for n in nums):
         singles = [Num(ch, False, n.pos) for n in nums for ch in n.digits]
-        candidates = _partitions(singles, today, pivot)
-    if len(candidates) == 1: return DobParse('ok', candidates[0], candidates)
-    if candidates: return DobParse('ambiguous', candidates=candidates)
+        candidates, order = _partitions(singles, today, pivot)
+    # Australians don't say dates month-first: a reading that only works that way ("3 19 91") is a guess, not an answer.
+    if len(candidates) == 1 and order != 'mdy': return DobParse('ok', candidates[0], candidates)
+    if candidates: return DobParse('ambiguous', candidates=candidates, month_first=order == 'mdy')
     if len(nums) == 2:  # "the 2nd, 1978": a day said as an ordinal and a year, no month.
         day, year = sorted(nums, key=lambda n: len(n.digits))
         if day.ordinal and int(day.digits) <= 31 and len(year.digits) == 4 and _year(year.digits, today, pivot):
@@ -548,7 +552,8 @@ async def match_dob(text, stored, cfg, judge=None, today=None, carry=None):
         result.outcome, result.missing = 'incomplete', checked[1]
     elif checked:
         result.normalized = checked[1]
-        result.outcome = 'pass' if checked[1] == stored else 'fail'
+        # A month-first guess that doesn't match is more likely a mishearing ("$19.91") than a wrong answer.
+        result.outcome = 'pass' if checked[1] == stored else 'uncertain' if parsed.month_first else 'fail'
     return result
 
 
@@ -587,6 +592,22 @@ def _address_parts(text):
         words.append(item.text)
     if current: groups.append(current)
     return groups, words, state
+
+
+ADDRESS_CUES = {'unit', 'apartment', 'apt', 'flat', 'level', 'suite', 'slash', 'postcode', 'lot'}
+
+
+def _dob_fragment(text):
+    """The tail of a date of birth heard at the address step ("March fourteenth", "the 14th", "1991"): a month word, an
+    ordinal day or only a 19xx year, with no address cue (street type, state, unit, slash, level, postcode)."""
+    items = spoken_items(text.replace('/', ' slash '))
+    nums = [x for x in items if isinstance(x, Num)]
+    words = [x.text for x in items if isinstance(x, Word)]
+    if _address_parts(text)[2] or any(w in STREET_TYPES or w in ADDRESS_CUES for w in words): return False
+    month = any(w in MONTHS and (w != 'may' or nums) for w in words)
+    year_only = bool(nums) and all(len(n.digits) == 4 and n.digits.startswith('19') for n in nums) and \
+        not [w for w in words if w not in ADDRESS_FILLER]
+    return month or any(n.ordinal for n in nums) or year_only
 
 
 def _candidates(group):
@@ -651,6 +672,8 @@ async def match_address(text, stored, cfg, judge=None, carry=None):
     Components confirmed in an earlier turn carry over, so a retry only needs the missing part.
     """
     carry = dict(carry or {})
+    if _dob_fragment(text):  # Speech-to-text split "1991. March fourteenth": the tail isn't an address attempt.
+        return FieldResult('address', 'no_answer', 'none', reason='previous_step')
     parts, normalized = score_address(text, stored)
     required = [p for p in EXACT_PARTS + FUZZY_PARTS if p != 'unit' or stored.get('unit')]
     if all(v == 'missing' for v in parts.values()) or (is_question(text) and any(parts[p] == 'missing' for p in required)):
@@ -887,6 +910,9 @@ class Verification:
                     hint = ' You may ask them to spell it.' if self.step == 'full_name' and left == 1 else ''
                     lines.append("Their last answer didn't match. Kindly ask them to try again, as if it was probably "
                                  "a mishearing, without saying what was wrong." + hint)
+                elif outcome == 'no_answer' and fresh.get('reason') == 'previous_step':
+                    lines.append("Their last words were the end of their previous answer, not this one, so they don't count. "
+                                 f"Don't react to them or say you didn't catch anything; just ask for their {STEP_LABEL[self.step]}.")
                 elif outcome == 'no_answer':
                     lines.append("Their last turn wasn't an answer to the verification question, so don't say you didn't "
                                  "catch it. Respond to what they actually said. A side question doesn't mean they've moved on: "
