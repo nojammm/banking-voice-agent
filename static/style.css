@@ -198,8 +198,11 @@ aside { display: grid; gap: 16px; }
 .test-cards { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .test-card button { width: 100%; height: 48px; border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--white); color: var(--navy); font-weight: 600; font-size: 15px; transition: border-color .15s, background .15s; }
 .test-card button:hover { border-color: var(--navy); background: var(--faint); }
-.customer { border: 1px solid var(--border); border-radius: var(--radius-card); margin-top: 10px; background: var(--white); transition: border-color .15s; }
-.customer:first-child { margin-top: 0; }
+#customer-cards { display: flex; flex-direction: column; gap: 10px; }
+.customer { flex: none; border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--white); transition: border-color .15s; }
+/* The open card scrolls on its own with its header pinned, so the other customer stays in view. */
+.customer[open] { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.customer[open] > summary { position: sticky; top: 0; z-index: 1; background: var(--white); }
 .customer.selected { border-color: var(--navy); }
 .customer > summary { display: flex; align-items: center; gap: 10px; padding: 14px 16px; color: var(--navy); }
 .customer > summary::after { margin-left: auto; }
@@ -335,9 +338,14 @@ td:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; color: 
   #voice .call { flex: 1; min-height: 0; }
   #voice .transcript { max-height: none; }
   #voice .tab-panel { flex: 1; min-height: 0; overflow-y: auto; }
+  #voice #panel-customers { display: flex; flex-direction: column; overflow: visible; }
+  #voice #customer-cards { min-height: 0; }
 }
 @media (max-width: 1000px) {
   .workspace, .call-layout { grid-template-columns: minmax(0, 1fr); }
+  #voice .inspector { max-height: max(480px, 100dvh - 32px); }
+  #voice #panel-customers { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  #voice #customer-cards { min-height: 0; }
   .knowledge-grid, .controls { grid-template-columns: minmax(0, 1fr); }
   .flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .handled { grid-template-columns: repeat(2, minmax(0, 1fr)); }
