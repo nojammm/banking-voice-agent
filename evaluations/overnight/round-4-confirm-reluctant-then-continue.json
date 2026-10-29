@@ -1,0 +1,515 @@
+{
+  "executed_at": "2026-10-29T15:45:00+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "reluctant-then-continue",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.978,
+          "normalized": "emily ross carter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": 0.85,
+            "last": 1.0,
+            "whole": 0.933
+          },
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "So what's the interest rate... current interest rate?",
+          "agent": "Good question\u2026 let me check. The demo rates I can see are 6.09 percent for an owner occupied variable home loan, 5.79 percent for a 2 year fixed home loan, 7.99 percent from for an unsecured personal loan, and 6.99 percent from for a secured car loan. Those are indicative demo rates, not real offers. If you want, I can narrow that down to a home loan, personal loan, or car loan.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 4087
+        },
+        {
+          "caller": "Also, yes. I want to check my balance.",
+          "agent": "Of course. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2305
+        },
+        {
+          "caller": "I don't want to give you my full name.",
+          "agent": "That\u2019s okay. I need it to protect your account, and I can\u2019t check your balance without it. If you\u2019d rather not continue, I can pause this and help with general banking info instead.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1015
+        },
+        {
+          "caller": "Actually, my full name is Emily Ross Carter.",
+          "agent": "Perfect, that\u2019s matched. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2155
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Lovely, that\u2019s lined up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 976
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account has a balance of 2,418 dollars and 76 cents, and available funds of 2,368 dollars and 76 cents. If you want, I can also check the savings account or the card balance.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2393
+        },
+        {
+          "caller": "[instrumentation]",
+          "agent": "",
+          "tools": [],
+          "idv": "",
+          "ms": 0,
+          "check_ins": [
+            "If you want, I can narrow that down to a home loan, personal loan, or car loan."
+          ],
+          "events": [
+            {
+              "type": "llm_node",
+              "last_user": "So what's the interest rate... current interest rate?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "So what's the interest rate... current interest rate?"
+            },
+            {
+              "type": "check_in_draft",
+              "text": "If you want, I can narrow that down to a home loan, personal loan, or car loan."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Also, yes. I want to check my balance."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Also, yes. I want to check my balance."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "I don't want to give you my full name."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Actually, my full name is Emily Ross Carter."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "[The caller answered the full name question. The Worker with"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "the fourteenth of March 1991"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Unit 4, 56 Harbour Street, Wollongong NSW 2500"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "[The caller answered the residential address question. The W"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reluctant-then-continue",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.978,
+          "normalized": "emily ross carter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": 0.85,
+            "last": 1.0,
+            "whole": 0.933
+          },
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "So what's the interest rate... current interest rate?",
+          "agent": "Do you mean Westpac rates in general, or the rate on one of your own loans or accounts?\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1263
+        },
+        {
+          "caller": "Also, yes. I want to check my balance.",
+          "agent": "Let me look that up for you. For general rates, I\u2019ve got indicative demo rates only. An owner occupied variable home loan starts from 6.09 percent a year, and a 2 year fixed home loan starts from 5.79 percent a year.\n\nAnd to check your balance, I just need your full name first.",
+          "tools": [
+            "search_banking_knowledge",
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2423
+        },
+        {
+          "caller": "I don't want to give you my full name.",
+          "agent": "That\u2019s okay. I need it to protect your account, and I can\u2019t check your balance without it. If you\u2019d rather not continue, I can pause this and help with general banking questions instead.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1288
+        },
+        {
+          "caller": "Actually, my full name is Emily Ross Carter.",
+          "agent": "Perfect, thanks. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1205
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 888
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.\n\nIf you want, I can also tell you the savings balance or the credit card owing.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2023
+        },
+        {
+          "caller": "[instrumentation]",
+          "agent": "",
+          "tools": [],
+          "idv": "",
+          "ms": 0,
+          "check_ins": [],
+          "events": [
+            {
+              "type": "llm_node",
+              "last_user": "So what's the interest rate... current interest rate?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Also, yes. I want to check my balance."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Also, yes. I want to check my balance."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "I don't want to give you my full name."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Actually, my full name is Emily Ross Carter."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "the fourteenth of March 1991"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Unit 4, 56 Harbour Street, Wollongong NSW 2500"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "[The caller answered the residential address question. The W"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reluctant-then-continue",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": 0.978,
+          "normalized": "emily ross carter",
+          "missing": [],
+          "components": {
+            "first": 1.0,
+            "middle": 0.85,
+            "last": 1.0,
+            "whole": 0.933
+          },
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "So what's the interest rate... current interest rate?",
+          "agent": "Let me look that up for you. If you mean the bank\u2019s general rates, I only have indicative demo rates here. For an owner occupied variable home loan, it\u2019s 6.09 percent per annum, and the 2 year fixed home loan is 5.79 percent per annum. If you want, I can also give you the personal loan or car loan rates.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2501
+        },
+        {
+          "caller": "Also, yes. I want to check my balance.",
+          "agent": "Absolutely. I\u2019ve got the rate info, and for your balance I just need to verify your identity first.\n\nWhat\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1946
+        },
+        {
+          "caller": "I don't want to give you my full name.",
+          "agent": "That\u2019s okay. I need it to protect your account, and I can\u2019t check your balance without it.\n\nIf you don\u2019t want to give it, I can pause the check and help with general banking info instead.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1215
+        },
+        {
+          "caller": "Actually, my full name is Emily Ross Carter.",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1970
+        },
+        {
+          "caller": "the fourteenth of March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1166
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76.\n\nIf you\u2019d like, I can also check the savings account or your card.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2032
+        },
+        {
+          "caller": "[instrumentation]",
+          "agent": "",
+          "tools": [],
+          "idv": "",
+          "ms": 0,
+          "check_ins": [],
+          "events": [
+            {
+              "type": "llm_node",
+              "last_user": "So what's the interest rate... current interest rate?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "So what's the interest rate... current interest rate?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Also, yes. I want to check my balance."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Also, yes. I want to check my balance."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "I don't want to give you my full name."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Actually, my full name is Emily Ross Carter."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "[The caller answered the full name question. The Worker with"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "the fourteenth of March 1991"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Unit 4, 56 Harbour Street, Wollongong NSW 2500"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "[The caller answered the residential address question. The W"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

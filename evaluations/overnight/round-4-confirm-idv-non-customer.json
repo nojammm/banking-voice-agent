@@ -1,0 +1,493 @@
+{
+  "executed_at": "2026-10-29T15:44:56+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "idv-non-customer",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "fail",
+          "method": "llm",
+          "score": 0.383,
+          "normalized": "john smith",
+          "missing": [],
+          "components": {
+            "first": 0.444,
+            "middle": null,
+            "last": 0.333,
+            "whole": 0.273
+          },
+          "llm": {
+            "invoked": true,
+            "task": "name",
+            "response": {
+              "verdict": "different_name",
+              "cause": "different",
+              "evidence": "\u201cJohn Smith\u201d and \u201cArjun Raghavan\u201d are entirely different first and last names, not a plausible transcription variant."
+            },
+            "latency_ms": 1093,
+            "valid": true
+          },
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "fail",
+          "method": "llm",
+          "score": 0.383,
+          "normalized": "johnsmith john smith",
+          "missing": [],
+          "components": {
+            "first": 0.444,
+            "middle": null,
+            "last": 0.333,
+            "whole": 0.194
+          },
+          "llm": {
+            "invoked": true,
+            "task": "name",
+            "response": {
+              "verdict": "different_name",
+              "cause": "different",
+              "evidence": "The spoken text \"john smith\" does not match the recorded name \"Arjun Raghavan\"; they are entirely different names."
+            },
+            "latency_ms": 1066,
+            "valid": true
+          },
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you check my savings balance?",
+          "agent": "Sure, I can check that. I just need to verify it\u2019s you first, and then I\u2019ll look it up. Could I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2259
+        },
+        {
+          "caller": "John Smith",
+          "agent": "Sorry, I didn\u2019t catch that clearly. Could you say your full name again, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 2054
+        },
+        {
+          "caller": "J O H N, S M I T H. John Smith.",
+          "agent": "Sorry, I may have misheard that. Could you say your full name again, or spell it out for me?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 2132
+        },
+        {
+          "caller": "That's weird, I'm sure I bank with you. John Smith.",
+          "agent": "Yeah, I know it can feel a bit odd. I\u2019ve just got one more thing to confirm, and then I can check your savings balance.\nCould you say your full name again, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1244
+        },
+        {
+          "caller": "Okay, what can I do then?",
+          "agent": "No worries. I can still help with general banking questions, or we can pick this back up later if you want to check your own account.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1122
+        },
+        {
+          "caller": "[instrumentation]",
+          "agent": "",
+          "tools": [],
+          "idv": "",
+          "ms": 0,
+          "check_ins": [],
+          "events": [
+            {
+              "type": "llm_node",
+              "last_user": "Can you check my savings balance?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Can you check my savings balance?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "John Smith"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "J O H N, S M I T H. John Smith."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "That's weird, I'm sure I bank with you. John Smith."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Okay, what can I do then?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "idv-non-customer",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "fail",
+          "method": "llm",
+          "score": 0.383,
+          "normalized": "john smith",
+          "missing": [],
+          "components": {
+            "first": 0.444,
+            "middle": null,
+            "last": 0.333,
+            "whole": 0.273
+          },
+          "llm": {
+            "invoked": true,
+            "task": "name",
+            "response": {
+              "verdict": "different_name",
+              "cause": "different",
+              "evidence": "John Smith is a completely different first and last name from Arjun Raghavan."
+            },
+            "latency_ms": 1100,
+            "valid": true
+          },
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "fail",
+          "method": "llm",
+          "score": 0.383,
+          "normalized": "johnsmith john smith",
+          "missing": [],
+          "components": {
+            "first": 0.444,
+            "middle": null,
+            "last": 0.333,
+            "whole": 0.194
+          },
+          "llm": {
+            "invoked": true,
+            "task": "name",
+            "response": {
+              "verdict": "different_name",
+              "cause": "different",
+              "evidence": "The spoken name transcribes as John Smith, which is a different first and last name from Arjun Raghavan."
+            },
+            "latency_ms": 1094,
+            "valid": true
+          },
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you check my savings balance?",
+          "agent": "Sure, I can check that for you. I\u2019ll just need to verify it first, since it\u2019s your own account. Alright. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2097
+        },
+        {
+          "caller": "John Smith",
+          "agent": "Sorry, I may have misheard that. Could you say your full name again, please?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 2067
+        },
+        {
+          "caller": "J O H N, S M I T H. John Smith.",
+          "agent": "Sorry, I didn\u2019t catch that properly. Could you say your full name again, and if it helps, spell it out for me?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 2076
+        },
+        {
+          "caller": "That's weird, I'm sure I bank with you. John Smith.",
+          "agent": "That\u2019s alright, we can still go through it. What\u2019s your full name as it\u2019s shown on the account?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1140
+        },
+        {
+          "caller": "Okay, what can I do then?",
+          "agent": "I can still help with general banking questions, or I can try the balance again if you want to continue. If it\u2019s just general info, I can look that up straight away.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1155
+        },
+        {
+          "caller": "[instrumentation]",
+          "agent": "",
+          "tools": [],
+          "idv": "",
+          "ms": 0,
+          "check_ins": [],
+          "events": [
+            {
+              "type": "llm_node",
+              "last_user": "Can you check my savings balance?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Can you check my savings balance?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "John Smith"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "J O H N, S M I T H. John Smith."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "That's weird, I'm sure I bank with you. John Smith."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Okay, what can I do then?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "idv-non-customer",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "fail",
+          "method": "llm",
+          "score": 0.383,
+          "normalized": "john smith",
+          "missing": [],
+          "components": {
+            "first": 0.444,
+            "middle": null,
+            "last": 0.333,
+            "whole": 0.273
+          },
+          "llm": {
+            "invoked": true,
+            "task": "name",
+            "response": {
+              "verdict": "different_name",
+              "cause": "different",
+              "evidence": "\u201cJohn Smith\u201d and \u201cArjun Raghavan\u201d are entirely different first and last names, not a plausible transcription variant."
+            },
+            "latency_ms": 996,
+            "valid": true
+          },
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "fail",
+          "method": "llm",
+          "score": 0.383,
+          "normalized": "johnsmith john smith",
+          "missing": [],
+          "components": {
+            "first": 0.444,
+            "middle": null,
+            "last": 0.333,
+            "whole": 0.194
+          },
+          "llm": {
+            "invoked": true,
+            "task": "name",
+            "response": {
+              "verdict": "different_name",
+              "cause": "different",
+              "evidence": "The spoken text looks like \u201cjohn smith,\u201d which is not a match for the recorded name Arjun Raghavan."
+            },
+            "latency_ms": 1219,
+            "valid": true
+          },
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you check my savings balance?",
+          "agent": "Sure thing. I just need to verify it first so I can check your records safely. Okay. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2155
+        },
+        {
+          "caller": "John Smith",
+          "agent": "Sorry, I didn\u2019t catch that properly. Could you say your full name again?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1984
+        },
+        {
+          "caller": "J O H N, S M I T H. John Smith.",
+          "agent": "Sorry, I may have misheard that. Could you say your full name again, and if you like, spell it out for me?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 2437
+        },
+        {
+          "caller": "That's weird, I'm sure I bank with you. John Smith.",
+          "agent": "I understand, and we can keep going. I just need your full name for the check.\nCould you say your full name again, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1063
+        },
+        {
+          "caller": "Okay, what can I do then?",
+          "agent": "No worries. If you just want general banking information, I can help with that straight away. If you still want me to check your own savings balance, say so and I\u2019ll pick up the verification again. If you\u2019d like, I can also help with general questions while we leave that there.",
+          "tools": [],
+          "idv": "paused",
+          "ms": 2123
+        },
+        {
+          "caller": "[instrumentation]",
+          "agent": "",
+          "tools": [],
+          "idv": "",
+          "ms": 0,
+          "check_ins": [
+            "If you\u2019d like, I can also help with general questions while we leave that there."
+          ],
+          "events": [
+            {
+              "type": "llm_node",
+              "last_user": "Can you check my savings balance?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Can you check my savings balance?"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "John Smith"
+            },
+            {
+              "type": "llm_node",
+              "last_user": "J O H N, S M I T H. John Smith."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "That's weird, I'm sure I bank with you. John Smith."
+            },
+            {
+              "type": "llm_node",
+              "last_user": "Okay, what can I do then?"
+            },
+            {
+              "type": "check_in_draft",
+              "text": "If you\u2019d like, I can also help with general questions while we leave that there."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
