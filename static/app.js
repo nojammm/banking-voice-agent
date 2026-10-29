@@ -38,7 +38,7 @@ function showFileList() {
     const topics = node('ul');
     for (const chunk of file.chunks.slice(0, 4)) topics.append(node('li', chunk.title));
     if (file.chunks.length > 4) topics.append(node('li', `+${file.chunks.length - 4} more`, 'more'));
-    card.append(node('h2', file.title), node('p', `${file.file} · ${file.chunks.length} chunks · Fetched ${shortDate(file.fetched)}`, 'file-meta'), topics);
+    card.append(node('h2', file.title), node('p', `Fetched ${shortDate(file.fetched)} · ${file.chunks.length} chunks`, 'file-meta'), topics);
     $('knowledge-list').append(card);
   });
 }
@@ -50,7 +50,7 @@ function showFile(file, tab = 'chunks') {
     const t = node('button', label, 'tab'); t.type = 'button'; t.setAttribute('role', 'tab'); t.setAttribute('aria-selected', String(key === tab));
     t.addEventListener('click', () => showFile(file, key)); tabs.append(t);
   }
-  view.append(back, node('h2', file.title, 'file-title'), node('p', `${file.file} · Fetched ${shortDate(file.fetched)}`, 'file-meta'), tabs);
+  view.append(back, node('h2', file.title, 'file-title'), node('p', `Fetched ${shortDate(file.fetched)}`, 'file-meta'), tabs);
   if (tab === 'raw') { view.append(node('pre', file.raw, 'raw-file card')); return; }
   for (const chunk of file.chunks) {
     const card = node('article', undefined, 'card chunk-card'), meta = node('p', undefined, 'chunk-meta');
