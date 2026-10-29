@@ -1,0 +1,628 @@
+{
+  "executed_at": "2026-10-29T15:34:12+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "conv-multi-intent",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-3003"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "I\u2019ll also look up the term deposit rate for you.  Sure, let me just check that. I can help with the balance and the fee complaint once we get through verification. For the term deposit rate, I don\u2019t have that information from the demo knowledge I checked. What\u2019s your full name?\n",
+          "tools": [
+            "begin_identity_verification",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 3629
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "That sounds frustrating, especially for such a small overdraft. I still need your full name to keep going with the balance check.  I\u2019ve recorded the complaint for the fee refund. The reference is C M P 3 0 0 3, and we\u2019ll have a response within 30 days.\n\nAnd just to keep going with your balance check, what\u2019s your full name?",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "in_progress",
+          "ms": 2916
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 949
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 952
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.\n\nIf you want, I can also check another account or go through the fee complaint next.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2586
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-1814"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Good question\u2026 let me check. Sure. I can help with the balance and the fee complaint, and I\u2019ve got the term deposit rate info too.\n\nTo check your balance, I just need your full name first for verification.",
+          "tools": [
+            "begin_identity_verification",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2777
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "That sounds frustrating, especially for such a small overdraft.\n\nI\u2019ve recorded the complaint. The reference is C, M, P, 1, 8, 1, 4, and it should be reviewed within 30 days. This is a demo record, so no real bank staff will act on it.\n\nI still need your full name to keep going with your balance check.",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "in_progress",
+          "ms": 2833
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s matched. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1983
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Nice, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1004
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set.\n\nYour Everyday Choice account has a balance of 2,418 dollars and 76 cents, with 2,368 dollars and 76 cents available. Your eSaver balance is 12,950 dollars, and your credit card is owing 1,284 dollars and 60 cents with 3,715 dollars and 40 cents available credit.\n\nIf you want, I can also go through the overdrawn fee complaint again or help with anything else on your accounts.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2234
+        }
+      ]
+    },
+    {
+      "id": "conv-multi-intent",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-1647"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I need to check my balance, I also want to complain about an overdrawn fee, and what's your term deposit rate?",
+          "agent": "Sure. I can look at the balance, and I can also record the complaint about the overdrawn fee. For the term deposit rate in general, I\u2019ll check that as well.\n\nWhat\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2510
+        },
+        {
+          "caller": "The fee was 15 dollars last week. I was only overdrawn by a few cents for one day. I want it refunded.",
+          "agent": "Sure, let me just check that. I\u2019ve recorded that complaint for you. The reference is C M P 1 6 4 7, and it should be resolved within 30 days.\n\nOn the term deposit rate, I don\u2019t have a term deposit rate in the information I can see here. If you want, we can keep going with the balance once you give me your full name.",
+          "tools": [
+            "lodge_complaint",
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 3944
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that matches. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1958
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Lovely, that\u2019s lined up. What\u2019s your residential address?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "in_progress",
+          "ms": 2256
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is 2,418 dollars and 76 cents, and the available balance is 2,368 dollars and 76 cents.\n\nYour complaint is recorded too. Reference C M P 1 6 4 7. If you want, I can also check your recent transactions next.",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2114
+        }
+      ]
+    },
+    {
+      "id": "conv-rambling-caller",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "arjun raghavan",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1978-11-02",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Yeah, hi, so, look, sorry, this is a bit of a long story. Um, my wife usually handles all the banking stuff but she's away visiting her mum in Perth this week, and I was going through the mail and there was this letter, I think it was about the credit card, or maybe it was the home loan, I'm not sure, anyway it mentioned a fee, and I remember I asked someone weeks ago to downgrade the card because we're trying to cut back a bit, the kids' school fees went up and everything, and I just want to know if that complaint I made about the annual fee has gone anywhere, because honestly it's been doing my head in.",
+          "agent": "I\u2019m sorry, that\u2019s been a lot to carry. I can look into the complaint and what\u2019s happened with the fee. I can check the complaint, and I\u2019ll also keep the fee issue in mind. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2194
+        },
+        {
+          "caller": "Arjun Raghavan",
+          "agent": "Great, that lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1061
+        },
+        {
+          "caller": "2nd of November 1978",
+          "agent": "Perfect, that all lines up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 952
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "You\u2019re all set, Arjun. I\u2019m checking the complaint about the annual fee and what\u2019s happened with it now. The complaint about the annual card fee is already in there, reference C M P 2 7 4 1, and it\u2019s under review. The response is due by 11 November.\n\nThere\u2019s also a separate dispute in the case history about an Amazon purchase, reference D S P 5 1 0 8, if that\u2019s anything you wanted to ask about too. If you want, I can also explain what that complaint status means.",
+          "tools": [
+            "get_case_status"
+          ],
+          "idv": "verified",
+          "ms": 3794
+        },
+        {
+          "caller": "Okay, good to know. That's all, thanks.",
+          "agent": "No worries, Arjun. Take care.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1064
+        }
+      ]
+    },
+    {
+      "id": "conv-rambling-caller",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "arjun raghavan",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1978-11-02",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Yeah, hi, so, look, sorry, this is a bit of a long story. Um, my wife usually handles all the banking stuff but she's away visiting her mum in Perth this week, and I was going through the mail and there was this letter, I think it was about the credit card, or maybe it was the home loan, I'm not sure, anyway it mentioned a fee, and I remember I asked someone weeks ago to downgrade the card because we're trying to cut back a bit, the kids' school fees went up and everything, and I just want to know if that complaint I made about the annual fee has gone anywhere, because honestly it's been doing my head in.",
+          "agent": "That sounds really frustrating, especially with everything else going on at home. I can check the complaint status for you, and I may need to verify you first before I look into your records. I can help with the complaint, and I\u2019ll come back to the fee letter too. First, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2401
+        },
+        {
+          "caller": "Arjun Raghavan",
+          "agent": "Perfect, that\u2019s lined up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1072
+        },
+        {
+          "caller": "2nd of November 1978",
+          "agent": "Great, that matches. And what\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 936
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "You\u2019re all set, Arjun. I\u2019m going to check the complaint about the annual fee now. The complaint about the annual card fee is under review, and the reference is C M P 2 7 4 1. The response due date is 11 November.\n\nThere\u2019s also a dispute on file about an Amazon AU Marketplace charge, reference D S P 5 1 0 8. Do you want me to look at that one as well?",
+          "tools": [
+            "get_case_status"
+          ],
+          "idv": "verified",
+          "ms": 2469
+        },
+        {
+          "caller": "Okay, good to know. That's all, thanks.",
+          "agent": "You\u2019re welcome, Arjun. Take care.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1076
+        }
+      ]
+    },
+    {
+      "id": "conv-rambling-caller",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "arjun raghavan",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1978-11-02",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Yeah, hi, so, look, sorry, this is a bit of a long story. Um, my wife usually handles all the banking stuff but she's away visiting her mum in Perth this week, and I was going through the mail and there was this letter, I think it was about the credit card, or maybe it was the home loan, I'm not sure, anyway it mentioned a fee, and I remember I asked someone weeks ago to downgrade the card because we're trying to cut back a bit, the kids' school fees went up and everything, and I just want to know if that complaint I made about the annual fee has gone anywhere, because honestly it's been doing my head in.",
+          "agent": "I\u2019m sorry, that sounds really stressful. I can help with the complaint status, but I\u2019ll need to verify your identity first because that\u2019s tied to your records. Right, and I\u2019ll check that annual fee complaint too once we\u2019re through this. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2582
+        },
+        {
+          "caller": "Arjun Raghavan",
+          "agent": "Perfect, that\u2019s all lined up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 914
+        },
+        {
+          "caller": "2nd of November 1978",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1108
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "All set, Arjun. I\u2019m checking that complaint about the annual fee now. That complaint is under review.\n\nThe reference is C M P 2 7 4 1. It was opened on 12 October, and they\u2019re due to respond by 11 November.\n\nIf you want, I can also check anything else on the account while we\u2019re here.",
+          "tools": [
+            "get_case_status"
+          ],
+          "idv": "verified",
+          "ms": 2586
+        },
+        {
+          "caller": "Okay, good to know. That's all, thanks.",
+          "agent": "You\u2019re welcome, Arjun. Take care.",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1069
+        }
+      ]
+    }
+  ]
+}

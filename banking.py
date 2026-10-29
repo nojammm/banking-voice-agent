@@ -20,6 +20,8 @@ FOLLOWUP_REASONS = {'lending_decision', 'complex_dispute', 'hardship_assessment'
 LOAN_PURPOSES = {'home_loan', 'refinance', 'personal_loan', 'car_loan', 'other'}
 MOCK = "Demo record only: no real bank staff will act on it. Say so plainly, once, if the caller expects contact; if you've just said it, don't say it again."
 MOCK_GIVEN = "The caller has been told records are demo only; don't repeat it unless they ask about contact."
+OTHER_ASKS = ("If they asked for other things too that you haven't mentioned yet, touch on each in a few words first: the answer if a "
+              "search found it, otherwise that you'll come back to it, never that it's done or started unless a tool result shows it. Then ")
 
 
 def money(value):
@@ -131,7 +133,7 @@ class Workflow:
         if status in ('not_started', 'paused'):
             self.idv.begin('tool')  # A paused check resumes where it stopped, attempts intact.
             return {'error': 'verification_required',
-                    'next': f"Identity verification is needed for this. Ask the caller for their {idv.STEP_LABEL[self.idv.step]}, naturally."}
+                    'next': f"Identity verification is needed for this. {OTHER_ASKS}ask the caller for their {idv.STEP_LABEL[self.idv.step]}, naturally."}
         if status == 'in_progress':
             return {'error': 'verification_in_progress', 'next': f"Finish verification first: ask for the caller's {idv.STEP_LABEL[self.idv.step]}."}
         return {'error': 'verification_failed', 'next': "Records can't be accessed on this call. Offer a human follow-up."}
@@ -163,7 +165,7 @@ class Workflow:
         if self.idv.status == 'failed': return {'status': 'failed', 'next': "Verification can't be retried on this call. Offer a human follow-up."}
         self.idv.begin('tool')
         await self.auth_changed()
-        return {'status': 'in_progress', 'next': f"Ask for the caller's {idv.STEP_LABEL[self.idv.step]} naturally."}
+        return {'status': 'in_progress', 'next': f"{OTHER_ASKS}ask for the caller's {idv.STEP_LABEL[self.idv.step]} naturally."}
 
     async def pause_identity_verification(self, reason=''):
         if not self.idv.pause('model', reason or ''):
