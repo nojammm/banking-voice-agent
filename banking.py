@@ -263,7 +263,9 @@ class Workflow:
                                                         for r in results if r['url']]})
         if not results:
             return {'results': [], 'next': "No guidance found. Say you don't have reviewed information on that; don't guess."}
-        return {'results': [{'title': r['title'], 'label': r['type'], 'source': r['source'], 'text': r['text']} for r in results]}
+        return {'results': [{'title': r['title'], 'label': r['type'], 'source': r['source'], 'text': r['text']} for r in results],
+                'next': "These are the closest matches, not necessarily answers. Say only what they directly state about the question; "
+                        "if none of them covers it, say you don't have that information. Never fill the gap from general knowledge."}
 
     async def estimate_loan_repayment(self, amount, annual_rate_percent, years, frequency='monthly'):
         per_year = {'weekly': 52, 'fortnightly': 26, 'monthly': 12}.get(frequency)
