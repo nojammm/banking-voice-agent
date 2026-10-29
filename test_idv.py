@@ -487,6 +487,84 @@ class DobAcrossTurnsTests(unittest.TestCase):
         self.assertEqual(run(v.answer('the 2nd')).outcome, 'pass')
 
 
+
+class DobPiecesWithSttArtifactsTests(unittest.TestCase):
+    """The call that found this: "The fourteenth.", "I said three.", "$19.91.", "March 14." never joined, and the
+    run of incomplete turns cost a failed attempt. Speech-to-text writes a spoken year as money ("$19.91" = 1991)."""
+    ADDRESS = 'Unit 4, 56 Harbour Street, Wollongong NSW 2500'
+
+    def make(self, judge=None, **cfg):
+        v = idv.Verification(CUSTOMERS, config(), judge, TODAY)
+        v.cfg.update(cfg)
+        v.begin('tool')
+        run(v.answer('Emily Carter'))
+        return v
+
+    def test_the_calls_sequence_verifies_without_using_an_attempt(self):
+        v = self.make()
+        outcomes = [run(v.answer(t)).outcome for t in ['The fourteenth.', 'I said three.', '$19.91.']]
+        self.assertEqual(outcomes, ['incomplete', 'incomplete', 'pass'])
+        tail = run(v.answer('March 14.'))  # Said again after it already passed: the end of the last answer.
+        self.assertEqual((tail.outcome, tail.reason), ('no_answer', 'previous_step'))
+        self.assertEqual(run(v.answer(self.ADDRESS)).outcome, 'pass')
+        self.assertEqual((v.status, v.steps['dob']['attempts'], v.steps['address']['attempts']), ('verified', 0, 0))
+
+    def test_pieces_in_other_orders_and_forms_are_joined(self):
+        for turns in [['I said three.', '$19.91.', 'March 14.'], ['March 14.', '$19.91.'], ['$19.91.', '14', '3'],
+                      ['The fourteenth.', 'nineteen ninety one', 'three'], ['three', 'March', 'the 14th', '91'],
+                      ['the fourteenth', 'I said three. Okay. $19.91.'], ['The 14th.', '3', '$1,991.'],
+                      ['fourteen three', '$19.91']]:
+            with self.subTest(turns=turns):
+                v = self.make()
+                for text in turns[:-1]: self.assertEqual(run(v.answer(text)).outcome, 'incomplete')
+                self.assertEqual(run(v.answer(turns[-1])).outcome, 'pass')
+                self.assertEqual((v.step, v.steps['dob']['attempts']), ('address', 0))
+
+    def test_a_bare_number_fills_the_open_part(self):
+        v = self.make()
+        run(v.answer('The fourteenth.'))
+        result = run(v.answer('I said three.'))
+        self.assertEqual(result.missing, ['year'])  # Three is the month, not a new day.
+        self.assertIn('missing part (year)', v.note(v.last))
+
+    def test_a_joined_wrong_date_still_fails(self):
+        v = self.make()
+        for text in ['The fourteenth.', 'I said three.']: run(v.answer(text))
+        self.assertEqual(run(v.answer('$19.92.')).outcome, 'fail')
+        self.assertEqual(v.steps['dob']['attempts'], 1)
+
+    def test_an_ambiguous_joined_date_goes_to_the_fallback_with_everything_said(self):
+        cfg = config()['dob_match']
+        judge = Judge({'status': 'complete', 'date': '1991-04-03', 'missing': []})
+        v = self.make(judge)
+        run(v.answer('three'))
+        run(v.answer('4'))
+        result = run(v.answer('$19.91.'))
+        self.assertEqual(result.outcome, 'uncertain')  # A joined guess that doesn't match is a mishearing, not a miss.
+        self.assertEqual(v.steps['dob']['attempts'], 0)
+        task, payload = judge.calls[0]
+        self.assertEqual(task, 'dob')
+        self.assertEqual(payload['spoken'], 'three 4 $19.91.')
+        self.assertNotIn('1991-03-14', str(judge.calls))
+        judge = Judge({'status': 'complete', 'date': '1991-03-04', 'missing': []})
+        result = run(idv.match_dob('$19.91.', '1991-03-04', cfg, judge, TODAY, {'either': [3, 4], 'said': 'three 4'}))
+        self.assertEqual((result.outcome, result.components['candidates']), ('pass', ['1991-03-04', '1991-04-03']))
+
+    def test_turns_that_add_a_part_are_not_counted_as_misses(self):
+        v = self.make(max_incomplete=1)
+        for text in ['The fourteenth.', 'I said three.']: run(v.answer(text))
+        self.assertEqual((v.steps['dob']['incomplete'], v.steps['dob']['attempts']), (1, 0))
+        run(v.answer('I said three.'))  # Adds nothing: repeated misses still count.
+        self.assertEqual(v.steps['dob']['attempts'], 1)
+
+    def test_a_year_heard_as_money_at_the_address_step_is_the_previous_answer(self):
+        self.assertTrue(idv._dob_fragment('$19.91.'))
+        self.assertFalse(idv._dob_fragment('19 91 Harbour Street'))
+        v = self.make()
+        run(v.answer('14 March 1991'))
+        tail = run(v.answer('$19.91.'))
+        self.assertEqual((tail.outcome, tail.reason, v.steps['address']['attempts']), ('no_answer', 'previous_step', 0))
+
 class SplitUtteranceTests(unittest.TestCase):
     """Speech-to-text can cut one answer into two turns; the tail belongs to the step that just passed."""
     def make(self):

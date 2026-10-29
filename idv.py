@@ -217,8 +217,9 @@ LLM_INSTRUCTIONS = {
              "or a common short form of the same name. A different first name or surname is a different name. "
              "If the words aren't a person's name at all (a question, a request, banking words), answer not_a_name. "
              "If you cannot tell, answer uncertain. Give one short sentence of evidence."),
-    'dob': ("Normalise a caller's spoken date of birth, transcribed by speech-to-text, to YYYY-MM-DD. Australian "
-            "day-month-year order is the default. Treat 'oh' as zero and 'a' as 'of'. Two-digit years 00-08 are "
+    'dob': ("Normalise a caller's spoken date of birth, transcribed by speech-to-text, to YYYY-MM-DD. It may be "
+            "pieces said over several turns, and speech-to-text can write a spoken year as money ('$19.91' is 1991). "
+            "Australian day-month-year order is the default. Treat 'oh' as zero and 'a' as 'of'. Two-digit years 00-08 are "
             "2000s, otherwise 1900s. Never invent a missing part: use status incomplete and list what is missing. "
             "If the words can't be read as a single date, use status unclear and an empty date."),
     'address': ("You are a constrained second-opinion check inside a bank's identity verification. Decide whether a "
@@ -413,6 +414,7 @@ class DobParse:
     missing: list = field(default_factory=list)
     parts: dict = field(default_factory=dict)  # For an incomplete date: the parts that were clear.
     month_first: bool = False  # The only reading puts the month first, which Australian callers don't do.
+    assembled: bool = False  # Joined from parts said over several turns.
 
 
 def _year(text, today, pivot):
@@ -521,39 +523,107 @@ def _valid_llm_date(response, today, candidates):
     return ('complete', value)
 
 
-def _combine(parsed, carry, today):
-    """Join an incomplete answer with the parts given in earlier turns ("November 1978", then "the 2nd")."""
-    parts = {**carry, **parsed.parts}
-    if set(parts) != {'day', 'month', 'year'}:
-        return DobParse('incomplete', missing=[p for p in ('day', 'month', 'year') if p not in parts], parts=parts)
-    value = make_date(str(parts['day']), str(parts['month']), str(parts['year']), today, 0)
-    return DobParse('ok', value, [value]) if value else DobParse('unparsed')
+def _year_pair(a, b, today, pivot):
+    """"nineteen ninety one", or "$19.91" when speech-to-text formats a spoken year as money: 19 and 91 are 1991."""
+    if a.ordinal or b.ordinal or a.digits not in ('19', '20') or len(b.digits) != 2: return None
+    return _year(a.digits + b.digits, today, pivot)
+
+
+def _pieces(text, today, pivot):
+    """The parts of a date of birth said on their own ("The fourteenth.", "I said three.", "$19.91."): day, month,
+    year, and 'either' for a bare number up to 12 that could be the day or the month. None if it can't be split."""
+    items = spoken_items(re.sub(r'(?<=\d),(?=\d{3}\b)', '', text))  # "$1,991"
+    nums = [x for x in items if isinstance(x, Num)]
+    months = {MONTHS[x.text] for x in items if isinstance(x, Word) and x.text in MONTHS}
+    if len(months) > 1 or not (nums or months): return None
+    parts = {'month': months.pop()} if months else {}
+    for i, n in enumerate(nums):
+        if len(n.digits) == 4 and not n.ordinal and _year(n.digits, today, pivot):
+            parts['year'], nums = int(n.digits), nums[:i] + nums[i + 1:]
+            break
+        if i + 1 < len(nums) and (year := _year_pair(n, nums[i + 1], today, pivot)):
+            parts['year'], nums = year, nums[:i] + nums[i + 2:]
+            break
+    if len(nums) == 2 and 'month' not in parts:  # "fourteen three", "the 3rd of the 14th"
+        a, b = nums if not (nums[1].ordinal and not nums[0].ordinal) else nums[::-1]
+        if not (1 <= int(a.digits) <= 31 and 1 <= int(b.digits) <= 12): return None
+        return {**parts, 'day': int(a.digits), 'month': int(b.digits)}
+    if len(nums) > 1: return None
+    if nums:
+        n, value = nums[0], int(nums[0].digits)
+        if 'month' in parts or n.ordinal or 12 < value <= 31:
+            if not 1 <= value <= 31: return None
+            parts['day'] = value
+        elif 1 <= value <= 12:
+            parts['either'] = [value]
+        elif 'year' not in parts and len(n.digits) == 2 and _year(n.digits, today, pivot):
+            parts['year'] = _year(n.digits, today, pivot)  # "91"
+        else:
+            return None
+    return parts
+
+
+def _assemble(carry, new, today, pivot):
+    """Join the parts of this turn with those carried from earlier turns. A bare number fills whichever of day or
+    month is still open ("The fourteenth." then "I said three." is 14 March); a later part replaces an earlier one."""
+    parts = {k: v for k, v in {**carry, **new}.items() if k in ('day', 'month', 'year')}
+    either = list(dict.fromkeys(carry.get('either', []) + new.get('either', [])))
+    if 'month' in parts: either = [e for e in either if e != parts['month']]  # "three", then "March": the same month.
+    while either and ('day' in parts) != ('month' in parts):
+        parts['month' if 'day' in parts else 'day'] = either.pop()
+    either = either[-2:] if not ('day' in parts or 'month' in parts) else []
+    assembled = bool(carry)
+    if {'day', 'month', 'year'} <= set(parts):
+        value = make_date(str(parts['day']), str(parts['month']), str(parts['year']), today, pivot)
+        return DobParse('ok', value, [value], assembled=assembled) if value else DobParse('unparsed', assembled=assembled)
+    if 'year' in parts and len(either) == 2:  # Two bare numbers and a year: which is the day is a guess.
+        found = [make_date(str(d), str(m), str(parts['year']), today, pivot) for d, m in (either, either[::-1])]
+        found = sorted({v for v in found if v})
+        if found: return DobParse('ambiguous', candidates=found, assembled=True)
+    missing = [p for p in ('day', 'month', 'year') if p not in parts]
+    if either and 'year' not in parts: missing = ['year'] if len(either) == 2 else ['month', 'year']
+    return DobParse('incomplete', missing=missing, parts={**parts, 'either': either} if either else parts, assembled=assembled)
+
+
+def _dob_known(parts):
+    return {p for p in ('day', 'month', 'year') if p in parts} | {('either', e) for e in parts.get('either', [])}
 
 
 async def match_dob(text, stored, cfg, judge=None, today=None, carry=None):
     """Parts of an incomplete answer carry over in components['_carry'], so the next turn can finish the date."""
-    today = today or date.today()
-    parsed = parse_dob(text, today, cfg['two_digit_year_pivot'])
-    if parsed.status == 'incomplete' and carry and not is_question(text):
-        parsed = _combine(parsed, carry, today)
+    today, pivot, carry = today or date.today(), cfg['two_digit_year_pivot'], carry or {}
+    parsed = parse_dob(text, today, pivot)
+    question = is_question(text)
     # A question counts only if it holds a whole date ("is it 14 March 1991?"); otherwise it's not an answer.
-    if parsed.status == 'no_answer' or (parsed.status not in ('ok', 'ambiguous') and is_question(text)):
+    if parsed.status == 'no_answer' or (parsed.status not in ('ok', 'ambiguous') and question):
         return FieldResult('dob', 'no_answer', 'none')
+    spoken = ' '.join(filter(None, [carry.get('said'), text]))  # The whole answer so far, for the fallback.
+    if parsed.status != 'ok' and not question and (parsed.status == 'incomplete' or carry):
+        pieces = _pieces(text, today, pivot)
+        if pieces is None and parsed.status == 'incomplete': pieces = parsed.parts
+        if pieces is not None:
+            joined = _assemble(carry, pieces, today, pivot)
+            if parsed.status != 'ambiguous' or (joined.status == 'ok' and parsed.month_first):
+                parsed = joined  # Month-first is a guess; the parts they gave earlier settle it.
+            elif joined.status == 'ok':
+                parsed = DobParse('ambiguous', candidates=sorted(set(parsed.candidates) | {joined.value}), assembled=True)
     if parsed.status == 'incomplete':
-        return FieldResult('dob', 'incomplete', 'deterministic', missing=parsed.missing, components={'_carry': parsed.parts})
+        return FieldResult('dob', 'incomplete', 'deterministic', missing=parsed.missing,
+                           components={'_carry': {**parsed.parts, 'said': spoken}})
     if parsed.status == 'ok':
         return FieldResult('dob', 'pass' if parsed.value == stored else 'fail', 'exact', normalized=parsed.value)
     result = FieldResult('dob', 'uncertain', 'llm', components={'candidates': parsed.candidates})
     if not (cfg['llm_fallback_enabled'] and judge): result.method = 'deterministic'; return result
-    result.llm = info = await _ask(judge, 'dob', {'spoken': text})
+    result.llm = info = await _ask(judge, 'dob', {'spoken': spoken})
     checked = _valid_llm_date(info.get('response'), today, parsed.candidates)
     info['valid'] = checked is not None
     if checked and checked[0] == 'incomplete':
         result.outcome, result.missing = 'incomplete', checked[1]
+        if carry: result.components['_carry'] = carry  # Keep what they've said; this turn added nothing certain.
     elif checked:
         result.normalized = checked[1]
-        # A month-first guess that doesn't match is more likely a mishearing ("$19.91") than a wrong answer.
-        result.outcome = 'pass' if checked[1] == stored else 'uncertain' if parsed.month_first else 'fail'
+        # A month-first guess ("$19.91") or a date joined from pieces that doesn't match is more likely a mishearing.
+        result.outcome = 'pass' if checked[1] == stored else 'uncertain' if parsed.month_first or parsed.assembled else 'fail'
     return result
 
 
@@ -605,7 +675,8 @@ def _dob_fragment(text):
     words = [x.text for x in items if isinstance(x, Word)]
     if _address_parts(text)[2] or any(w in STREET_TYPES or w in ADDRESS_CUES for w in words): return False
     month = any(w in MONTHS and (w != 'may' or nums) for w in words)
-    year_only = bool(nums) and all(len(n.digits) == 4 and n.digits.startswith('19') for n in nums) and \
+    pair = len(nums) == 2 and _year_pair(nums[0], nums[1], date.today(), 0)  # "$19.91": a year heard as money.
+    year_only = bool(nums) and (pair or all(len(n.digits) == 4 and n.digits.startswith('19') for n in nums)) and \
         not [w for w in words if w not in ADDRESS_FILLER]
     return month or any(n.ordinal for n in nums) or year_only
 
@@ -825,8 +896,11 @@ class Verification:
         if step == 'full_name':
             result = await match_name(text, self.customers, cfg, self.judge)
         elif step == 'dob':
+            before = self.dob_carry
             result = await match_dob(text, self.customer()['dob'], cfg, self.judge, today, self.dob_carry)
             if result.outcome != 'no_answer': self.dob_carry = result.components.pop('_carry', {})
+            # A turn that adds a part to an answer already under way ("I said three.") is progress, not a miss.
+            added = bool(before) and bool(_dob_known(self.dob_carry) - _dob_known(before))
         else:
             result = await match_address(text, self.customer()['address'], cfg, self.judge, self.address_carry)
             self.address_carry = result.components.pop('_carry', self.address_carry)
@@ -842,7 +916,7 @@ class Verification:
                 self._activate(remaining[0], 'progression')
             else:
                 self.status, self.step = 'verified', None
-        elif result.outcome == 'incomplete':
+        elif result.outcome == 'incomplete' and not (step == 'dob' and added):
             state['incomplete'] += 1
             if state['incomplete'] > self.cfg['max_incomplete']:
                 state['incomplete'] = 0
