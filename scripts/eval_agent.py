@@ -31,7 +31,6 @@ envfile.load()
 os.environ.setdefault('ELEVENLABS_API_KEY', 'unused')
 os.environ.setdefault('ELEVENLABS_VOICE_ID', 'unused')
 from livekit.agents import AgentSession, llm
-from livekit.plugins import openai
 import bank
 import banking
 import idv
@@ -63,7 +62,7 @@ async def converse(scenario):
                                        conn=bank.connect(db), publish=publish)
     agent = TextAgent(workflow, publish)
     transcript = []
-    model = openai.LLM(model=os.environ.get('LIVE_LLM_MODEL', 'gpt-5.4-mini'), store=False, reasoning_effort='none', max_completion_tokens=300)
+    model = live_agent.make_llm()
     async with AgentSession(llm=model) as session:
         await session.start(agent=agent, record=False)
 

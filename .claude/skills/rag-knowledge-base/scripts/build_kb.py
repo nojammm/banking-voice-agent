@@ -23,6 +23,9 @@ DOMAINS = {
 REQUIRED = ('id', 'authority', 'source', 'url', 'verified', 'tags', 'questions')
 DANGLING = re.compile(r'\b(as (mentioned |noted )?above|see (above|below)|the following|as follows|this policy|mentioned earlier)\b', re.I)
 LIVE_RATE = re.compile(r'\d+(\.\d+)?\s*% ?p\.?a\.?', re.I)
+EDITORIAL = re.compile(r'\b(this knowledge base|knowledge base|not (yet )?(checked|verified|covered)|TODO|TBC|FIXME|research notes?|page does not (state|say|mention)|does not publish)\b', re.I)
+PHONE = re.compile(r'\b1[38]00( ?\d){6}\b|\b13( ?\d){4}\b|\+61[\d ]{8,}|\b000\b')
+TITLE_PHONE = re.compile(r'\b(numbers?|phone|call)\b', re.I)
 MIN_WORDS, MAX_WORDS, STALE_DAYS = 30, 200, 180
 
 
@@ -65,6 +68,8 @@ def lint(chunk, today):
     if len([q for q in meta.get('questions', '').split('|') if q.strip()]) < 2: errors.append('needs at least 2 questions')
     if authority == 'westpac' and 'Westpac' not in body: errors.append('westpac chunk body must name Westpac')
     if LIVE_RATE.search(body): warnings.append('looks like a live interest rate; link to the rate page instead')
+    if EDITORIAL.search(body): errors.append(f'internal/editorial note in body: {EDITORIAL.search(body).group(0)!r}; bodies are customer-facing facts only')
+    if TITLE_PHONE.search(chunk['title']) and not PHONE.search(body): warnings.append('title promises a phone number but the body has none')
     return errors, warnings
 
 

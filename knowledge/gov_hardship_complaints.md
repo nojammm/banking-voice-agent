@@ -24,13 +24,13 @@ questions: How long does the bank legally have to answer my hardship request? | 
 -->
 Under section 72 of the National Credit Code, a borrower can give their credit provider a hardship notice, verbally or in writing, saying they cannot meet their obligations. ASIC's INFO 105 (updated May 2025) says that if the lender has enough information it must tell the borrower its decision within 21 days, starting the day after it receives the notice. If it needs more information it must ask within 21 days; it then has 21 days from receiving the information to respond, or 28 days from its request if the information is not provided. If the lender does not agree to change the contract, it must give its reasons and the contact details of the Australian Financial Complaints Authority (AFCA).
 
-## Hardship changes confirmed in writing and enforcement paused
+## Hardship changes confirmed in writing
 <!--
 id: hardship.gov.written-confirmation
 authority: government
 source: ASIC – INFO 105 Dealing with consumers and credit (updated May 2025)
 url: https://www.asic.gov.au/regulatory-resources/credit/credit-notices-and-offences/faqs-dealing-with-consumers-and-credit
-verified: 2026-10-28
+verified: 2026-10-29
 tags: hardship agreement in writing, 90 days, 30 days, confirm changes, written notice, hardship variation
 questions: Will I get my hardship arrangement in writing? | Does the bank have to confirm the changes to my loan? | How long until I get written confirmation of my hardship arrangement?
 -->
@@ -66,11 +66,23 @@ id: complaints.gov.rg271-timeframes
 authority: government
 source: ASIC – Regulatory Guide 271 Internal dispute resolution
 url: https://asic.gov.au/regulatory-resources/find-a-document/regulatory-guides/rg-271-internal-dispute-resolution/
-verified: 2026-10-28
+verified: 2026-10-29
 tags: complaint deadline, 30 days, 21 days, how long does the bank have to respond, maximum timeframe, IDR, acknowledge complaint, hardship complaint
 questions: How many days does a bank legally have to respond to a complaint? | What is the maximum time for a bank to resolve a hardship complaint? | The bank hasn't replied to my complaint in a month, is that allowed?
 -->
-ASIC Regulatory Guide 271 sets enforceable internal dispute resolution (IDR) standards for banks and other financial firms, for complaints received from 5 October 2021. ASIC expects firms to acknowledge a complaint within 24 hours (or one business day), or as soon as practicable. A bank must give its IDR response no later than 30 calendar days after receiving a standard complaint. For credit complaints involving default notices, hardship notices or requests to postpone enforcement, the maximum is 21 calendar days. If a bank cannot meet the deadline because the complaint is particularly complex or circumstances are beyond its control, it must send an IDR delay notification before the deadline giving the reasons, the right to go to AFCA, and AFCA's contact details.
+ASIC Regulatory Guide 271 sets enforceable internal dispute resolution (IDR) standards for banks and other financial firms, for complaints received from 5 October 2021. ASIC expects firms to acknowledge a complaint within 24 hours (or one business day), or as soon as practicable. A bank must give its IDR response no later than 30 calendar days after receiving a standard complaint. For credit complaints involving default notices, the maximum is 21 calendar days; complaints about hardship notices or requests to postpone enforcement also start at 21 calendar days but have exceptions. If a bank cannot meet the deadline because the complaint is particularly complex or circumstances are beyond its control, it must send an IDR delay notification before the deadline giving the reasons, the right to go to AFCA, and AFCA's contact details.
+
+## Hardship complaint timeframes and their exceptions (ASIC RG 271)
+<!--
+id: complaints.gov.rg271-hardship
+authority: government
+source: ASIC – Regulatory Guide 271 Internal dispute resolution
+url: https://asic.gov.au/regulatory-resources/find-a-document/regulatory-guides/rg-271-internal-dispute-resolution/
+verified: 2026-10-29
+tags: hardship complaint, complaint about hardship decision, postpone enforcement, 21 days, more information requested, insufficient information, agreement reached, IDR timeframe
+questions: How long does a lender have to answer a complaint about my hardship request? | The bank asked for more documents about my hardship complaint, does the deadline change? | We agreed on a hardship plan after I complained, when must it be confirmed?
+-->
+Under ASIC Regulatory Guide 271, a credit provider must give its IDR response to a complaint involving a hardship notice or a request to postpone enforcement proceedings no later than 21 calendar days after receiving the complaint. Exceptions apply. If the credit provider does not have sufficient information to decide, it must request the information no later than 21 calendar days after receiving the complaint, and the complainant must provide it within 21 calendar days. The credit provider then has a further 21 calendar days after receiving the information to respond, or 7 calendar days if the information is not received within 21 calendar days of the request. If agreement is reached, the credit provider has 30 calendar days to confirm the terms in writing.
 
 ## What a bank's final complaint response must include (ASIC RG 271)
 <!--
@@ -90,8 +102,8 @@ id: complaints.gov.afca-overview
 authority: government
 source: Moneysmart (ASIC) – How to complain
 url: https://moneysmart.gov.au/how-to-complain
-verified: 2026-10-28
+verified: 2026-10-29
 tags: AFCA, ombudsman, external dispute resolution, free, escalate, take bank to ombudsman, lodge complaint online, phone number
 questions: What is AFCA and does it cost anything? | How do I take my complaint further than the bank? | What are AFCA's phone hours?
 -->
-Moneysmart says the first step in any complaint is to contact the business, explain the problem and say how you would like it fixed. If the bank does not respond in a reasonable time, or the customer is unhappy with its handling or offer, they can complain to the Australian Financial Complaints Authority (AFCA). AFCA is an independent dispute resolution scheme for disputes with financial firms, including banking, credit and loans, and it hears complaints for free. AFCA can be contacted on 1800 931 678 (9am to 5pm, Monday to Friday) or online at www.afca.org.au. AFCA's time limits and compensation caps are not covered in this knowledge base; check afca.org.au.
+Moneysmart says the first step in any complaint is to contact the business, explain the problem and say how you would like it fixed. If the bank does not respond in a reasonable time, or the customer is unhappy with its handling or offer, they can complain to the Australian Financial Complaints Authority (AFCA). AFCA is an independent dispute resolution scheme for disputes with financial firms, including banking, credit and loans, and it hears complaints for free. AFCA can be contacted on 1800 931 678 (9am to 5pm, Monday to Friday) or online at www.afca.org.au.

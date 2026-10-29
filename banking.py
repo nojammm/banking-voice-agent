@@ -17,9 +17,13 @@ HARDSHIP_CAUSES = {'job_loss', 'reduced_income', 'illness_or_injury', 'relations
 COMPLAINT_CATEGORIES = {'fees_and_charges', 'service', 'delay', 'product', 'decision', 'hardship', 'dispute_handling', 'privacy', 'other'}
 FOLLOWUP_REASONS = {'lending_decision', 'complex_dispute', 'hardship_assessment', 'fraud_or_security', 'formal_complaint',
                     'unsupported_request', 'verification_failed', 'other'}
+CONTACT_REASONS = {'hardship', 'dispute', 'complaint', 'account', 'other'}
 LOAN_PURPOSES = {'home_loan', 'refinance', 'personal_loan', 'car_loan', 'other'}
-MOCK = "Demo record only: no real bank staff will act on it. Say so plainly, once, if the caller expects contact; if you've just said it, don't say it again."
-MOCK_GIVEN = "The caller has been told records are demo only; don't repeat it unless they ask about contact."
+FAILED_NEXT = ("Verification can't be retried and records can't be accessed or noted against an account on this call. Tell them "
+               "kindly that you weren't able to verify them, and that the team can call them back; in that same reply, without asking "
+               "first, call open_contact_form to put a short form on their screen for their name and number.")
+MOCK = "Don't promise when or how anyone will be in touch."
+MOCK_GIVEN = "Don't repeat what happens next unless they ask."
 OTHER_ASKS = ("If they asked for other things too that you haven't mentioned yet, touch on each in a few words first: the answer if a "
               "search found it, otherwise that you'll come back to it, never that it's done or started unless a tool result shows it. Then ")
 
@@ -68,7 +72,9 @@ class Workflow:
         self.publish = publish
         self.forms, self.created, self.facts, self.hardship_ref, self.complaint_ref = {}, [], set(), None, None
         self.followup_ref, self.mock_given = None, False
+        self.acknowledged = False  # Set by the agent before a tool call: it already responded to how the caller feels this turn.
         self.turn, self.shown = None, {}  # Caller turns (set by the voice agent) and when each transaction was first shown.
+        self.verified_turn = None  # The caller turn in which verification passed.
         verification.on_event = self.audit
         bank.save_session(conn, session_id, self.snapshot())
 
@@ -92,6 +98,7 @@ class Workflow:
                 'forms': self.forms, 'cases_created': self.created}
 
     def audit(self, kind, data):
+        if kind == 'idv_complete' and data.get('status') == 'verified': self.verified_turn = self.turn
         bank.log(self.conn, self.session_id, kind, data)
         bank.save_session(self.conn, self.session_id, self.snapshot())
 
@@ -104,7 +111,13 @@ class Workflow:
                          'step': idv.STEP_LABEL.get(self.idv.step) if self.idv.step else None})
 
     def state_note(self, fresh=None):
-        lines = [self.idv.note(fresh)]
+        contact = [f['status'] for f in self.forms.values() if f.get('kind') == 'contact_callback']
+        if self.idv.status == 'failed' and contact:  # Told once and the form is up or done: don't start it over.
+            lines = ["IDENTITY VERIFICATION (set by the Worker; authoritative)\nFAILED: don't retry it, and don't discuss or note "
+                     f"anything against account records. They've been told, and the call-back form is {contact[-1]}: don't open it "
+                     "again or repeat that you couldn't verify them. General questions and complaints are still fine."]
+        else:
+            lines = [self.idv.note(fresh)]
         open_forms = [f for f, v in self.forms.items() if v['status'] == 'open']
         if open_forms:
             lines.append('A callback form is open on the caller\'s screen. Wait for its form event; never assume it was submitted.')
@@ -113,7 +126,7 @@ class Workflow:
         return '\n\n'.join(lines)
 
     def _mock(self):
-        """The demo disclaimer goes with the first record of the call only; it isn't repeated every turn."""
+        """What happens next goes with the first record of the call only; it isn't repeated every turn."""
         if self.mock_given: return MOCK_GIVEN
         self.mock_given = True
         return MOCK
@@ -131,12 +144,12 @@ class Workflow:
         if status == 'verified': return None
         self.audit('tool_blocked', {'tool': tool, 'idv': status})
         if status in ('not_started', 'paused'):
+            fresh = status == 'not_started'
             self.idv.begin('tool')  # A paused check resumes where it stopped, attempts intact.
-            return {'error': 'verification_required',
-                    'next': f"Identity verification is needed for this. {OTHER_ASKS}ask the caller for their {idv.STEP_LABEL[self.idv.step]}, naturally."}
+            return {'error': 'verification_required', 'next': f"Identity verification is needed for this. {self.ask_step(fresh)}"}
         if status == 'in_progress':
             return {'error': 'verification_in_progress', 'next': f"Finish verification first: ask for the caller's {idv.STEP_LABEL[self.idv.step]}."}
-        return {'error': 'verification_failed', 'next': "Records can't be accessed on this call. Offer a human follow-up."}
+        return {'error': 'verification_failed', 'next': FAILED_NEXT}
 
     async def _record(self, kind, summary, details, priority='normal', status='Open'):
         customer = self.idv.customer_id if self.idv.verified else None
@@ -162,10 +175,23 @@ class Workflow:
 
     async def begin_identity_verification(self, reason=''):
         if self.idv.status == 'verified': return {'status': 'already_verified'}
-        if self.idv.status == 'failed': return {'status': 'failed', 'next': "Verification can't be retried on this call. Offer a human follow-up."}
+        if self.idv.status == 'failed': return {'status': 'failed', 'next': FAILED_NEXT}
+        fresh = self.idv.status == 'not_started'
         self.idv.begin('tool')
         await self.auth_changed()
-        return {'status': 'in_progress', 'next': f"{OTHER_ASKS}ask for the caller's {idv.STEP_LABEL[self.idv.step]} naturally."}
+        return {'status': 'in_progress', 'next': self.ask_step(fresh)}
+
+    def ask_step(self, fresh):
+        """What the reply that starts or resumes verification says, as one reply. If the agent already responded to how the
+        caller feels this turn (acknowledged), it goes straight to the request."""
+        if fresh and self.idv.step == 'full_name':
+            feel = ("You've already responded to how they feel this turn, so go straight on: " if self.acknowledged else
+                    "respond to what they've told you as a caring person would: real empathy if they're struggling, upset or worried, "
+                    "a few friendly words otherwise. Then ")
+            return (f"{OTHER_ASKS}in this one reply, {feel}say briefly why you need to confirm who they are (for their security, and "
+                    "so you can help with their accounts), that it's three quick details, and ask for their full name as a "
+                    "question.")
+        return f"{OTHER_ASKS}ask for the caller's {idv.STEP_LABEL[self.idv.step]} naturally."
 
     async def pause_identity_verification(self, reason=''):
         if not self.idv.pause('model', reason or ''):
@@ -284,6 +310,15 @@ class Workflow:
 
     async def record_hardship_notice(self, cause, situation, affected_products, expected_duration, support_wanted):
         if cause not in HARDSHIP_CAUSES: return {'error': 'invalid_cause', 'allowed': sorted(HARDSHIP_CAUSES)}
+        if self.idv.status == 'failed':  # Not against an account they couldn't prove is theirs: the team calls them back instead.
+            return {'error': 'verification_failed', 'next': "Don't record it: they couldn't be verified. The call-back form "
+                                                            "(open_contact_form) is how the team reaches them."}
+        # With no reason given, the turn verification passes in asks what's happened instead; the next turn records whatever they say.
+        if cause == 'other' and not self.hardship_ref and self.turn is not None and self.turn == self.verified_turn:
+            return {'error': 'not_recorded_yet', 'next': "They haven't said what's behind it, so ask before recording. Without repeating "
+                                                         "what they told you, ask one gentle, caring question about what's happened, "
+                                                         "so you can help them properly. Record it once they answer, whatever they say, "
+                                                         "and don't ask again."}
         details = {'cause': cause, 'situation': situation[:500], 'affected_products': affected_products[:200],
                    'expected_duration': expected_duration[:100], 'support_wanted': support_wanted[:200],
                    'identity': 'verified' if self.idv.verified else 'not verified'}
@@ -297,9 +332,11 @@ class Workflow:
         self.hardship_ref = ref
         counselling = kb.document('hardship-help')
         result = {'reference': ref, 'say_reference': spoken(ref), 'response_due_days': 21, 'free_counselling': counselling and counselling['text'],
-                  'next': 'This reply is only: the reference; one sentence that a hardship specialist assesses options and nothing is approved on '
-                          'this call; and a question offering a specialist follow-up. Save rights, options and timeframes for when they ask. '
-                          'Only if the caller sounds distressed or overwhelmed, add the free counselling in a sentence. ' + self._mock()}
+                  'next': 'This reply is only: a warm, personal sentence of your own, in the spirit of having noted it down and passing it '
+                          'to the team who can help them (not a flat statement that a notice was recorded); the reference; that we\'ll respond '
+                          'within 21 days (you speak as the bank, so we, not the bank); and making clear that no change to their repayments has been agreed yet. Only if the '
+                          'caller sounds distressed or overwhelmed, add the free counselling in a sentence. Then link naturally to the closing '
+                          'question, which ends your part of this; ask nothing about their situation. ' + self._mock()}
         if not customer:
             result['identity'] = 'Not verified, so the notice is not yet linked to accounts. The caller can verify now, or a specialist will confirm identity first.'
         return result
@@ -345,6 +382,21 @@ class Workflow:
         return {'status': 'opened', 'next': "Tell the caller the form is on their screen for their name, number and consent. "
                                             "Don't say it's submitted until a form event arrives."}
 
+    async def open_contact_form(self, reason):
+        """A call back for a caller who couldn't be verified: a form for their name and number only."""
+        if reason not in CONTACT_REASONS: return {'error': 'invalid_reason', 'allowed': sorted(CONTACT_REASONS)}
+        if self.idv.verified: return {'error': 'already_verified', 'next': "They're verified; use the usual tools instead."}
+        if any(f['status'] == 'open' for f in self.forms.values()):
+            return {'status': 'already_open', 'next': 'A form is already on screen; wait for the caller to finish it.'}
+        form_id = bank.open_form(self.conn, self.session_id, 'contact_callback', reason)
+        self.forms[form_id] = {'status': 'open', 'purpose': reason, 'kind': 'contact_callback'}
+        self.audit('form_opened', {'form_id': form_id, 'purpose': reason, 'kind': 'contact_callback'})
+        await self.emit({'type': 'form', 'action': 'open', 'form_id': form_id, 'kind': 'contact_callback', 'purpose': reason})
+        return {'status': 'opened', 'next': "If you haven't yet told them kindly that you weren't able to verify them, do that first. "
+                                            "Then tell them a short form is on their screen for their name and phone number. Save what "
+                                            "happens next for after they've sent it, and don't say it's submitted until a form event "
+                                            "arrives."}
+
     def form_event(self, event):
         """Apply a backend-confirmed form event. Returns reply instructions, or None to ignore it."""
         form_id, status = event.get('form_id'), event.get('status')
@@ -362,8 +414,13 @@ class Workflow:
             if not re.fullmatch(r'CBK-\d{4}', ref): return None
             self.created.append({'type': 'callback', 'ref': ref})
             self.facts.update(re.findall(r'\d+', ref) + list(ref[-4:]))  # Whole, or read digit by digit.
+            if record.get('kind') == 'contact_callback':
+                return (f"Frontend event: the caller submitted their name and number and the backend saved request {ref}. Tell them, "
+                        f"warmly and in your own words, that the team will contact them on that number, and give the reference, read as: "
+                        f"{spoken(ref)}. Don't read the number back or promise when. That's your part done: ask nothing about their "
+                        "situation, since the team will, and end with the closing question.")
             return (f"Frontend event: the caller submitted the lending callback form and the backend saved request {ref}. "
-                    f"Acknowledge it naturally and give the reference, read as: {spoken(ref)}. Make clear it's a demo request, so nobody will actually call. "
+                    f"Acknowledge it naturally and give the reference, read as: {spoken(ref)}. Don't promise when they'll be called. "
                     "Then continue the conversation where it left off.")
         if status in ('cancelled', 'closed'):
             return ("Frontend event: the caller closed the callback form without submitting it, so no request was created. "

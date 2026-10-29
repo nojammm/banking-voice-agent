@@ -201,6 +201,22 @@ class CaseWorkflowTests(TempDB):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]['details']['affected_products'], 'home loan')
 
+    def test_hardship_with_no_reason_asks_once_after_verification(self):
+        wf = self.workflow()
+        wf.new_turn()
+        self.verify(wf)
+        args = dict(situation="Can't pay the loan", affected_products='loan', expected_duration='unknown', support_wanted='unknown')
+        asked = run(wf.call('record_hardship_notice', cause='other', **args))
+        self.assertEqual(asked['error'], 'not_recorded_yet')
+        given = run(wf.call('record_hardship_notice', cause='job_loss', **args))  # A reason already given records straight away.
+        self.assertRegex(given['reference'], r'^HDS-\d{4}$')
+        wf = self.workflow('evidence-' + 'b' * 24)
+        wf.new_turn()
+        self.verify(wf)
+        run(wf.call('record_hardship_notice', cause='other', **args))
+        wf.new_turn()  # They answered, whatever they said: record it.
+        self.assertRegex(run(wf.call('record_hardship_notice', cause='other', **args))['reference'], r'^HDS-\d{4}$')
+
     def test_a_complaint_is_one_record_per_call_and_later_details_update_it(self):
         wf = self.workflow()
         first = run(wf.call('lodge_complaint', category='fees_and_charges', summary='Overdrawn fee'))
@@ -284,10 +300,33 @@ class CallbackFormTests(TempDB):
         self.assertEqual((saved['ref'], saved['details']['phone'], saved['details']['mock']), (ref, '0491570006', True))
         reply = wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'submitted', 'reference': ref})
         self.assertIn(ref, reply)
-        self.assertIn("nobody will actually call", reply)
+        self.assertIn("Don't promise when", reply)
         self.assertIsNone(wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'submitted', 'reference': ref}))
         self.assertEqual(bank.submit_callback(self.conn, form_id, {'name': 'Alice', 'phone': '0491570006', 'consent': True})[2],
                          {'form': 'This form was already submitted.'})
+
+    def test_a_caller_who_couldnt_be_verified_leaves_a_name_and_number(self):
+        wf = self.workflow()
+        result = run(wf.call('open_contact_form', reason='hardship'))
+        self.assertEqual(result['status'], 'opened')
+        form_id = next(e for e in self.ui if e['type'] == 'form' and e['kind'] == 'contact_callback')['form_id']
+        _, ref, errors = bank.submit_callback(self.conn, form_id, {'name': 'Alice Kim', 'phone': '0491 570 006'})  # No consent box.
+        self.assertEqual(errors, {})
+        saved = bank.cases(self.conn, session_id=wf.session_id)[0]
+        self.assertEqual((saved['type'], saved['details']['phone'], saved['customer_id']), ('callback', '0491570006', None))
+        reply = wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'submitted', 'reference': ref})
+        self.assertIn('contact them on that number', reply)
+        self.assertIn("Don't read the number back", reply)
+        self.assertEqual(run(wf.call('open_contact_form', reason='lottery'))['error'], 'invalid_reason')
+        wf.idv.status = 'failed'
+        refused = run(wf.call('record_hardship_notice', cause='job_loss', situation='Lost job', affected_products='home loan',
+                              expected_duration='unknown', support_wanted='unknown'))
+        self.assertEqual(refused['error'], 'verification_failed')
+
+    def test_the_lending_form_still_needs_consent(self):
+        wf = self.workflow()
+        form_id = self.open(wf)
+        self.assertIn('consent', bank.submit_callback(self.conn, form_id, {'name': 'Alice Wonderland', 'phone': '0491570006'})[2])
 
     def test_cancel_close_and_forged_events(self):
         wf = self.workflow()

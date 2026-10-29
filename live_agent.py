@@ -12,8 +12,10 @@ from typing import Literal
 
 os.environ['LIVEKIT_AGENTS_PRELOAD_LOCAL_INFERENCE'] = '0'
 from livekit import rtc
-from livekit.agents import Agent, AgentServer, AgentSession, JobContext, RunContext, cli, function_tool, inference, llm, room_io, stt
-from livekit.plugins import deepgram, elevenlabs, openai
+from livekit.agents import (Agent, AgentServer, AgentSession, AudioConfig, BackgroundAudioPlayer, BuiltinAudioClip, JobContext,
+                            MetricsCollectedEvent, RunContext, cli, function_tool, inference, llm, room_io, stt)
+import anthropic as anthropic_sdk
+from livekit.plugins import anthropic, deepgram, elevenlabs, openai
 import banking
 import engine
 import idv
@@ -28,6 +30,7 @@ TTS_MODEL = os.environ.get('ELEVENLABS_LIVE_MODEL', 'eleven_v4_turbo')
 # ElevenLabs v3/v4 perform bracketed audio tags; Flash and older models read them aloud.
 AUDIO_TAGS = TTS_MODEL.startswith(('eleven_v3', 'eleven_v4'))
 PROMPTS = Path(__file__).resolve().parent / 'prompts'
+LOGS = Path(__file__).resolve().parent / 'logs'
 ROLE = (PROMPTS / 'banking-agent.md').read_text()
 STYLE = (PROMPTS / 'natural-conversation.md').read_text()
 INSTRUCTIONS_ID = 'lk.agent_task.instructions'
@@ -131,6 +134,18 @@ ANNOUNCE = re.compile(r"\b(?:I['’]m|I am|I['’]ll|I will|I can|we can|let me|
                       r"(?:just\s+|now\s+|also\s+|going to\s+|go ahead and\s+|get (?:this|that|it|the [\w -]{1,25}?|a [\w -]{1,25}?)\s+)*"
                       r"(?:lodg|record|log(?:ging)?\b|add|updat|not(?:e|ing)\b|fil(?:e|ing)\b|rais|submit|pass|flag|escalat|creat|sort|arrang|set (?:\w+ )?up)"
                       r"|\bneed (?:a (?:couple|few) (?:of )?|some |a bit more |more )?(?:details|information|info)\b", re.I)
+# The caller asking for their own records in plain words: the Worker starts verification itself, so the reply can explain and
+# ask straight away instead of after a tool call. Someone else's records ("my wife's balance"), fraud reports and general
+# questions don't match and take the usual path.
+OWN_RECORDS = re.compile(r"\b(?:my (?:account |card |credit card |savings |everyday )?balances?|balances? (?:on|of|in) my|"
+                         r"my (?:recent |last (?:few )?|latest )?transactions|"
+                         r"(?:check|see|know|tell me|look at|access) my (?:accounts?|savings|credit card|card|loans?|home loan|car loan|mortgage|statements?)\b|"
+                         r"how much (?:do I owe|is (?:left )?(?:owing )?on my)|my next (?:\w+ )?(?:\w+ )?repayment|"
+                         r"where(?:['’]s| is) my (?:home loan |loan |car loan )?application)", re.I)
+# "I just need to check your identity first": verification is about to start. The reply after the tool explains it and asks
+# in one go, so said before the tool call it would be heard twice, split by the wait.
+VERIFY_FIRST = re.compile(r"\b(?:need to (?:verify|check|confirm|start|understand)|(?:confirm|verify|check) who you are|verif(?:y|ication)(?: \w+){0,2} first|identity (?:checks?|first)|"
+                          r"security checks?|protect(?:s)? your account)\b", re.I)
 # "I've updated the notice", "I've got it down as unsure", "that's noted", "the refund is part of it now": says a record holds
 # something. True only if a record tool ran this turn. An offer or condition before it ("I can get that recorded") isn't a claim.
 FIRST_PERSON = re.compile(r"\b(?:I['’]ve|I have|we['’]ve|we have)\b", re.I)
@@ -153,10 +168,27 @@ EMPATHY = re.compile(r"sorry|frustrat|hear you|understand|annoy|not good|rough|a
                      r"disappoint|upset|tough|no wonder|see why|not on\b|unfair", re.I)  # An acknowledgement already said.
 FOLLOWUP_OFFER = re.compile(r"\b(?:would you like|do you want|want me to|if you(?:['’]d| would)? (?:like|want)|I can (?:also )?(?:record|arrange|ask|set|get|put|request))\b"
                             r"[^.?!]*\b(?:follow[- ]?up|specialist|a (?:person|human)|someone)\b", re.I)
+# The form opens only once an earlier reply has explained the lending specialist or the callback, so the caller knows why
+# it's there before agreeing to it.
+CALLBACK_OFFER = re.compile(r"\b(?:call ?back|lending specialist)\b", re.I)
+JUST_VERIFIED_HARDSHIP = ("If they came about hardship, don't repeat back what they told you. If they've said anything at all about why "
+                          "(lost work, bills, the economy, a split, illness), that's enough, so record it now without asking more. If "
+                          "they've said nothing about why beyond not being able to pay (when or which payment isn't a reason), ask one "
+                          "gentle, caring question about what's happened, and record it once they've answered, whatever "
+                          "they say. Never ask for more detail, which loan, how long or what would help, and don't look up their "
+                          "accounts for it.")
+LEAVING = ("The caller is leaving before verification is finished. If they raised hardship, a complaint or anything else that must "
+           "be recorded, record it now without verification and give the reference: the team will confirm who they are. Then ask "
+           "the closing question.")
+NOT_OFFERED = ("Don't open the form yet. Explain briefly that a lending specialist works through their situation and handles the "
+               "application, so you can arrange a callback, and ask if they'd like one; a short form will come up on their screen "
+               "for their name, number and consent. Open it only after they say yes.")
 OFFERED = ("You've already offered a human or specialist follow-up in this call. Don't offer it again unless the caller asks "
            "for one or brings it up.")
 VERIFIED_NOW = ("Verification has just finished, but no tool was called. Call the tool for what they asked, as they last put it, "
-                "now, saying nothing before the call.")
+                "now, saying nothing before the call. The one exception is hardship where they've said nothing at all about why: then "
+                "let them know the checks are done and, without repeating back what they said, ask one gentle, caring question "
+                "about what's happened.")
 RECORD_TOOLS = {'record_hardship_notice', 'lodge_complaint', 'request_human_followup', 'lodge_dispute'}
 UNBACKED = ("Nothing was recorded or updated in this turn: no record tool has been called since the caller last spoke. "
             "If what they just said needs recording, call the tool now, saying nothing before the call: a new complaint or hardship "
@@ -199,7 +231,8 @@ def sentences(text):
 async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=None, backed=True, flags=None):
     """Pass tool calls through untouched; stop speech that states a number nobody supplied.
 
-    Speech goes out a sentence at a time. A question, or an announcement that a record is being made, waits for the
+    Speech goes out a sentence at a time. A question, or an announcement that a record is being made or verification is
+    about to start, waits for the
     reply to end; if the reply calls a tool, it and anything after it are dropped, so the agent never asks something
     and then answers it from the result, or says "I'm lodging it now" before a result that says otherwise. A clause of
     an announcement that isn't one ("…, and I can see why that's frustrating") is still said. A sentence
@@ -219,7 +252,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
     def take(text):
         ready = []
         for sentence in sentences(text):
-            if (held or sentence.rstrip().endswith('?') or ANNOUNCE.search(sentence)
+            if (held or sentence.rstrip().endswith('?') or ANNOUNCE.search(sentence) or VERIFY_FIRST.search(sentence)
                     or (not backed and claims_record(sentence))): held.append(sentence)
             else: ready.append(sentence)
         return ready
@@ -345,7 +378,9 @@ class VoiceAgent(Agent):
         self.raw_finals, self.seen, self.fresh, self.pending = [], set(), {}, set()
         self.current_said, self.last_lookup, self.opening, self.turn_seen = [], None, None, (None, set())
         self.followup_offered = False  # Once offered, a human or specialist follow-up isn't offered again unasked.
+        self.callback_offered = None  # The caller turn in which the agent explained the lending callback.
         self.check_ins = []  # Check-ins added after flat replies, so the next one is worded differently.
+        self.started = set()  # Caller turns in which the Worker started verification from their words.
 
     async def stt_node(self, audio, model_settings):
         async for event in Agent.default.stt_node(self, audio, model_settings):
@@ -369,6 +404,9 @@ class VoiceAgent(Agent):
         verification = self.workflow.idv
         # A name said before verification starts counts if a tool starts verification in this same turn.
         self.opening = (new_message.id, raw) if verification.status == 'not_started' else None
+        if verification.status == 'not_started' and OWN_RECORDS.search(raw):
+            await self._start_verification(new_message, raw, turn_ctx)
+            return
         if verification.status not in ('in_progress', 'paused'): return
         step = verification.step
         result = await verification.answer(raw)
@@ -380,6 +418,25 @@ class VoiceAgent(Agent):
         # Always changing this turn's context stops a preemptive draft from being reused.
         turn_ctx.add_message(role='system', content='The Worker processed this turn for identity verification.')
         await self.workflow.auth_changed()
+
+    async def _start_verification(self, message, raw, turn_ctx):
+        """The caller wants their own records: start verification now, so the reply explains and asks in one go.
+        A name said in the same turn counts if it clearly matches."""
+        verification = self.workflow.idv
+        verification.begin('worker')
+        self.opening = None
+        if await verification.take_volunteered_name(raw): self.fresh[message.id] = verification.last
+        else: self.started.add(message.id)
+        await self.workflow.auth_changed()
+        turn_ctx.add_message(role='system', content='The Worker started identity verification for this turn.')
+
+    def lookup_line(self, piece, said):
+        """A ready-made line the moment the model asks for a knowledge search, to fill the wait; none if it already spoke."""
+        calls = (not isinstance(piece, str) and piece.delta and piece.delta.tool_calls) or []
+        if not any(c.name == 'search_banking_knowledge' for c in calls) or ''.join(said).strip(): return None
+        self.last_lookup = random.choice([line for line in LOOKUP_LINES if line != self.last_lookup])
+        said.append(self.last_lookup)
+        return self.last_lookup
 
     async def llm_node(self, chat_ctx, tools, model_settings):
         last = _last_user(chat_ctx)
@@ -395,9 +452,16 @@ class VoiceAgent(Agent):
             yield DECLINE['blocked_injection']
             return
         ctx = chat_ctx.copy()
+        fresh_pass = last is not None and (self.fresh.get(last.id) or {}).get('outcome') == 'pass'
         note = self.workflow.state_note(self.fresh.get(last.id) if last is not None else None)
         if self.followup_offered and not self.workflow.followup_ref:
             note += '\n\n' + OFFERED
+        if fresh_pass and verification.status == 'verified':
+            note += '\n\n' + JUST_VERIFIED_HARDSHIP
+        if verification.status == 'in_progress' and WRAP_UP.search(text) and '?' not in text:
+            note += '\n\n' + LEAVING
+        if last is not None and last.id in self.started and self.workflow.idv.step == 'full_name':
+            note += '\n\nVerification has just started for what they asked. ' + self.workflow.ask_step(True)
         ctx.add_message(role='system', content=note)
         allowed = allowed_numbers(ctx, self.workflow.facts)
         said = self.current_said = []
@@ -411,6 +475,7 @@ class VoiceAgent(Agent):
         try:
             async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen,
                                        backed=backed, flags=flags):
+                if (line := self.lookup_line(piece, said)): yield line
                 yield piece
             tool_called = not flags.get('no_tool')
             # One retry: a record change claimed with no tool, or verification just finished and nothing was looked up.
@@ -439,6 +504,7 @@ class VoiceAgent(Agent):
             before = self.workflow.idv.status
             self.workflow.idv.observe_agent(''.join(said))
             if any(FOLLOWUP_OFFER.search(line) for line in said): self.followup_offered = True
+            if CALLBACK_OFFER.search(AUDIO_TAG.sub('', ''.join(said))): self.callback_offered = turn_id
             if self.workflow.idv.status != before:
                 task = asyncio.ensure_future(self.workflow.auth_changed())
                 self.pending.add(task)
@@ -478,6 +544,7 @@ class VoiceAgent(Agent):
 
     async def _run(self, tool, **args):
         verification, opening = self.workflow.idv, self.opening
+        self.workflow.acknowledged = any(EMPATHY.search(line) for line in self.turn_seen[1])
         result = await self.workflow.call(tool, **args)
         if opening and verification.status == 'in_progress' and await verification.take_volunteered_name(opening[1]):
             self.opening = None
@@ -572,20 +639,12 @@ class VoiceAgent(Agent):
     @function_tool()
     async def search_banking_knowledge(self, context: RunContext, query: str) -> str:
         """Search reviewed banking knowledge: products, rates, fees, processes, rights, regulation and policies.
-        A short "let me look that up" line is spoken automatically while it runs.
+        A short "let me look that up" line is spoken automatically the moment you call it.
 
         Args:
             query: The question in plain words.
         """
-        self.announce_lookup(context.session)
         return await self._run('search_banking_knowledge', query=query)
-
-    def announce_lookup(self, session):
-        """Fill the retrieval wait at once, unless the model already spoke this turn."""
-        if ''.join(self.current_said).strip(): return
-        self.last_lookup = random.choice([line for line in LOOKUP_LINES if line != self.last_lookup])
-        self.current_said.append(self.last_lookup)
-        session.say(self.last_lookup, allow_interruptions=True, add_to_chat_ctx=True)
 
     @function_tool()
     async def estimate_loan_repayment(self, context: RunContext, amount: float, annual_rate_percent: float, years: int,
@@ -606,14 +665,16 @@ class VoiceAgent(Agent):
                                      cause: Literal['job_loss', 'reduced_income', 'illness_or_injury', 'relationship_breakdown',
                                                     'natural_disaster', 'family_or_carer', 'other'],
                                      situation: str, affected_products: str, expected_duration: str, support_wanted: str) -> str:
-        """Record a financial hardship notice. Calling it again updates this call's notice. Works before verification.
+        """Record a financial hardship notice from what the caller has already said. For anything they haven't mentioned,
+        pass "unknown" and never ask for it: the hardship team follows up. Calling it again updates this call's notice.
+        Record once they're verified, or without verification only if they decline it or need to go.
 
         Args:
-            cause: The main cause.
-            situation: A short summary of what happened.
-            affected_products: Which repayments are affected, e.g. "home loan".
-            expected_duration: How long the caller expects it to last, or "unknown".
-            support_wanted: What the caller says would help, or "unsure".
+            cause: The main cause, or "other" if they haven't said why.
+            situation: A short summary of what they told you.
+            affected_products: The loan or repayments they mentioned, or "unknown".
+            expected_duration: How long they said it might last, or "unknown".
+            support_wanted: What they said would help, or "unknown".
         """
         return await self._run('record_hardship_notice', cause=cause, situation=situation, affected_products=affected_products,
                                expected_duration=expected_duration, support_wanted=support_wanted)
@@ -654,7 +715,21 @@ class VoiceAgent(Agent):
         Args:
             purpose: What the callback is about.
         """
+        if self.callback_offered in (None, self.turn_seen[0]):  # Explained in an earlier turn, so the caller could say yes.
+            return json.dumps({'error': 'not_offered', 'next': NOT_OFFERED})
         return await self._run('open_callback_form', purpose=purpose)
+
+
+    @function_tool()
+    async def open_contact_form(self, context: RunContext,
+                                reason: Literal['hardship', 'dispute', 'complaint', 'account', 'other']) -> str:
+        """Show a short form on the caller's screen for their name and phone number, so the team can call back a caller
+        who couldn't be verified.
+
+        Args:
+            reason: What the call back is about.
+        """
+        return await self._run('open_contact_form', reason=reason)
 
 
 def backend_instructions(packet, workflow):
@@ -671,23 +746,51 @@ def voice_settings():
     """Eleven v4 only takes stability: lower is more expressive, higher steadier but flatter.
     Speed applies to older models only; v4 pacing comes from punctuation."""
     speed = os.environ.get('ELEVENLABS_SPEED')
-    return elevenlabs.VoiceSettings(stability=float(os.environ.get('ELEVENLABS_STABILITY', '0.4')), similarity_boost=0.75,
+    return elevenlabs.VoiceSettings(stability=float(os.environ.get('ELEVENLABS_STABILITY', '0.5')), similarity_boost=0.75,
                                     speed=float(speed) if speed else elevenlabs.tts.NOT_GIVEN)
 
 
-# Nova-3 keyterm prompting: bank, product and process words callers say. No customer names or addresses: boosting the
-# details on file would bias identity answers towards a match.
-KEYTERMS = ['Westpac', 'Westpac Protect', 'SafeCall', 'eSaver', 'Everyday Choice', 'Altitude Visa', 'Low Rate Visa', 'PartPay',
+# Nova-3 keyterm prompting: bank, product and process words callers say. Customer details are left out, since boosting them
+# biases identity answers towards a match; "Alice" is the one demo exception, as speech-to-text kept hearing it as "Ellis".
+KEYTERMS = ['Westpac', 'Alice', 'Westpac Protect', 'SafeCall', 'eSaver', 'Everyday Choice', 'Altitude Visa', 'Low Rate Visa', 'PartPay',
             'home loan', 'car loan', 'personal loan', 'offset', 'redraw', 'comparison rate', 'repayment', 'hardship',
             'AFCA', 'chargeback', 'dispute', 'scam', 'BPAY', 'PayID', 'Osko', 'BSB', 'direct debit']
+
+
+def fixed_prompt_cached(system):
+    """Every system message reaches Claude as part of the system prompt, and the plugin marks the last for caching. That's
+    the Worker's note, new every turn, so the mark moves to the first: the fixed instructions, which then stay cached."""
+    if isinstance(system, list) and len(system) > 1 and 'cache_control' in system[-1]:
+        system[0]['cache_control'] = system[-1].pop('cache_control')
+    return system
+
+
+def claude_llm(model):
+    client = anthropic_sdk.AsyncAnthropic()
+    create = client.messages.create
+
+    async def cached_create(**kwargs):
+        fixed_prompt_cached(kwargs.get('system'))
+        return await create(**kwargs)
+
+    client.messages.create = cached_create
+    # Strict schemas make a choice with a default ("frequency": monthly) nullable but keep its string-only enum, which Claude
+    # rejects; plain optional parameters work.
+    return anthropic.LLM(model=model, client=client, caching='ephemeral', max_tokens=300, _strict_tool_schema=False)
+
+
+def make_llm():
+    """The conversation model from LIVE_LLM_MODEL: an OpenAI model, or a Claude model such as claude-haiku-4-5."""
+    model = os.environ.get('LIVE_LLM_MODEL', 'gpt-5.4-mini')
+    if model.startswith('claude'): return claude_llm(model)
+    return openai.LLM(model=model, store=False, reasoning_effort='none', max_completion_tokens=300)
 
 
 def make_session():
     return AgentSession(
         stt=deepgram.STT(model=os.environ.get('DEEPGRAM_MODEL', 'nova-3'), language='en', smart_format=True,
                          keyterm=KEYTERMS, mip_opt_out=True),
-        llm=openai.LLM(model=os.environ.get('LIVE_LLM_MODEL', 'gpt-5.4-mini'), store=False,
-                       reasoning_effort='none', max_completion_tokens=300),
+        llm=make_llm(),
         tts=elevenlabs.TTS(api_key=os.environ['ELEVENLABS_API_KEY'], voice_id=os.environ['ELEVENLABS_VOICE_ID'],
                           model=TTS_MODEL, voice_settings=voice_settings()),
         turn_handling={
@@ -698,6 +801,31 @@ def make_session():
             'preemptive_generation': {'enabled': True},
         },
     )
+
+
+def background_audio():
+    """A faint office room, and keyboard typing while the agent works out a reply. Volumes from .env; 0 turns one off."""
+    ambient, typing = float(os.environ.get('AMBIENT_VOLUME', '0.05')), float(os.environ.get('TYPING_VOLUME', '0.12'))
+    if not ambient and not typing: return None
+    return BackgroundAudioPlayer(
+        ambient_sound=AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=ambient, fade_in=2) if ambient else None,
+        thinking_sound=[AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING, volume=typing, probability=.5, fade_in=.3, fade_out=.4),
+                        AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING2, volume=typing, probability=.5, fade_in=.3, fade_out=.4)]
+        if typing else None)
+
+
+class CallLog:
+    """Per-call timings and the agent's side of the conversation, for diagnosing latency and repeated replies.
+    The caller's words are never written: only that they spoke, and how long the pipeline took."""
+
+    def __init__(self, room):
+        LOGS.mkdir(exist_ok=True)
+        self.path, self.started = LOGS / f"call-{time.strftime('%Y%m%d-%H%M%S')}-{room[-6:]}.jsonl", time.monotonic()
+
+    def write(self, kind, **data):
+        try:
+            with self.path.open('a') as f: f.write(json.dumps({'t': round(time.monotonic() - self.started, 3), 'kind': kind, **data}) + '\n')
+        except OSError: pass
 
 
 server = AgentServer(host='127.0.0.1', port=0, num_idle_processes=0, log_level='WARN')
@@ -712,6 +840,36 @@ async def entrypoint(ctx: JobContext):
     session = make_session()
     tasks = set()
     turn = {'stopped': None}
+    log = CallLog(ctx.room.name)
+    background = None
+
+    @session.on('metrics_collected')
+    def metrics(event: MetricsCollectedEvent):
+        m = event.metrics
+        if m.type == 'eou_metrics':
+            log.write('eou', end_of_utterance=round(m.end_of_utterance_delay, 3), transcription=round(m.transcription_delay, 3),
+                      turn_completed=round(m.on_user_turn_completed_delay, 3), speech=m.speech_id)
+        elif m.type == 'llm_metrics':
+            log.write('llm', ttft=round(m.ttft, 3), duration=round(m.duration, 3), prompt_tokens=m.prompt_tokens,
+                      cached=m.prompt_cached_tokens, cancelled=m.cancelled, speech=m.speech_id)
+        elif m.type == 'tts_metrics':
+            log.write('tts', ttfb=round(m.ttfb, 3), cancelled=m.cancelled, speech=m.speech_id)
+
+    @session.on('speech_created')
+    def speech_created(event):
+        log.write('speech_created', source=event.source, user_initiated=event.user_initiated, speech=event.speech_handle.id)
+
+    @session.on('conversation_item_added')
+    def item_added(event):
+        item = event.item
+        if getattr(item, 'role', None) == 'assistant':
+            log.write('agent_said', text=item.text_content, interrupted=item.interrupted)
+        elif getattr(item, 'role', None) == 'user':
+            log.write('caller_turn', words=len((item.text_content or '').split()))
+
+    @session.on('agent_false_interruption')
+    def false_interruption(event):
+        log.write('false_interruption', resumed=event.resumed)
 
     async def publish(payload):
         await ctx.room.local_participant.publish_data(json.dumps(payload).encode(), reliable=True, topic='evidence')
@@ -727,6 +885,7 @@ async def entrypoint(ctx: JobContext):
     @session.on('user_state_changed')
     def user_state(event):
         send({'type': 'user_state', 'state': event.new_state})
+        log.write('caller', state=event.new_state)
         if event.old_state == 'speaking' and event.new_state == 'listening':
             turn['stopped'] = time.monotonic()
         elif event.new_state == 'speaking':
@@ -738,6 +897,7 @@ async def entrypoint(ctx: JobContext):
         # End of the customer's speech to the agent's first audio, measured in this process.
         if event.new_state == 'speaking' and turn['stopped'] is not None:
             send({'type': 'latency', 'ms': round((time.monotonic() - turn['stopped']) * 1000)})
+            log.write('first_audio', after_caller_stopped=round(time.monotonic() - turn['stopped'], 3))
             turn['stopped'] = None
 
     @session.on('error')
@@ -754,6 +914,7 @@ async def entrypoint(ctx: JobContext):
 
     async def cleanup():
         workflow.audit('session_closed', {})
+        if background: await background.aclose()
         for task in list(tasks): task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -769,6 +930,8 @@ async def entrypoint(ctx: JobContext):
                             text_output=room_io.TextOutputOptions(sync_transcription=True),
                             audio_input=room_io.AudioInputOptions(pre_connect_audio=False),
                             delete_room_on_close=True))
+    background = background_audio()
+    if background: await background.start(room=ctx.room, agent_session=session)
     await ctx.room.local_participant.set_attributes({'evidence.ready': 'true'})
     workflow.audit('session_started', {'assistant': AGENT_NAME})
     # The browser publishes its microphone once it sees the ready flag; greet after that,

@@ -33,22 +33,41 @@
     return (a.unit ? a.unit + '/' : '') + a.number + ' ' + a.street + ' ' + a.street_type + ', ' + a.suburb + ' ' + a.state + ' ' + a.postcode;
   }
 
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day = (iso, year = true) => { const [y, m, d] = iso.split('-'); return `${+d} ${MONTHS[m - 1]}` + (year ? ' ' + y : ''); };
+  function rows(items) {
+    const list = make('ul', undefined, 'rows');
+    for(const [title, sub, amount, amountSub] of items) {
+      const li = make('li'), main = make('div', undefined, 'row-main'), side = make('div', undefined, 'row-side');
+      main.append(make('span', title, 'row-title'));
+      if(sub) main.append(make('span', sub, 'row-sub'));
+      if(amount) side.append(make('span', amount, 'row-amount'));
+      if(amountSub) side.append(make('span', amountSub, 'row-sub'));
+      li.append(main, side); list.append(li);
+    }
+    return list;
+  }
+  function section(title, content) { const s = make('section', undefined, 'customer-section'); s.append(make('h3', title), content); return s; }
   function renderCustomers() {
     const cards = el('customer-cards'); cards.replaceChildren();
     for(const c of overview.customers) {
       const card = make('details', undefined, 'customer'); card.dataset.customer = c.id;
       const summary = make('summary'); summary.append(make('strong', [c.first_name, c.middle_name, c.last_name].filter(Boolean).join(' ')), make('span', c.id, 'muted'));
-      card.append(summary, make('p', c.profile, 'profile'));
-      card.append(facts([['Date of birth', c.dob], ['Address', address(c.address)], ['Mobile', c.mobile], ['Email', c.email]]));
-      card.append(make('h3', 'Accounts'), table(['Account', 'Number', 'Balance', 'Available'],
-        c.accounts.map(a => [a.name, a.bsb + ' ' + a.number, money(a.balance), money(a.available)])));
-      if(c.loans.length) card.append(make('h3', 'Loans'), table(['Loan', 'Owing', 'Rate', 'Repayment', 'Next due'],
-        c.loans.map(l => [l.product, money(l.balance), l.rate.toFixed(2) + '% ' + l.rate_type, money(l.repayment) + ' ' + l.frequency, l.next_due])));
-      if(c.applications.length) card.append(make('h3', 'Applications'), table(['Application', 'Amount', 'Status'],
-        c.applications.map(a => [a.product, money(a.amount), a.status])));
-      card.append(make('h3', 'Transactions'), table(['Date', 'Description', 'Amount'],
-        c.transactions.map(t => [t.posted, t.description, money(t.amount)])));
-      if(c.cases.length) card.append(make('h3', 'Cases'), table(['Ref', 'Status', 'Summary'], c.cases.map(k => [k.ref, k.status, k.summary])));
+      const body = make('div', undefined, 'customer-body');
+      body.append(make('p', c.profile, 'profile'),
+        facts([['Date of birth', day(c.dob)], ['Mobile', c.mobile], ['Address', address(c.address)], ['Email', c.email]]));
+      body.append(section('Accounts', rows(c.accounts.map(a => [a.name, a.bsb + ' ' + a.number, money(a.balance), 'Available ' + money(a.available)]))));
+      if(c.loans.length) body.append(section('Loans', rows(c.loans.map(l =>
+        [l.product, l.rate.toFixed(2) + '% ' + l.rate_type + ' · ' + money(l.repayment) + ' ' + l.frequency, money(l.balance), 'Due ' + day(l.next_due, false)]))));
+      if(c.applications.length) body.append(section('Applications', rows(c.applications.map(a => [a.product, a.status, money(a.amount)]))));
+      body.append(section('Recent transactions', rows(c.transactions.map(t =>
+        [t.description, day(t.posted, false) + (t.status === 'pending' ? ' · pending' : ''), money(t.amount)]))));
+      if(c.cases.length) body.append(section('Cases', rows(c.cases.map(k => [k.ref, k.summary, k.status]))));
+      card.append(summary, body);
+      card.addEventListener('toggle', () => {
+        if(card.open) document.querySelectorAll('.customer').forEach(other => { if(other !== card) other.open = false; });
+        card.classList.toggle('selected', card.open);
+      });
       cards.append(card);
     }
   }
@@ -64,7 +83,8 @@
   }
   function showCustomer(id) {
     el('tab-customers').click();
-    document.querySelectorAll('.customer').forEach(card => { card.open = card.dataset.customer === id; card.classList.toggle('selected', card.dataset.customer === id); });
+    const card = document.querySelector(`.customer[data-customer="${id}"]`);
+    if(card) { card.open = true; card.scrollIntoView({block: 'nearest', behavior: 'smooth'}); }
   }
 
   function renderCases(cases) {

@@ -76,6 +76,18 @@ class DobNormaliserTests(unittest.TestCase):
         judge = Judge({'status': 'unclear', 'date': '', 'missing': []})
         self.assertEqual(run(idv.match_dob('12 25 1990', '1990-12-25', cfg, judge, TODAY)).outcome, 'uncertain')
 
+    def test_an_all_number_date_said_month_first_still_matches(self):
+        cfg = config()['dob_match']
+        for spoken in ['09/01/1999.', '9/1/1999', 'oh nine oh one nineteen ninety nine', '01/09/1999']:
+            with self.subTest(spoken): self.assertEqual(run(idv.match_dob(spoken, '1999-09-01', cfg, today=TODAY)).outcome, 'pass')
+        for spoken in ['02/09/1999', '9th of January 1999', '09/01/1998']:  # A wrong day, a month said in words, a wrong year.
+            with self.subTest(spoken): self.assertEqual(run(idv.match_dob(spoken, '1999-09-01', cfg, today=TODAY)).outcome, 'fail')
+
+    def test_words_that_dont_read_as_one_date_are_a_mishearing(self):
+        judge = Judge({'status': 'complete', 'date': '1999-09-09', 'missing': []})
+        result = run(idv.match_dob('ninth September first nineteen ninety nine.', '1999-09-01', config()['dob_match'], judge, TODAY))
+        self.assertEqual(result.outcome, 'uncertain')
+
     def test_partial_dates_are_incomplete_not_wrong(self):
         self.assertEqual(self.parse('14th of March').missing, ['year'])
         self.assertEqual(self.parse('March 1991').missing, ['day'])

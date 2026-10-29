@@ -90,15 +90,20 @@
     chip.hidden = !AUTH[state]; chip.textContent = AUTH[state] || ''; chip.dataset.state = state || '';
   }
 
-  // Lending callback form: the backend validates and saves, then tells the agent what happened.
+  // Callback forms: the backend validates and saves, then tells the agent what happened. A lending callback asks for
+  // consent too; a call back for a caller who couldn't be verified asks only for a name and number.
   const dialog = el('callback-dialog');
-  let activeForm = null;
+  const FORMS = {loan_callback: {title: 'Talk to a lending specialist', submit: 'Request callback', consent: true},
+                 contact_callback: {title: 'Request a call back', submit: 'Request call back', consent: false}};
+  let activeForm = null, activeKind = 'loan_callback';
   function fieldErrors(errors = {}) {
     for(const field of ['name', 'phone', 'consent', 'form']) el('cb-' + field + '-error').textContent = errors[field] || '';
   }
-  function openForm(formId) {
-    activeForm = formId;
+  function openForm(formId, kind) {
+    activeForm = formId; activeKind = kind;
     el('callback-form').reset(); fieldErrors(); el('callback-submit').disabled = false;
+    el('callback-title').textContent = FORMS[kind].title; el('callback-submit').textContent = FORMS[kind].submit;
+    el('cb-consent-row').hidden = !FORMS[kind].consent;
     if(!dialog.open) dialog.showModal();
     el('cb-name').focus();
   }
@@ -111,7 +116,7 @@
     const errors = {}, phone = el('cb-phone').value.replace(/[\s()-]/g, '').replace(/^\+61/, '0');
     if(el('cb-name').value.trim().length < 2) errors.name = 'Enter your name.';
     if(!/^(0[2378]\d{8}|04\d{8})$/.test(phone)) errors.phone = 'Enter an Australian mobile or landline number.';
-    if(!el('cb-consent').checked) errors.consent = 'Consent is required for a callback.';
+    if(FORMS[activeKind].consent && !el('cb-consent').checked) errors.consent = 'Consent is required for a callback.';
     return errors;
   }
   el('callback-form').addEventListener('submit', async event => {
@@ -121,7 +126,9 @@
     if(Object.keys(errors).length) return;
     el('callback-submit').disabled = true;
     try {
-      await window.evidenceApp.api('/api/forms/submit', {form_id: activeForm, name: el('cb-name').value, phone: el('cb-phone').value, consent: el('cb-consent').checked});
+      const body = {form_id: activeForm, name: el('cb-name').value, phone: el('cb-phone').value};
+      if(FORMS[activeKind].consent) body.consent = el('cb-consent').checked;
+      await window.evidenceApp.api('/api/forms/submit', body);
       activeForm = null; dialog.close();
     } catch(error) {
       fieldErrors(error.errors || {form: error.message});
@@ -222,7 +229,8 @@
       connection.on(sdk.RoomEvent.TrackSubscribed,(remoteTrack, publication, participant) => {
         if(!valid() || !isAgent(participant) || remoteTrack.kind !== sdk.Track.Kind.Audio) return;
         el('live-audio').append(remoteTrack.attach());
-        if(remoteTrack.mediaStreamTrack) meters.agent = meter(remoteTrack.mediaStreamTrack);
+        // The avatar follows the voice; the faint office and typing track is heard but not metered.
+        if(remoteTrack.mediaStreamTrack && publication.trackName !== 'background_audio') meters.agent = meter(remoteTrack.mediaStreamTrack);
       });
       connection.on(sdk.RoomEvent.TrackUnsubscribed,track => track.detach().forEach(node => node.remove()));
       connection.on(sdk.RoomEvent.AudioPlaybackStatusChanged,() => { if(valid()) el('enable-live-audio').hidden = connection.canPlaybackAudio; });
@@ -235,7 +243,7 @@
           if(event.type === 'sources') attach({sources: event.sources});
           if(event.type === 'case') attach({cases: [{kind: event.kind, ref: event.ref}]});
           if(event.type === 'auth') setAuth(event.state);
-          if(event.type === 'form' && event.action === 'open' && event.kind === 'loan_callback') openForm(event.form_id);
+          if(event.type === 'form' && event.action === 'open' && FORMS[event.kind]) openForm(event.form_id, event.kind);
           if(event.type === 'guard') attach({guard: event.reason});
           if(event.type === 'latency') attach({latency: event.ms});
           if(event.type === 'error') status(event.message);

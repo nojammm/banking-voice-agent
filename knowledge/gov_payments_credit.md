@@ -42,11 +42,11 @@ id: payments.gov.mistaken-payment
 authority: government
 source: ASIC – ePayments Code (effective 2 June 2022)
 url: https://download.asic.gov.au/media/lloeicwb/epayments-code-published-02-june-2022.pdf
-verified: 2026-10-28
+verified: 2026-10-29
 tags: wrong account, mistaken payment, typo in account number, sent money to wrong person, wrong BSB, get money back, 10 business days, 7 months
 questions: I sent money to the wrong account number, can I get it back? | What happens if I paid the wrong person by mistake? | Is there a time limit to recover a mistaken payment?
 -->
-Under the ePayments Code (effective 2 June 2022), a mistaken internet payment should be reported to your own bank, and the process depends on when it is reported. Within 10 business days, if the funds are available, the receiving bank must return them within 5 business days if practicable and no later than 10 business days, without needing the recipient's consent. Between 10 business days and 7 months, the receiving bank investigates within 10 business days and, if satisfied, freezes the funds for 10 further business days, returning them unless the recipient proves they are entitled to them. After 7 months, funds are returned only if the unintended recipient consents.
+Under the ePayments Code (effective 2 June 2022), a mistaken internet payment should be reported to your own bank, and the process depends on when it is reported. If reported within 10 business days, and the banks are satisfied a mistaken internet payment has occurred and there are sufficient funds in the recipient's account, the receiving bank must return the funds within 5 business days of the request if practicable, or up to a maximum of 10 business days; if the receiving bank is not satisfied, it may seek the recipient's consent. Between 10 business days and 7 months, the receiving bank investigates within 10 business days and, if satisfied a mistake occurred, freezes the funds for 10 further business days and returns them unless the recipient establishes they are entitled to them. After 7 months, funds are returned only if the unintended recipient consents.
 
 ## Banking Code commitment to follow complaint timeframes
 <!--
@@ -66,11 +66,11 @@ id: credit.gov.free-report
 authority: government
 source: Moneysmart (ASIC) – Credit scores and credit reports
 url: https://moneysmart.gov.au/managing-debt/credit-scores-and-credit-reports
-verified: 2026-10-28
+verified: 2026-10-29
 tags: free credit report, credit score, credit file, check my credit, Equifax, Experian, error on credit report, default listing, how long defaults stay
 questions: How do I get a free copy of my credit report? | How long does a default stay on my credit report? | Does it cost money to fix a mistake on my credit report?
 -->
-Moneysmart says you have a right to get a copy of your credit report for free every 3 months, or more often if you have recently been rejected for credit. Moneysmart names Experian and Equifax as the two main credit reporting bodies. Defaults stay on a credit report for five years, or seven years for a clearout, and repayment history covers the last two years. Getting errors on a credit report fixed is a free service.
+Moneysmart says you have a right to get a copy of your credit report for free every 3 months. Moneysmart names Experian and Equifax as the two main credit reporting bodies. Defaults stay on a credit report for five years, or seven years for a clearout, and repayment history covers the last two years. Getting errors on a credit report fixed is a free service.
 
 ## Responsible lending: a lender can't give you an unsuitable loan
 <!--
@@ -114,8 +114,32 @@ id: scams.gov.what-to-do
 authority: government
 source: Moneysmart (ASIC) – What to do if you've been scammed
 url: https://moneysmart.gov.au/check-and-report-scams/what-to-do-if-youve-been-scammed
-verified: 2026-10-28
+verified: 2026-10-29
 tags: scammed, lost money to scam, what to do, report scam, Scamwatch, IDCARE, change passwords, recovery scam, get money back
 questions: I've been scammed, what steps should I take? | Can I get my money back after a scam? | Someone says they can recover my scam losses for a fee, is that real?
 -->
-Moneysmart says anyone who has been scammed should contact their bank or card provider immediately to report the scam, report the scam to Scamwatch to help protect others, change passwords, and contact IDCARE on 1800 595 160 for a free response plan. Moneysmart warns to be wary of anyone who claims they can recover your losses for a percentage of the recovered losses, as this is a common follow-up scam. If unhappy with the bank's response, the customer can make a formal complaint to the bank and then to the Australian Financial Complaints Authority (AFCA).
+Moneysmart says anyone who has been scammed should contact their bank or card provider immediately to report the scam, report the scam to Scamwatch to help protect others, and change passwords. If a scammer has your personal details, IDCARE (1800 595 160, Monday to Friday, 8am to 5pm) can help you make a plan, for free, to limit the damage. Moneysmart warns to be wary of anyone who claims they can recover your losses for a percentage of the recovered losses, as this is a common follow-up scam. If unhappy with the bank's response, the customer can make a formal complaint to the bank and then to the Australian Financial Complaints Authority (AFCA).
+
+## Missed payments on your credit report: the 14-day rule and how long it stays (OAIC)
+<!--
+id: credit.gov.repayment-history
+authority: government
+source: OAIC – Repayment history and defaults
+url: https://www.oaic.gov.au/privacy/your-privacy-rights/credit-reporting/repayment-history-and-defaults
+verified: 2026-10-29
+tags: late payment, paid late, missed payment, few days late, credit history, repayment history, how long on credit file, 2 years, 14 days, hardship information
+questions: If I pay my card a few days after the due date, does it go on my credit file? | How long does a missed repayment stay on my credit report? | Will the bank warn me before reporting a late payment?
+-->
+The Office of the Australian Information Commissioner (OAIC) says a credit provider can list repayment history information on a credit report, including whether payments were made on time or missed. A person is considered to have missed a payment if they make it more than 14 days after the due date. Repayment history appears as a number from 0 to 7 showing the age, in months, of the oldest missed payment, and remains on the credit report for 2 years. Financial hardship information recorded against repayment history remains for one year. The OAIC says a credit provider isn't required to send a written notice before listing a missed payment.
+
+## When a default can be listed on your credit report (OAIC)
+<!--
+id: credit.gov.default-listing
+authority: government
+source: OAIC – Repayment history and defaults
+url: https://www.oaic.gov.au/privacy/your-privacy-rights/credit-reporting/repayment-history-and-defaults
+verified: 2026-10-29
+tags: default listing, default on credit report, 60 days overdue, $150, default notice, hardship request default, paid default, old address
+questions: When can a lender put a default on my credit file? | Can I get a default while my hardship request is being decided? | I paid off the debt, does the default disappear?
+-->
+The OAIC says a credit provider can list a default only if the payment has been overdue for at least 60 days, the overdue amount is $150 or more, a notice was sent to the person's last known address, a second notice was sent at least 30 days later, and the credit provider waits at least 14 days after the second notice. It can't wait more than 3 months after the second notice to list it. While a hardship request is being decided, and until 14 days after the person is told it is refused, a default can't be listed, unless the request was made on the same basis as one in the previous 4 months. Paying after listing doesn't remove the default, but it is updated to show payment.

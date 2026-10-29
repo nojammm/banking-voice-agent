@@ -4,25 +4,25 @@
 <!--
 id: hardship.westpac.options
 authority: westpac
-source: Westpac – Customers in financial hardship
-url: https://www.westpac.com.au/about-westpac/sustainability/initiatives-for-you/customers-financial-hardship/
-verified: 2026-10-28
+source: Westpac – Applying for financial hardship support
+url: https://www.westpac.com.au/help/support-with-tough-times/applying-for-financial-hardship-support/
+verified: 2026-10-29
 tags: hardship, financial difficulty, can't pay, struggling, missed repayment, lost job, illness, reduced repayments, pause repayments, deferral, extend loan term
 questions: I can't afford my home loan repayments, what can Westpac do? | Can I pause or reduce my mortgage repayments? | What hardship options does Westpac offer?
 -->
-Westpac offers financial hardship assistance to customers who are struggling to make their repayments. Westpac says the options it may tailor include flexible payment arrangements, short-term deferrals or repayment reductions, and loan term extensions. Westpac assesses assistance on a case by case basis, so the option offered depends on the customer's circumstances. Customers can apply online, which Westpac says can take as little as 15 minutes, or call the Westpac Assist team on 1800 067 497.
+Westpac offers financial hardship assistance to customers who are struggling to make their repayments. Westpac says the options it may tailor include flexible payment arrangements, short-term deferrals or repayment reductions, and loan term extensions. Westpac says it will work with the customer to understand their needs, circumstances and how an arrangement can help them get back on track, and then take them through suitable options. Customers can apply online, which Westpac says can take as little as 15 minutes, or call the Westpac Assist team on 1800 067 497.
 
 ## How to apply for Westpac hardship assistance and what to have ready
 <!--
 id: hardship.westpac.apply
 authority: westpac
-source: Westpac – Customers in financial hardship
-url: https://www.westpac.com.au/about-westpac/sustainability/initiatives-for-you/customers-financial-hardship/
-verified: 2026-10-28
-tags: hardship application, apply, Westpac Assist, phone number, documents needed, income and expenses, what do I need
-questions: How do I apply for hardship with Westpac? | What information do I need for a hardship application? | What is the Westpac Assist phone number?
+source: Westpac – Applying for financial hardship support
+url: https://www.westpac.com.au/help/support-with-tough-times/applying-for-financial-hardship-support/
+verified: 2026-10-29
+tags: hardship application, apply, Westpac Assist, phone number, documents needed, income and expenses, what do I need, can't pay credit card, can't pay minimum, reduce interest, stop interest, what must I do, interpreter, translator, my English is not good
+questions: How do I apply for hardship with Westpac? | What information do I need for a hardship application? | What is the Westpac Assist phone number? | My income dropped and I'm falling behind on my card repayments, who do I call?
 -->
-Westpac customers can apply for a financial hardship arrangement online, in as little as 15 minutes according to Westpac, or chat about options and apply by phone with the Westpac Assist team on 1800 067 497. Before applying, Westpac suggests having ready: current income and expenses; what you owe, including loans and credit cards with Westpac and other institutions; and what you own. If the loan or card is joint, details for the other account holders are also needed. Westpac's hardship pages list Westpac Assist hours as Monday to Friday 8:30am to 8:00pm and Saturday 9:30am to 6pm, Sydney time.
+Westpac customers can apply for a financial hardship arrangement online, in as little as 15 minutes according to Westpac, or chat about options and apply by phone with the Westpac Assist team on 1800 067 497. Before applying, Westpac suggests having ready: current income and expenses; what you owe, including loans and credit cards with Westpac and other institutions; and what you own. If the loan is joint, the other account holder's personal and financial information, like their income and expenses, is also needed. Westpac Assist hours are Monday to Friday 8:30am to 8:00pm and Saturday 9:30am to 6pm, Sydney time. Westpac says it may be able to arrange a free translator in some languages: call 13 20 32 (8am to 8pm Sydney time, 7 days), or the Remote Indigenous call centre on 1800 230 144.
 
 ## How long a Westpac hardship decision takes and what happens next
 <!--
@@ -40,9 +40,9 @@ Westpac's hardship support covers customers with a Westpac home loan, personal l
 <!--
 id: hardship.westpac.credit-report
 authority: westpac
-source: Westpac – Customers in financial hardship
-url: https://www.westpac.com.au/about-westpac/sustainability/initiatives-for-you/customers-financial-hardship/
-verified: 2026-10-28
+source: Westpac – Applying for financial hardship support
+url: https://www.westpac.com.au/help/support-with-tough-times/applying-for-financial-hardship-support/
+verified: 2026-10-29
 tags: credit score, credit report, credit rating, hardship listing, financial hardship information, 12 months, will hardship hurt my credit
 questions: Will a hardship arrangement hurt my credit score? | Does hardship show on my credit report? | How long does a hardship arrangement stay on my credit file?
 -->
@@ -54,8 +54,20 @@ id: hardship.westpac.third-party
 authority: westpac
 source: Westpac – Support for financial counsellors
 url: https://www.westpac.com.au/help/support-with-tough-times/support-for-financial-counsellors/
-verified: 2026-10-28
-tags: financial counsellor, third party authority, someone apply for me, representative, Customer Partnerships, National Debt Helpline
+verified: 2026-10-29
+tags: financial counsellor, third party authority, someone apply for me, representative, Customer Partnerships, authorisation form
 questions: Can a financial counsellor talk to Westpac for me? | How does a financial counsellor apply for hardship on my behalf? | Can someone else handle my hardship application?
 -->
-Westpac has a dedicated process for financial counsellors helping Westpac customers in financial hardship. Financial counsellors can contact Westpac's Customer Partnerships team on 1800 685 844, 8:30am to 6pm AEST, Monday to Friday. For hardship applications submitted by a financial counsellor, Westpac aims to send an outcome letter by mail within 3 to 4 weeks. Customers working with a financial counsellor should give the counsellor permission to speak with Westpac on their behalf; free financial counselling is available through the National Debt Helpline.
+Westpac has a dedicated process for financial counsellors helping Westpac customers in financial hardship. Financial counsellors can contact Westpac's Customer Partnerships team on 1800 685 844, 8:30am to 6pm AEST, Monday to Friday. A financial counsellor can apply on the customer's behalf by emailing Financialcounsellors@westpac.com.au with a signed Financial Counselling Agency Authorisation Form (or, for individuals and debt management firms, an Authorised Third Party Form), the customer's Statement of Financial Position, a summary of circumstances and a recovery plan. Westpac aims to mail both of them an outcome letter within 3 to 4 weeks.
+
+## Westpac hardship: debt collection calls, someone negotiating for you, and if Westpac says no
+<!--
+id: hardship.westpac.faq
+authority: westpac
+source: Westpac – Applying for financial hardship support
+url: https://www.westpac.com.au/help/support-with-tough-times/applying-for-financial-hardship-support/
+verified: 2026-10-29
+tags: collections, debt collector calling, overdue calls, hardship declined, refused hardship, family member talk to bank, negotiate for me, authorisation, National Debt Helpline
+questions: Will Westpac keep chasing me for overdue amounts while I'm on a hardship arrangement? | Can my sister speak to Westpac about my loan for me? | What happens if Westpac rejects my hardship application?
+-->
+Westpac says there will be no collections activity during any approved assistance period when the customer meets the terms of their arrangement. Westpac is happy to talk to a relative, friend or financial counselling organisation about a customer's accounts, but needs the customer's authorisation first to maintain their privacy. If Westpac does not support a hardship request, it will advise the customer in writing of the reason, and the customer should let Westpac know if their circumstances change or they have new information. Westpac's hardship page also points to the National Debt Helpline, which offers free, independent advice from a financial counsellor on 1800 007 007. A customer not satisfied with Westpac's response can complain to the Australian Financial Complaints Authority (AFCA) on 1800 931 678.

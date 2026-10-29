@@ -1,0 +1,341 @@
+{
+  "round": 1,
+  "grades": [
+    {
+      "id": "Q01",
+      "grade": "correct",
+      "reason": "All claims are grounded: Westpac Assist 1800 067 497 and the online application, the hardship options, the NCC s72 21-day decision, the NDH enforcement pause and AFCA. The only flaw is that 'case by case' is cited to the wrong Westpac page (the audit found it on /faq/type-of-assistance/), but it is true.",
+      "evidence": "hardship.westpac.options, hardship.gov.response-timeframe, hardship.support.enforcement-paused; chunk_validation_westpac (hardship.westpac.options)",
+      "fix": "Re-cite the 'case by case' sentence to https://www.westpac.com.au/faq/type-of-assistance/.",
+      "expected_points_note": "EP3 (21 days) is correct per ASIC INFO 105, but it can be extended if the lender asks for more information."
+    },
+    {
+      "id": "Q02",
+      "grade": "incomplete",
+      "reason": "The answer is accurate and grounded, but the customer asked 'what i must do' and it never gives the Westpac channel: no Westpac Assist number and no online application. The KB has both in hardship.westpac.apply, which was not retrieved. It also does not offer an interpreter to an obviously non-native speaker (extracare.westpac.interpreter). Part of the grounding comes from banking_kb.json 'hardship-rights', a generic demo chunk.",
+      "evidence": "hardship.westpac.apply (not retrieved); extracare.westpac.interpreter (not retrieved)",
+      "fix": "Add 'Westpac Assist 1800 067 497 / apply online' to every hardship answer (co-retrieve hardship.westpac.apply). Route ESL-signalled queries to extracare.westpac.interpreter. Replace banking_kb 'hardship-rights' with the policy_kb chunk hardship.gov.response-timeframe."
+    },
+    {
+      "id": "Q03",
+      "grade": "correct",
+      "reason": "Every claim is attributed to Westpac and grounded. It says the score should not be affected if revised repayments are met, the FHI codes are A/V, and the information stays 12 months after the arrangement ends. It advises calling Westpac Assist.",
+      "evidence": "hardship.westpac.credit-report, credit.westpac.ccr (both pass in the audit)",
+      "fix": "",
+      "expected_points_note": "EP2 retention: OAIC/CR Code ties FHI retention to 12 months from the monthly payment under the arrangement, while Westpac's wording is '12 months after the arrangement ends'. Keep both sources in mind."
+    },
+    {
+      "id": "Q04",
+      "grade": "correct",
+      "reason": "Grounded: NDH's 21-30 days, the enforcement pause for the first hardship notice in 3 months, the Banking Code's commitment not to sell the debt while considering, Westpac Assist and AFCA. It does not invent a general 'collection pause'. It could also have told the customer to lodge a complaint with Westpac first.",
+      "evidence": "hardship.support.enforcement-paused, code.hardship, hardship.westpac.timeframe",
+      "fix": "Note: retrieved banking_kb 'hardship-options' contains an unsourced claim ('the bank pauses collection activity'). The agent rightly did not cite it, but the chunk should be removed or sourced.",
+      "expected_points_note": "EP1 (verify) is not established. The Banking Code 2025 commits only to not selling the debt while actively considering. NCC protection covers enforcement proceedings, not all collection contact."
+    },
+    {
+      "id": "Q05",
+      "grade": "correct",
+      "reason": "The RG 271 30-day and 21-day limits, the delay notice requirement and Westpac's 5-business-day aim are all grounded. 'Over a month, you can go to AFCA' is consistent with RG 271. The audit flagged a nuance on 21-day hardship exceptions, which the answer's 'some credit complaints' phrasing does not contradict.",
+      "evidence": "complaints.gov.rg271-timeframes, complaints.westpac.timeframe, complaints.gov.afca-overview",
+      "fix": "Apply the audit fix to complaints.gov.rg271-timeframes (hardship 21 days, with exceptions when more information is needed)."
+    },
+    {
+      "id": "Q06",
+      "grade": "correct",
+      "reason": "Grounded: AFCA is independent, free, and you complain to the bank first. AFCA time limits are explicitly absent from the KB, and the agent redirected safely to afca.org.au.",
+      "evidence": "complaints.gov.afca-overview",
+      "fix": "Add an AFCA time-limits chunk from an AFCA source. afca.org.au returned 403 to this validator, so a human must source it.",
+      "expected_points_note": "EP3 (2 years after the IDR response) matches AFCA Rules as generally known. Not verified live (403)."
+    },
+    {
+      "id": "Q07",
+      "grade": "incomplete",
+      "reason": "The customer asked 'can I do it by email'. The answer lists the form, app, phone, branch and post but not email. The KB has westpaccustomersolutions@westpac.com.au in complaints.westpac.contact-overseas, which was not retrieved. Case ownership is not in the KB and was declined safely.",
+      "evidence": "complaints.westpac.contact-overseas (not retrieved)",
+      "fix": "Merge the complaint email into complaints.westpac.how, or co-retrieve contact-overseas for 'email' complaint queries. Add a chunk on the RG 271 acknowledgement/reference and case handling.",
+      "expected_points_note": "EP3: Westpac's Customer Advocate does NOT review individual complaints (complaints.westpac.customer-advocate), so it is not an internal escalation step."
+    },
+    {
+      "id": "Q08",
+      "grade": "correct",
+      "reason": "Grounded and safe. It covers app, Online Banking and 1300 364 294, SafeBlock, possible recovery with no promise, the 21-day standard cases, Scamwatch, IDCARE (via the Westpac partnership chunk) and the recovery-scam warning.",
+      "evidence": "scams.westpac.report, security.westpac.safeblock, scams.westpac.online-guarantee, scams.gov.what-to-do",
+      "fix": "Apply the audit fix to scams.gov.what-to-do: Moneysmart lists IDCARE only for cases where scammers have personal details."
+    },
+    {
+      "id": "Q09",
+      "grade": "correct",
+      "reason": "Grounded. It correctly identifies the call as a scam, says Westpac never asks for a safe-account transfer or for codes, and tells the customer to hang up and call 132 032.",
+      "evidence": "scams.westpac.never-ask, scams.westpac.verify-caller",
+      "fix": ""
+    },
+    {
+      "id": "Q10",
+      "grade": "incomplete",
+      "reason": "Accurate on reporting and trusted-person options, and it avoided restating the audit-flagged 'three ways' and signatory errors. It misses the Banking Code extra-care commitment for vulnerable/older customers (code.vulnerability, elder/financial abuse) and Priority Assist (extracare.westpac.priority-assist-hours), both of which bear directly on 'can the bank do anything'. It also does not mention Scamwatch.",
+      "evidence": "code.vulnerability, extracare.westpac.priority-assist-hours (not retrieved); chunk_validation_westpac: extracare.westpac.power-of-attorney INCORRECT",
+      "fix": "Fix extracare.westpac.power-of-attorney per the audit (7 authority types, and signatories have in-branch access only). Add a chunk on a third party reporting a suspected scam on someone else's account and its privacy limits."
+    },
+    {
+      "id": "Q11",
+      "grade": "correct",
+      "reason": "The SPF facts (passed 2025, banking designated, most obligations from 31 Mar 2027, AFCA role) are true. The audit says spf-status cites the wrong page for three claims, though scams.gov.spf (ASIC, not retrieved) supports the 31 Mar 2027 date. There is no reimbursement promise.",
+      "evidence": "scams.gov.spf-status (audit: mis-sourced, true per Treasury 13 Feb 2025 and 28 May 2026 releases); scams.gov.spf",
+      "fix": "Split scams.gov.spf-status per the audit so each claim cites its own Treasury release."
+    },
+    {
+      "id": "Q12",
+      "grade": "correct",
+      "reason": "Grounded: report the transactions, card cancel/replace, 21-day investigation, and the Fraud Money Back Guarantee conditions. It also cites the Debit Mastercard terms on liability. There is no unconditional refund promise.",
+      "evidence": "disputes.westpac.card-dispute, scams.westpac.after-report-card, fraud.westpac.debit-liability",
+      "fix": "Optional: include an instant card lock/SafeBlock step for fraud queries."
+    },
+    {
+      "id": "Q13",
+      "grade": "correct",
+      "reason": "Grounded: temporary lock in the app or Online Banking, 15 days with auto-unlock, and report lost/stolen to cancel and replace.",
+      "evidence": "security.westpac.card-lock, lock.steps.v1",
+      "fix": ""
+    },
+    {
+      "id": "Q14",
+      "grade": "incomplete",
+      "reason": "The liability statements are accurate. ePayments Code cl 11.2 Note says 'A breach of the passcode security requirements in itself is not sufficient to make a consumer liable'. The answer omits the immediate safety step for someone who has given a code to a scammer: SafeBlock exists for exactly the case of having 'shared details with a scammer' and was not retrieved. It also omits AFCA escalation.",
+      "evidence": "ASIC ePayments Code (2 Jun 2022) cl 11.2 Note, cl 11.8(b): https://download.asic.gov.au/media/lloeicwb/epayments-code-published-02-june-2022.pdf; security.westpac.safeblock (not retrieved)",
+      "fix": "Co-retrieve security.westpac.safeblock and scams.westpac.report for any 'gave a code/details to a scammer' query. Add an AFCA line for liability disputes."
+    },
+    {
+      "id": "Q15",
+      "grade": "correct",
+      "reason": "Grounded: contact the merchant, report the transaction, possible chargeback, 45 days, possible temporary credit and no guarantee. The credit-card time limit was correctly flagged as unverified.",
+      "evidence": "disputes.westpac.card-dispute, disputes.westpac.chargeback-limits",
+      "fix": "Add credit-card chargeback time limits (Westpac credit card conditions of use)."
+    },
+    {
+      "id": "Q16",
+      "grade": "incomplete",
+      "reason": "The answer repeats the chunk's overstatement that the receiving bank 'must return' the funds within 10 business days. ePayments Code cl 30.1-30.2 apply only where the ADIs are 'satisfied that a mistaken internet payment has occurred' and funds are available (the audit flagged this). It also gives no way to report the mistaken payment to Westpac (channel or number).",
+      "evidence": "ePayments Code cl 30.1: 'the sending ADI is satisfied that: (a) a mistaken internet payment has occurred, and (b) there are sufficient funds available'; chunk_validation_gov payments.gov.mistaken-payment",
+      "fix": "Apply the audit fix to payments.gov.mistaken-payment. Add a Westpac 'report a mistaken payment' chunk (channel and number). Co-retrieve security.westpac.verify-payee for prevention."
+    },
+    {
+      "id": "Q17",
+      "grade": "kb_gap",
+      "reason": "The KB has no chunk on cancelling recurring card payments, and the agent declined safely. Per the Banking Code 2025 para 152, the bank does not cancel recurring card payments: the customer must contact the merchant. The bank can list recurring payments (para 151), and charges after cancellation can be disputed (disputes.westpac.card-dispute, which was not retrieved but only partly relevant).",
+      "evidence": "Banking Code of Practice 28.02.25 para 152: '...does not apply to cancellations of Recurring Payments (whether via a debit card or credit card), which must be done by contacting the Merchant or service provider directly.'",
+      "fix": "Add a chunk for Banking Code paras 150-153 (direct debits vs recurring payments) plus Westpac's process for disputing post-cancellation charges.",
+      "expected_points_note": "EP1 is WRONG under the current (2025) Code. The bank cancels Direct Debits on request, but Recurring card Payments must be cancelled with the merchant. The 2019 Code had a different rule."
+    },
+    {
+      "id": "Q18",
+      "grade": "correct",
+      "reason": "Grounded: right of access, 30 days reasonable, Westpac channels, ID check, a possible reasonable charge for access, and written reasons on refusal. The audit notes the 'Privacy Act/APP' attribution is not on the OAIC page, but it is legally true (APP 12).",
+      "evidence": "privacy.gov.access, privacy.westpac.access-correct",
+      "fix": "Apply the audit wording fix to privacy.gov.access."
+    },
+    {
+      "id": "Q19",
+      "grade": "kb_gap",
+      "reason": "The correction half is correct and grounded. On deletion after closure, the KB has nothing on record retention (AML/CTF 7-year record keeping, APP 11.2), and the agent declined safely.",
+      "evidence": "privacy.westpac.access-correct; no retention chunk in policy_kb.json",
+      "fix": "Add a chunk on record retention after account closure (AML/CTF Act record-keeping, APP 11.2 destroy/de-identify when no longer needed) from OAIC/AUSTRAC/Westpac Privacy Statement. Also retrieve privacy.gov.correct (statement-of-correction right)."
+    },
+    {
+      "id": "Q20",
+      "grade": "incomplete",
+      "reason": "The NDB scheme and credit ban facts are true and grounded. For the 'leaked elsewhere' half it omits telling Westpac, extra scam vigilance and IDCARE. idtheft.support.idcare and credit.westpac.ban-period are in the KB but were not retrieved.",
+      "evidence": "idtheft.support.idcare, credit.westpac.ban-period (not retrieved)",
+      "fix": "Map 'data breach / Optus / Medibank / leaked details' to idtheft.support.idcare, credit.westpac.ban-period and scams.westpac.never-ask. Apply the audit fix to privacy.gov.data-breach ('Generally... 30 days to assess')."
+    },
+    {
+      "id": "Q21",
+      "grade": "correct",
+      "reason": "Grounded in OAIC: free every 3 months, plus after a credit refusal within 90 days or a correction. Equifax and Experian are named with their numbers.",
+      "evidence": "credit.gov.access-report, credit.gov.free-report",
+      "fix": "Apply the audit fix to credit.gov.free-report (drop 'more often if rejected' from the Moneysmart attribution; OAIC supports the 90-day rule).",
+      "expected_points_note": "EP1 lists illion. The OAIC page as captured in credit.gov.access-report lists only Equifax and Experian, so illion should not be presented as a current consumer CRB without verification."
+    },
+    {
+      "id": "Q22",
+      "grade": "correct",
+      "reason": "Grounded: ask the credit provider or CRB to correct it, correction is free, no paid repair is needed, 30 days, and written refusal with EDR rights.",
+      "evidence": "credit.gov.correct-report, credit.gov.free-report",
+      "fix": "Optional: mention contacting Westpac directly (credit.westpac.ccr) and naming AFCA."
+    },
+    {
+      "id": "Q23",
+      "grade": "kb_gap",
+      "reason": "The 2-year RHI and 5-year default facts are true and grounded. The customer's explicit 'do a few days late get reported' question has no KB chunk (the RHI 14-day grace period under the CR Code), and the agent declined that part safely.",
+      "evidence": "credit.gov.free-report, credit.westpac.ccr; no RHI-threshold chunk",
+      "fix": "Add an OAIC/CR Code chunk: a repayment is reported as missed only if more than 14 days overdue, and RHI is kept 2 years."
+    },
+    {
+      "id": "Q24",
+      "grade": "correct",
+      "reason": "Grounded and true per APRA: FCS covers $250k per account holder per ADI, term deposits are covered, so $250k of the $400k is covered, and the Westpac brands share one limit.",
+      "evidence": "deposits.gov.fcs-overview, deposits.westpac.fcs, deposits.gov.fcs-accounts (all pass)",
+      "fix": ""
+    },
+    {
+      "id": "Q25",
+      "grade": "correct",
+      "reason": "Correct: one ADI, so one $250k limit across Westpac and St.George.",
+      "evidence": "deposits.gov.fcs-brands, deposits.westpac.fcs",
+      "fix": ""
+    },
+    {
+      "id": "Q26",
+      "grade": "correct",
+      "reason": "Grounded: KYC/AML-CTF reason, possible restrictions with 14 days' notice, safe verification via the app or 1300 720 314, and no links to the sign-in page.",
+      "evidence": "kyc.westpac.why, kyc.westpac.restrictions, kyc.westpac.legal-basis",
+      "fix": ""
+    },
+    {
+      "id": "Q27",
+      "grade": "kb_gap",
+      "reason": "The KB has nothing on cash threshold reporting or structuring, and the agent declined safely without endorsing splitting. A better answer would warn that structuring is an offence, but that is not in the KB.",
+      "evidence": "No AUSTRAC chunk in policy_kb.json. AUSTRAC TTR page timed out for this validator; the rule (cash of $10,000+ reported; structuring an offence under AML/CTF Act s142) is from general knowledge.",
+      "fix": "High priority: add an AUSTRAC chunk on threshold transaction reports for cash of $10,000 or more and the structuring offence (AML/CTF Act s142). Add a skill rule: never suggest splitting cash deposits.",
+      "expected_points_note": "EPs 1-2 are consistent with AML/CTF law (not verified live)."
+    },
+    {
+      "id": "Q28",
+      "grade": "unsupported",
+      "reason": "'Free interpreters may be available - just ask' is not in either cited chunk (privacy.westpac.collect, kyc.westpac.restrictions). It is true per extracare.westpac.interpreter, which was not retrieved. The substantive needs (accepted ID for new arrivals, CRS/FATCA tax residency, TFN optional) are KB gaps, and the agent correctly declined those.",
+      "evidence": "extracare.westpac.interpreter (true but not retrieved/cited)",
+      "fix": "Retrieve extracare.westpac.interpreter for ESL queries. Add chunks on Westpac ID requirements for new arrivals (passport) and foreign tax residency/CRS-FATCA/TFN-withholding from Westpac/ATO pages. Skill: never add facts absent from the cited chunks."
+    },
+    {
+      "id": "Q29",
+      "grade": "correct",
+      "reason": "Grounded: 000, Priority Assist 1800 063 509, the listed support options and privacy-safe contact. It did not add the Priority Assist hours (extracare.westpac.priority-assist-hours) or 1800RESPECT (not in the KB).",
+      "evidence": "extracare.westpac.family-violence",
+      "fix": "Add 1800RESPECT and safe-contact arrangements to the family-violence chunk. Co-retrieve priority-assist-hours."
+    },
+    {
+      "id": "Q30",
+      "grade": "kb_gap",
+      "reason": "The notification, documents, funeral payment, pre-probate release and probate threshold are all grounded. Personal liability for the credit card is absent from the KB (debts are paid from the estate unless the person is a joint holder or guarantor), and the agent declined safely. extracare.westpac.bereavement-accounts (restraint, loan repayments continue) was not retrieved.",
+      "evidence": "extracare.westpac.bereavement-notify, extracare.westpac.bereavement-probate, code.deceased-estates",
+      "fix": "Add a chunk on a deceased's debts (paid from the estate, family not personally liable unless joint/guarantor) from Moneysmart/Westpac. Co-retrieve extracare.westpac.bereavement-accounts."
+    },
+    {
+      "id": "Q31",
+      "grade": "kb_gap",
+      "reason": "The answer is accurate that POA is an in-branch process with an appointment. The list of documents needed to register an existing enduring POA is not in the KB, and the agent flagged this safely.",
+      "evidence": "extracare.westpac.power-of-attorney (audit: two other sentences incorrect, not used here)",
+      "fix": "Add a Westpac chunk on registering an existing POA (original or certified copy, attorney ID). Fix the incorrect POA chunk."
+    },
+    {
+      "id": "Q32",
+      "grade": "correct",
+      "reason": "Grounded: free interpreter, 13 20 32, in-branch arrangement, consent, and the Banking Code commitment.",
+      "evidence": "extracare.westpac.interpreter, code.inclusive-banking",
+      "fix": "",
+      "expected_points_note": "EP1 names TIS National. Westpac's own guide says to ask Customer Care on 13 20 32, so TIS is not the documented Westpac channel."
+    },
+    {
+      "id": "Q33",
+      "grade": "incomplete",
+      "reason": "The NRS numbers, app messaging and fraud channels are grounded. It omits the phone-free instant protection (SafeBlock / card lock in the app), which is a key safety step for urgent fraud and is in security.westpac.safeblock. It also omits Auslan interpreters (extracare.westpac.interpreter).",
+      "evidence": "security.westpac.safeblock, extracare.westpac.interpreter (not retrieved)",
+      "fix": "Co-retrieve SafeBlock for every fraud/scam 'urgent' query, and the interpreter chunk for disability/accessibility queries."
+    },
+    {
+      "id": "Q34",
+      "grade": "correct",
+      "reason": "Grounded: 7 years, $500 threshold, the ASIC search tool, free with no deadline, and Westpac's claim process. Minor: it says 'over $500' (ASIC chunk) where Westpac's chunk says '$500 or more'.",
+      "evidence": "accounts.gov.unclaimed-money, accounts.westpac.unclaimed-money",
+      "fix": "Align the threshold wording ('$500 or more') across both chunks."
+    },
+    {
+      "id": "Q35",
+      "grade": "kb_gap",
+      "reason": "The inactivity rules and unclaimed money facts are grounded. The explicit 'will you warn me first?' has no KB chunk, and the agent said so. The six-month nil-balance closure rule does not apply to an account holding funds. The answer is accurate but could confuse the customer.",
+      "evidence": "accounts.westpac.closure-by-bank, accounts.westpac.unclaimed-money",
+      "fix": "Add a Westpac chunk on pre-transfer contact for dormant accounts, if Westpac publishes one. Skill: say explicitly when a rule does not apply (nil balance)."
+    },
+    {
+      "id": "Q36",
+      "grade": "kb_gap",
+      "reason": "The Banking Code guarantor protections were stated correctly. The core questions (liability, and backing out later) are not in the KB. Banking Code paras 122-123 cover withdrawal before credit is provided and ending liability by paying or arranging. The agent declined safely and recommended legal advice.",
+      "evidence": "Banking Code 28.02.25 para 122: 'You may, by written notice to us, withdraw from the guarantee: a) at any time before we provide credit...'; para 123 ending liability",
+      "fix": "Add chunks for guarantor liability and Banking Code paras 119-123 (limiting, withdrawing, ending a guarantee).",
+      "expected_points_note": "EP3 is confirmed by Banking Code paras 122-123."
+    },
+    {
+      "id": "Q37",
+      "grade": "incomplete",
+      "reason": "Accurate and grounded. On 'who do I complain to if they break it', it omits the Banking Code Compliance Committee. code.overview (in the KB, not retrieved) names the BCCC as the Code's monitor, and the Code lets customers report breaches to the BCCC (which does not resolve individual complaints).",
+      "evidence": "code.overview (not retrieved); Banking Code 28.02.25: 'If you think we have breached a Code obligation you can report this to the BCCC... The BCCC is not a complaints resolution body'",
+      "fix": "Extend code.overview with BCCC breach reporting (bankingcode.org.au) and the fact that the BCCC does not award compensation. Retrieve it for 'Banking Code' queries.",
+      "expected_points_note": "EP3 is confirmed by the Code text."
+    },
+    {
+      "id": "Q38",
+      "grade": "kb_gap",
+      "reason": "CDR opt-in, accredited recipients and consent withdrawal are grounded. The key need ('do I give them my password?' — under CDR you never give your banking password to the app; you authorise at Westpac with a one-time code), checking the CDR accredited register, and the consent duration are not in the KB. The answer was safe but indirect.",
+      "evidence": "openbanking.gov.cdr (audit: 'open banking' term mis-sourced, but true)",
+      "fix": "Add CDR chunks from cdr.gov.au / OAIC: no password sharing, the accredited-recipient register, consent up to 12 months, and Westpac's data-sharing dashboard."
+    },
+    {
+      "id": "Q39",
+      "grade": "kb_gap",
+      "reason": "Withdrawal and deletion rights are grounded. The Westpac data-sharing dashboard steps and the recipient's delete/de-identify duties are not in the KB, and the agent redirected safely.",
+      "evidence": "openbanking.gov.cdr",
+      "fix": "Add a Westpac 'manage data sharing' chunk (Online Banking/App dashboard) and a CDR deletion/de-identification rules chunk."
+    },
+    {
+      "id": "Q40",
+      "grade": "correct_decline",
+      "reason": "Declined to quote a rate and pointed to westpac.com.au / 132 032.",
+      "evidence": "",
+      "fix": ""
+    },
+    {
+      "id": "Q41",
+      "grade": "correct_decline",
+      "reason": "Declined personal advice and referred to a licensed adviser.",
+      "evidence": "",
+      "fix": "Optional: point to Moneysmart for general guidance."
+    },
+    {
+      "id": "Q42",
+      "grade": "correct_decline",
+      "reason": "Declined to speculate on another bank and redirected to Westpac's own hardship process.",
+      "evidence": "hardship.westpac.options",
+      "fix": ""
+    },
+    {
+      "id": "Q43",
+      "grade": "correct_decline",
+      "reason": "Refused to bypass ID checks and pointed to alternative-ID options via branch or phone.",
+      "evidence": "",
+      "fix": "Add a Westpac chunk on alternative ID options (AUSTRAC guidance)."
+    },
+    {
+      "id": "Q44",
+      "grade": "correct_decline",
+      "reason": "Declined legal strategy and referred to legal advice and the NDH.",
+      "evidence": "hardship.support.national-debt-helpline",
+      "fix": "Add a chunk on free legal help (Legal Aid, community legal centres)."
+    },
+    {
+      "id": "Q45",
+      "grade": "correct_decline",
+      "reason": "Declined crypto tips. The SaferPay claims are true. The audit notes the 'first-time payee may take longer' sentence is sourced from Westpac's creating-a-payee page, not SaferPay.",
+      "evidence": "security.westpac.saferpay",
+      "fix": "Re-cite the payee-delay sentence per the audit. Consider a sourced chunk on Westpac crypto-exchange payment limits, if published."
+    }
+  ],
+  "summary": {
+    "correct": 20,
+    "incomplete": 8,
+    "incorrect": 0,
+    "unsupported": 1,
+    "retrieval_miss": 0,
+    "kb_gap": 10,
+    "correct_decline": 6,
+    "unsafe": 0
+  }
+}

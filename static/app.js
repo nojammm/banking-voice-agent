@@ -87,20 +87,42 @@ document.querySelectorAll('.nav').forEach(button => button.addEventListener('cli
   document.querySelectorAll('.nav').forEach(nav => { nav.classList.toggle('active', nav === button); if (nav === button) nav.setAttribute('aria-current','page'); else nav.removeAttribute('aria-current'); });
   if (button.dataset.view === 'knowledge') loadKnowledge();
 }));
+let knowledgeFiles = [];
+function shortDate(iso) { return new Date(iso + 'T00:00:00').toLocaleDateString('en-AU', {day: 'numeric', month: 'short', year: 'numeric'}); }
 async function loadKnowledge() {
-  try {
-    const corpus = await api('/api/knowledge'); $('knowledge-list').replaceChildren();
-    for (const source of corpus.sources) {
-      const card = node('article', undefined, 'card source-card'); card.append(node('span', source.current_status, 'badge' + (source.current_status === 'approved' ? '' : ' warning')), node('h2', source.title), officialLink(source)); card.querySelector('a').textContent = 'westpac.com.au ↗';
-      const dl = node('dl');
-      for (const [label, value] of [['Version', source.version], ['Topic', source.id], ['Fetched', source.fetched_at], ['Reviewed', source.reviewed_at], ['Review due', source.review_due], ['Effective date', source.effective_date || 'Unknown'], ['Owner', source.owner], ['Access', 'Public only']]) { const div = node('div'); div.append(node('dt', label), node('dd', String(value))); dl.append(div); }
-      card.append(dl, node('p', 'SHA-256 · ' + source.content_hash, 'hash'), node('p', source.hash_scope, 'hash'));
-      const detail = node('details'); detail.append(node('summary', 'Read reviewed chunks'));
-      for (const chunk of corpus.chunks.filter(c => c.parent === source.id && c.source_version === source.version)) { detail.append(node('h3', chunk.section), node('p', chunk.text), node('p', chunk.conditions.join(' ')), node('div', chunk.id, 'hash')); }
-      card.append(detail); $('knowledge-list').append(card);
-    }
-  } catch(e) { $('knowledge-list').replaceChildren(node('p', e.message, 'error-message')); }
+  try { knowledgeFiles = (await api('/api/knowledge')).files; showFileList(); }
+  catch(e) { $('knowledge-list').replaceChildren(node('p', e.message, 'error-message')); }
 }
+function showFileList() {
+  $('knowledge-file').hidden = true; $('knowledge-list').hidden = false; $('knowledge-list').replaceChildren();
+  knowledgeFiles.forEach((file, index) => {
+    const card = node('button', undefined, 'card file-card'); card.type = 'button'; card.dataset.file = index;
+    const topics = node('ul');
+    for (const chunk of file.chunks.slice(0, 4)) topics.append(node('li', chunk.title));
+    if (file.chunks.length > 4) topics.append(node('li', `+${file.chunks.length - 4} more`, 'more'));
+    card.append(node('h2', file.title), node('p', `${file.file} · ${file.chunks.length} chunks · Fetched ${shortDate(file.fetched)}`, 'file-meta'), topics);
+    $('knowledge-list').append(card);
+  });
+}
+function showFile(file, tab = 'chunks') {
+  $('knowledge-list').hidden = true; const view = $('knowledge-file'); view.hidden = false; view.replaceChildren();
+  const back = node('button', 'All files', 'secondary'); back.type = 'button'; back.addEventListener('click', showFileList);
+  const tabs = node('div', undefined, 'tabs'); tabs.setAttribute('role', 'tablist');
+  for (const [key, label] of [['chunks', `Chunks (${file.chunks.length})`], ['raw', 'Raw file']]) {
+    const t = node('button', label, 'tab'); t.type = 'button'; t.setAttribute('role', 'tab'); t.setAttribute('aria-selected', String(key === tab));
+    t.addEventListener('click', () => showFile(file, key)); tabs.append(t);
+  }
+  view.append(back, node('h2', file.title, 'file-title'), node('p', `${file.file} · Fetched ${shortDate(file.fetched)}`, 'file-meta'), tabs);
+  if (tab === 'raw') { view.append(node('pre', file.raw, 'raw-file card')); return; }
+  for (const chunk of file.chunks) {
+    const card = node('article', undefined, 'card chunk-card'), meta = node('p', undefined, 'chunk-meta');
+    const link = node('a', chunk.source); if (chunk.url && chunk.url.startsWith('https://')) { link.href = chunk.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+    meta.append(node('span', chunk.label, 'badge'), link);
+    card.append(node('h3', chunk.title), node('p', chunk.text), meta, node('p', chunk.id, 'hash'));
+    view.append(card);
+  }
+}
+$('knowledge-list').addEventListener('click', e => { const card = e.target.closest('[data-file]'); if (card) { showFile(knowledgeFiles[card.dataset.file]); window.scrollTo(0, 0); } });
 function renderEvaluation(report) {
   const target = $('eval-results'); target.replaceChildren();
   if (report.error) { target.append(node('p', report.error, 'error-message')); return; }

@@ -19,8 +19,8 @@ authority: westpac
 source: Westpac – Personal Accounts Terms and Conditions (effective 27 August 2026)
 url: https://www.westpac.com.au/content/dam/public/wbc/documents/pdf/pb/PersonalAccounts-tandc.pdf
 verified: 2026-10-28
-tags: complaint email, overseas, calling from overseas, Customer Solutions email, contact Westpac abroad
-questions: What email can I send a complaint to Westpac? | How do I complain to Westpac from overseas? | Westpac complaints email address
+tags: complaint email, email a complaint, can I email, complain in writing, overseas, calling from overseas, Customer Solutions email, contact Westpac abroad, formal complaint
+questions: What email can I send a complaint to Westpac? | How do I complain to Westpac from overseas? | Westpac complaints email address | Do I need to go into a branch to lodge a formal complaint or can I write to them?
 -->
 Westpac's Personal Accounts Terms and Conditions (effective 27 August 2026) list these complaint contacts: phone 132 032 in Australia, or +61 2 9155 7700 if calling from overseas, and email westpaccustomersolutions@westpac.com.au. Westpac says it will do its best to resolve any concern efficiently and fairly, and asks customers to give it the opportunity to put things right.
 
@@ -66,8 +66,20 @@ id: complaints.westpac.customer-advocate
 authority: westpac
 source: Westpac – Your Customer Advocate
 url: https://www.westpac.com.au/contact-us/your-customer-advocate/
-verified: 2026-10-28
+verified: 2026-10-29
 tags: Customer Advocate, review my complaint, independent review, Evelyn Halls, appeal complaint
 questions: Can the Westpac Customer Advocate review my complaint? | Who is the Westpac Customer Advocate? | Is there an independent person at Westpac who can look at my complaint?
 -->
-The Westpac Group Customer Advocate's primary role is to advise and guide Westpac's complaint team, and the Advocate is independent of Westpac's business units. Westpac's Customer Advocate page says the Customer Advocate does not review individual complaints. Customers with a complaint should raise it with Westpac branch or phone staff, their relationship manager, or through Westpac's online Secure Feedback Form. The Customer Advocate is not a channel for reviewing the outcome of an individual complaint.
+The Westpac Group Customer Advocate's primary role is to advise and guide Westpac's complaint team, and the Advocate is independent of Westpac's business units. Westpac's Customer Advocate page says that while the Customer Advocate does not review individual complaints, they work closely with Westpac colleagues to provide support for complex and sensitive complaints. A customer's first point of contact for a complaint should be Westpac's team in branch or on the phone, or their relationship manager.
+
+## What happens after you make a complaint to Westpac
+<!--
+id: complaints.westpac.process
+authority: westpac
+source: Westpac – Feedback and complaints
+url: https://www.westpac.com.au/contact-us/feedback-complaints/
+verified: 2026-10-29
+tags: complaint reference number, acknowledgement, follow up complaint, what to include in complaint, complaint process, passed around, who owns my complaint, formal complaint
+questions: Will I get a reference number for my Westpac complaint? | What details should I have ready to complain? | How do I follow up a complaint I already made?
+-->
+Westpac says it will confirm it has received a complaint and give the customer a complaint reference number, which they can use to follow up at any time. Westpac then reviews the information and contacts the customer if it needs more details; if a complaint takes longer, Westpac says it will keep the customer informed. At the outcome, Westpac explains its decision, the reasons for it, and any actions taken. Helpful details to have ready are name and contact details, what happened and when, the outcome sought, account or reference numbers and supporting documents, but Westpac says customers don't need everything to make a complaint. A customer not satisfied can contact the Australian Financial Complaints Authority (AFCA).

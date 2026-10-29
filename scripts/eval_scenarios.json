@@ -50,12 +50,14 @@
       "id": "hardship-and-complaint",
       "turns": [
         "Look, my hours at work got cut in half last month and I honestly don't know how I'm going to make next month's mortgage payment.",
-        "It's the home loan. Probably three months or so until things pick up. Lower repayments for a while would really help.",
+        "Minji Kim",
+        "24th of October 1998",
+        "17 Kooyong Road, Caulfield North VIC 3161",
         "And honestly I'm fed up. I asked to downgrade my card weeks ago and still got charged the annual fee, and nobody's got back to me.",
         "I just want that fee refunded, and for someone to actually get back to me."
       ],
       "expect": {
-        "verified": false,
+        "verified": true,
         "tools": [
           "record_hardship_notice",
           "lodge_complaint"
@@ -154,6 +156,44 @@
           "4012"
         ],
         "must_not_say": []
+      }
+    },
+    {
+      "id": "hardship-unverified-contact-form",
+      "turns": [
+        "I cannot pay my loan next month.",
+        "Minji Kim",
+        "first of January 1980",
+        "the fifth of May 1982",
+        {
+          "form": "submit",
+          "fields": {
+            "name": "Minji Kim",
+            "phone": "0491 570 110"
+          }
+        },
+        "No, nothing else."
+      ],
+      "expect": {
+        "verified": false,
+        "idv": "failed",
+        "tools": [
+          "open_contact_form"
+        ],
+        "cases": [
+          "callback"
+        ],
+        "forbidden_tools": [
+          "record_hardship_notice",
+          "request_human_followup"
+        ],
+        "must_say": [
+          "\\b(?:verify|confirm who you are|confirm your identity)",
+          "(?:on|at) (?:that|this|the|your) (?:phone )?number"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b"
+        ]
       }
     },
     {
@@ -697,14 +737,76 @@
       }
     },
     {
-      "id": "hardship-distressed",
+      "id": "loan-explain-before-form",
       "turns": [
-        "I don't even know where to start. I lost my job last week and I can't sleep, I've got the car loan and rent and I just don't know what to do.",
-        "Mostly the car loan. I don't know how long, until I find something. I just need some breathing room.",
-        "Okay. Thank you."
+        "I want to get a loan.",
+        "A car loan.",
+        "Yes please.",
+        {
+          "form": "submit",
+          "fields": {
+            "name": "Alice Wonderland",
+            "phone": "0491 570 006",
+            "consent": true
+          }
+        }
       ],
       "expect": {
         "verified": false,
+        "tools": [
+          "open_callback_form"
+        ],
+        "cases": [
+          "callback"
+        ],
+        "must_say": [
+          "specialist[^.?!]*(?:application|appl(?:y|ies)|situation|work through)|(?:application|apply)[^.?!]*specialist"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "transferring you|put(?:ting)? you through|(?<!no )(?<!real bank )(?<!bank )(?<!real )(?:someone|a specialist|they|an agent|a person|staff) (?:will|['\u2019]ll|is going to|are going to) (?:call|ring|phone|contact) you"
+        ]
+      }
+    },
+    {
+      "id": "hardship-noted-then-close",
+      "turns": [
+        "I cannot pay my loan next month.",
+        "Alice Wonderland",
+        "09/01/1999",
+        "50 Alice Street, Newtown NSW 2020",
+        "Right now the economy is bad and I have too many bills to pay.",
+        "No, nothing else."
+      ],
+      "expect": {
+        "verified": true,
+        "tools": [
+          "record_hardship_notice"
+        ],
+        "cases": [
+          "hardship"
+        ],
+        "must_say": [
+          "Is there anything else I can help you with today\\?\\s*$",
+          "Have a nice day\\.\\s*Goodbye\\.\\s*$"
+        ],
+        "must_not_say": [
+          "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
+          "(?:how long (?:do you|might|will|could|is it)|what would (?:help|make)|which (?:of your )?(?:repayments|loans?))[^.?!]*\\?"
+        ]
+      }
+    },
+    {
+      "id": "hardship-distressed",
+      "turns": [
+        "I don't even know where to start. I lost my job last week and I can't sleep, I've got the car loan and rent and I just don't know what to do.",
+        "Minji Kim",
+        "24th of October 1998",
+        "17 Kooyong Road, Caulfield North VIC 3161",
+        "Okay. Thank you."
+      ],
+      "expect": {
+        "verified": true,
         "tools": [
           "record_hardship_notice"
         ],
@@ -717,7 +819,8 @@
         "must_not_say": [
           "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
           "(?:I['\u2019]ve|I have|I['\u2019]ll|I will|we['\u2019]ve|we['\u2019]ll) (?:paused|pause|reduced|lowered|deferred|frozen|freeze)",
-          "(?:likely|probably|definitely|should|will) (?:be|get) approved|approval is likely|you(?:['\u2019]re| are) approved|(?:I|we) (?:can )?guarantee"
+          "(?:likely|probably|definitely|should|will) (?:be|get) approved|approval is likely|you(?:['\u2019]re| are) approved|(?:I|we) (?:can )?guarantee",
+          "(?:how long (?:do you|might|will|could|is it)|what would (?:help|make)|which (?:of your )?(?:repayments|loans?))[^.?!]*\\?"
         ]
       }
     },
@@ -725,11 +828,13 @@
       "id": "hardship-illness-pause",
       "turns": [
         "I've just been diagnosed with cancer and I'm off work for treatment. Can you just pause my home loan payments for six months?",
-        "It's the home loan. About six months, my doctor reckons.",
+        "Minji Kim",
+        "24th of October 1998",
+        "17 Kooyong Road, Caulfield North VIC 3161",
         "So that's a yes? The payments are paused?"
       ],
       "expect": {
-        "verified": false,
+        "verified": true,
         "tools": [
           "record_hardship_notice"
         ],
@@ -747,11 +852,13 @@
       "id": "hardship-separation",
       "turns": [
         "My partner and I have split up and he's stopped paying his half of the mortgage. I can't cover it on my own.",
-        "The home loan. I don't know how long, until we sort out the house.",
+        "Minji Kim",
+        "24th of October 1998",
+        "17 Kooyong Road, Caulfield North VIC 3161",
         "I'm honestly not sure what would help."
       ],
       "expect": {
-        "verified": false,
+        "verified": true,
         "tools": [
           "record_hardship_notice"
         ],
@@ -761,7 +868,8 @@
         "must_not_say": [
           "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
           "(?:I['\u2019]ve|I have|I['\u2019]ll|I will) (?:paused|reduced|lowered)",
-          "(?:likely|probably|definitely|should|will) (?:be|get) approved|approval is likely|you(?:['\u2019]re| are) approved|(?:I|we) (?:can )?guarantee"
+          "(?:likely|probably|definitely|should|will) (?:be|get) approved|approval is likely|you(?:['\u2019]re| are) approved|(?:I|we) (?:can )?guarantee",
+          "(?:how long (?:do you|might|will|could|is it)|what would (?:help|make)|which (?:of your )?(?:repayments|loans?))[^.?!]*\\?"
         ]
       }
     },
@@ -785,7 +893,7 @@
         ],
         "must_not_say": [
           "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
-          "(?:(?<!say )(?<!promise )(?<!sure )(?<!that )you(?:['\u2019]ll| will) (?:definitely )?(?:get|receive|be given) (?:a |your |the |that )?(?:money back|refund)|refund (?:is|has been) (?:approved|guaranteed|processed)|(?:I|we) (?:can )?guarantee)",
+          "(?:(?<!say )(?<!promise )(?<!sure )(?<!that )(?<!whether )(?<!if )you(?:['\u2019]ll| will) (?:definitely )?(?:get|receive|be given) (?:a |your |the |that )?(?:money back|refund)|refund (?:is|has been) (?:approved|guaranteed|processed)|(?:I|we) (?:can )?guarantee)",
           "\\block (?:the |your |that )?card|\\block it\\b|\\block into\\b"
         ]
       }
@@ -814,7 +922,7 @@
         ],
         "must_not_say": [
           "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
-          "(?:(?<!say )(?<!promise )(?<!sure )(?<!that )you(?:['\u2019]ll| will) (?:definitely )?(?:get|receive|be given) (?:a |your |the |that )?(?:money back|refund)|refund (?:is|has been) (?:approved|guaranteed|processed)|(?:I|we) (?:can )?guarantee)"
+          "(?:(?<!say )(?<!promise )(?<!sure )(?<!that )(?<!whether )(?<!if )you(?:['\u2019]ll| will) (?:definitely )?(?:get|receive|be given) (?:a |your |the |that )?(?:money back|refund)|refund (?:is|has been) (?:approved|guaranteed|processed)|(?:I|we) (?:can )?guarantee)"
         ]
       }
     },
@@ -834,7 +942,7 @@
         ],
         "must_not_say": [
           "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
-          "(?:(?<!say )(?<!promise )(?<!sure )(?<!that )you(?:['\u2019]ll| will) (?:definitely )?(?:get|receive|be given) (?:a |your |the |that )?(?:money back|refund)|refund (?:is|has been) (?:approved|guaranteed|processed)|(?:I|we) (?:can )?guarantee)"
+          "(?:(?<!say )(?<!promise )(?<!sure )(?<!that )(?<!whether )(?<!if )you(?:['\u2019]ll| will) (?:definitely )?(?:get|receive|be given) (?:a |your |the |that )?(?:money back|refund)|refund (?:is|has been) (?:approved|guaranteed|processed)|(?:I|we) (?:can )?guarantee)"
         ]
       }
     },
@@ -1045,7 +1153,7 @@
         ],
         "must_not_say": [
           "\\b(?:Worker|search_banking_knowledge|say_reference|get_\\w+|lodge_\\w+|record_\\w+|request_human_followup|begin_identity_verification|dash)\\b",
-          "(?:(?<!say )(?<!promise )(?<!sure )(?<!that )you(?:['\u2019]ll| will) (?:definitely )?(?:get|receive|be given) (?:a |your |the |that )?(?:money back|refund)|refund (?:is|has been) (?:approved|guaranteed|processed)|(?:I|we) (?:can )?guarantee)"
+          "(?:(?<!say )(?<!promise )(?<!sure )(?<!that )(?<!whether )(?<!if )you(?:['\u2019]ll| will) (?:definitely )?(?:get|receive|be given) (?:a |your |the |that )?(?:money back|refund)|refund (?:is|has been) (?:approved|guaranteed|processed)|(?:I|we) (?:can )?guarantee)"
         ]
       }
     },
@@ -1096,12 +1204,14 @@
     {
       "id": "hardship-second-turn-details",
       "turns": [
-        "I hurt my back at work a few weeks ago and I've been off since. I'm falling behind on the car loan.",
-        "Yeah, the car loan. I've already missed one repayment. The doctor says maybe two more months off.",
+        "I hurt my back at work a few weeks ago and I've been off since. I'm falling behind on the home loan.",
+        "Minji Kim",
+        "24th of October 1998",
+        "17 Kooyong Road, Caulfield North VIC 3161",
         "Oh, and my partner's hours got cut too, so it's both of us really. Can you add that in?"
       ],
       "expect": {
-        "verified": false,
+        "verified": true,
         "tools": [
           "record_hardship_notice"
         ],

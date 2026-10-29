@@ -1,0 +1,991 @@
+{
+  "executed_at": "2026-10-29T19:52:02+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "balance-and-duplicate",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-9430"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "For your security, I need to check 3 details first. What\u2019s your full name?",
+          "spoken": "For your security, I need to check 3 details first. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2206
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 915
+        },
+        {
+          "caller": "oh one, oh nine, ninety nine",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 854
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "You\u2019re all set, Alice. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76. Would you like the balance on any other account?",
+          "spoken": "[warm] You\u2019re all set, Alice. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76. Would you like the balance on any other account?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2258
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Sure. Your last 5 transactions were Uber Eats Sydney for $42.35 on 27 October, Paypal Gamevault for $249 on 26 October, Shell Coles Express Fairy Meadow for $50 pending on 25 October, and Coles Newtown for $84.20 on 24 October, twice. Do you want me to check any one of those in more detail?",
+          "spoken": "Sure. Your last 5 transactions were Uber Eats Sydney for $42.35 on 27 October, Paypal Gamevault for $249 on 26 October, Shell Coles Express Fairy Meadow for $50 pending on 25 October, and Coles Newtown for $84.20 on 24 October, twice. Do you want me to check any one of those in more detail?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2488
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Right, I\u2019ve found the two matching Coles charges. Was the second $84.20 Coles Newtown charge one you recognise as the same shop purchase?\n",
+          "spoken": "Right, I\u2019ve found the two matching Coles charges. Was the second $84.20 Coles Newtown charge one you recognise as the same shop purchase?",
+          "tools": [
+            "get_transaction_details"
+          ],
+          "idv": "verified",
+          "ms": 2282
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "Done. I\u2019ve lodged that dispute for you, and the reference is D S P 9 4 3 0. It usually takes up to 45 days to look into. Do you want me to help with anything else on your account?",
+          "spoken": "Done. I\u2019ve lodged that dispute for you, and the reference is D S P 9 4 3 0. It usually takes up to 45 days to look into. Do you want me to help with anything else on your account?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2630
+        }
+      ]
+    },
+    {
+      "id": "balance-and-duplicate",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-3711"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "For your security, I need to check 3 details. What\u2019s your full name?",
+          "spoken": "For your security, I need to check 3 details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2523
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 995
+        },
+        {
+          "caller": "oh one, oh nine, ninety nine",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 947
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "All set, Alice. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76. Which account would you like me to check if you mean a different one?",
+          "spoken": "All set, Alice. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76. Which account would you like me to check if you mean a different one?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 1977
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Sure thing, Alice. Your last 5 transactions were Uber Eats Sydney for $42.35 on 27 October, Paypal Gamevault for $249 on 26 October, Shell Coles Express Fairy Meadow for $50 pending on 25 October, and Coles Newtown for $84.20 on 24 October, twice. Do you want me to check any of those in more detail?",
+          "spoken": "Sure thing, Alice. Your last 5 transactions were Uber Eats Sydney for $42.35 on 27 October, Paypal Gamevault for $249 on 26 October, Shell Coles Express Fairy Meadow for $50 pending on 25 October, and Coles Newtown for $84.20 on 24 October, twice. Do you want me to check any of those in more detail?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2490
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Okay, I\u2019m checking that transaction now. Right, I found the two matching Coles charges.  I\u2019ve lodged that dispute for you. The reference is D S P 3 7 1 1. It can take up to 45 days to look into.\n\nI can\u2019t promise the outcome, but the team will review those 2 identical charges. Is there anything else I can help you with today?",
+          "spoken": "Okay, I\u2019m checking that transaction now.Right, I found the two matching Coles charges. I\u2019ve lodged that dispute for you. The reference is D S P 3 7 1 1. It can take up to 45 days to look into.\n\nI can\u2019t promise the outcome, but the team will review those 2 identical charges. Is there anything else I can help you with today?",
+          "tools": [
+            "get_transaction_details",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4046
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "It\u2019s already lodged for you, Alice. The reference is D S P 3 7 1 1. Is there anything else I can help you with today?",
+          "spoken": "It\u2019s already lodged for you, Alice. The reference is D S P 3 7 1 1. Is there anything else I can help you with today?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1450
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice st newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-1584"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-3893"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "That sounds like fraud. Lock your card in your app straight away.  Right, for your security I need to check 3 details. What\u2019s your full name?",
+          "spoken": "That sounds like fraud. Lock your card in your app straight away. Right, for your security I need to check 3 details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2565
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 975
+        },
+        {
+          "caller": "the first of September 1999",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 971
+        },
+        {
+          "caller": "50 Alice St Newtown New South Wales 2020",
+          "agent": "I\u2019ve found it. What was the problem with this PayPal transaction?\nI\u2019ve found a PayPal transaction for 26 October. It\u2019s Paypal Gamevault for 249 dollars.\n\nWhat happened with that payment?",
+          "spoken": "I\u2019ve found it. What was the problem with this PayPal transaction?\nI\u2019ve found a PayPal transaction for 26 October. It\u2019s Paypal Gamevault for 249 dollars.\n\nWhat happened with that payment?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2097
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Thanks, Alice.  Your fraud report is lodged.\n\nF, R, D, 1, 5, 8, 4.\n\nPlease lock your card in the app straight away and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one time codes, and if anyone has remote access to your device, disconnect it from the internet.\n\nThe fraud team will review it as a priority. Is there anything else I can help you with today?",
+          "spoken": "Thanks, Alice. Your fraud report is lodged.\n\nF, R, D, 1, 5, 8, 4.\n\nPlease lock your card in the app straight away and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one time codes, and if anyone has remote access to your device, disconnect it from the internet.\n\nThe fraud team will review it as a priority. Is there anything else I can help you with today?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3335
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice st newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-7336"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-6400"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "Lock your card in your app straight away.  Right, I can help with that. For your security, I need to check 3 details, starting with your full name.",
+          "spoken": "Lock your card in your app straight away. Right, I can help with that. For your security, I need to check 3 details, starting with your full name.",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2506
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?\n",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1065
+        },
+        {
+          "caller": "the first of September 1999",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1094
+        },
+        {
+          "caller": "50 Alice St Newtown New South Wales 2020",
+          "agent": "I\u2019ve found the payment. It\u2019s a posted PayPal Gamevault transaction for $249 on 26 October. All set, Alice. Is the PayPal Gamevault payment for $249 on 26 October the one you\u2019re disputing?\n",
+          "spoken": "[reassuring] I\u2019ve found the payment. It\u2019s a posted PayPal Gamevault transaction for $249 on 26 October.All set, Alice. Is the PayPal Gamevault payment for $249 on 26 October the one you\u2019re disputing?",
+          "tools": [
+            "get_recent_transactions",
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 5108
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Got it\u2026  Thanks, Alice. Your fraud report is lodged, reference F, R, D, 7, 3, 3, 6. Please lock your card in your app straight away and keep it locked until a replacement arrives.\n\nDon\u2019t share any passwords, PINs or one-time codes. If someone has remote access to your device, disconnect it from the internet. The fraud team will review it as a priority.\n\nIs there anything else I can help you with today?",
+          "spoken": "Got it\u2026 Thanks, Alice. Your fraud report is lodged, reference F, R, D, 7, 3, 3, 6. Please lock your card in your app straight away and keep it locked until a replacement arrives.\n\nDon\u2019t share any passwords, PINs or one-time codes. If someone has remote access to your device, disconnect it from the internet. The fraud team will review it as a priority.\n\nIs there anything else I can help you with today?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2712
+        }
+      ]
+    },
+    {
+      "id": "idv-wrong-dob-then-right",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "fail",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you tell me my credit card balance?",
+          "agent": "For your security, I need to check 3 details. What\u2019s your full name?",
+          "spoken": "For your security, I need to check 3 details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2145
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Great, thanks. What\u2019s your date of birth?",
+          "spoken": "Great, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 880
+        },
+        {
+          "caller": "1 September 1998",
+          "agent": "Sorry, I didn\u2019t catch that properly. Could you say your date of birth again?",
+          "spoken": "Sorry, I didn\u2019t catch that properly. Could you say your date of birth again?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1141
+        },
+        {
+          "caller": "Oh sorry, I meant 1 September 1999",
+          "agent": "Lovely, thanks. What\u2019s your residential address?",
+          "spoken": "Lovely, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1038
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "All set, Alice. Your Low Rate Visa has 1,284.60 owing, and 3,715.40 available credit. Do you want the balance for a different account too?",
+          "spoken": "All set, Alice. Your Low Rate Visa has 1,284.60 owing, and 3,715.40 available credit. Do you want the balance for a different account too?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 1933
+        }
+      ]
+    },
+    {
+      "id": "idv-wrong-dob-then-right",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "fail",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you tell me my credit card balance?",
+          "agent": "For your security, I need to check 3 details. What\u2019s your full name?",
+          "spoken": "For your security, I need to check 3 details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2392
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1395
+        },
+        {
+          "caller": "1 September 1998",
+          "agent": "Sorry, I may have misheard that. Could you say your date of birth again?",
+          "spoken": "Sorry, I may have misheard that. Could you say your date of birth again?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1128
+        },
+        {
+          "caller": "Oh sorry, I meant 1 September 1999",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1072
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "You\u2019re all set, Alice. Your Low Rate Visa is owing $1,284.60, and the available credit is $3,715.40. What would you like to check on it?",
+          "spoken": "[warm] You\u2019re all set, Alice. Your Low Rate Visa is owing $1,284.60, and the available credit is $3,715.40. What would you like to check on it?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2107
+        }
+      ]
+    },
+    {
+      "id": "idv-offtopic-midway",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my account balance.",
+          "agent": "For your security, I just need to check 3 details. What\u2019s your full name?",
+          "spoken": "[warm] For your security, I just need to check 3 details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2109
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2080
+        },
+        {
+          "caller": "Oh sorry, quick one before I forget, are your branches open on Saturdays?",
+          "agent": "Let me look that up for you. Yes, Westpac Assist is open on Saturdays from 9:30am to 6pm Sydney time. And when you\u2019re ready, what\u2019s your date of birth?",
+          "spoken": "Yes, Westpac Assist is open on Saturdays from 9:30am to 6pm Sydney time. And when you\u2019re ready, what\u2019s your date of birth?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2272
+        },
+        {
+          "caller": "Okay no worries. My date of birth is 1 September 1999.",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 959
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "All set, Alice. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76.\n\nWhich account would you like me to check next?",
+          "spoken": "All set, Alice. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76.\n\nWhich account would you like me to check next?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2112
+        }
+      ]
+    },
+    {
+      "id": "idv-offtopic-midway",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "I'd like to check my account balance.",
+          "agent": "Sure\u2026 I\u2019ll just verify you first so I can look that up.  For your security, I need to check 3 details. What\u2019s your full name?",
+          "spoken": "Sure\u2026 I\u2019ll just verify you first so I can look that up. For your security, I need to check 3 details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2131
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Great, thanks. What\u2019s your date of birth?",
+          "spoken": "Great, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1065
+        },
+        {
+          "caller": "Oh sorry, quick one before I forget, are your branches open on Saturdays?",
+          "agent": "Let me look that up for you. Some branches are open on Saturdays. Westpac Assist hours are Monday to Friday 8:30am to 8:00pm and Saturday 9:30am to 6pm, Sydney time. What\u2019s your date of birth?",
+          "spoken": "Some branches are open on Saturdays. Westpac Assist hours are Monday to Friday 8:30am to 8:00pm and Saturday 9:30am to 6pm, Sydney time. What\u2019s your date of birth?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "in_progress",
+          "ms": 2223
+        },
+        {
+          "caller": "Okay no worries. My date of birth is 1 September 1999.",
+          "agent": "Lovely, thanks. What\u2019s your residential address?",
+          "spoken": "Lovely, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1362
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "All set, Alice. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76. Which account would you like checked if it\u2019s a different one?",
+          "spoken": "All set, Alice. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76. Which account would you like checked if it\u2019s a different one?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2233
+        }
+      ]
+    },
+    {
+      "id": "kb-documents-borrow",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What documents do I need to apply for a home loan?",
+          "agent": "Good question\u2026 let me check. I don\u2019t have the exact document list for a home loan in the info I can access. If you\u2019d like, I can still help with how the application usually works, or what kind of home loan you\u2019re looking at?",
+          "spoken": "I don\u2019t have the exact document list for a home loan in the info I can access. If you\u2019d like, I can still help with how the application usually works, or what kind of home loan you\u2019re looking at?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2123
+        },
+        {
+          "caller": "And how much could I borrow? I earn about 95 grand a year.",
+          "agent": "That payment estimate would be about 575 dollars a month for a 95,000 dollar loan at 6.09 percent over 30 years. I can\u2019t tell you how much you could borrow from income alone, because that depends on your full finances and the lender\u2019s assessment.\n\nAre you looking at a home loan for a place to live in or an investment property?",
+          "spoken": "That payment estimate would be about 575 dollars a month for a 95,000 dollar loan at 6.09 percent over 30 years. I can\u2019t tell you how much you could borrow from income alone, because that depends on your full finances and the lender\u2019s assessment.\n\nAre you looking at a home loan for a place to live in or an investment property?",
+          "tools": [
+            "estimate_loan_repayment"
+          ],
+          "idv": "not_started",
+          "ms": 2338
+        },
+        {
+          "caller": "Roughly though? Just a ballpark.",
+          "agent": "I can\u2019t give a reliable ballpark from income alone. The real figure depends on things like your expenses, existing debts, deposit, dependants and the loan type.\n\nWhat kind of home loan are you after?",
+          "spoken": "I can\u2019t give a reliable ballpark from income alone. The real figure depends on things like your expenses, existing debts, deposit, dependants and the loan type.\n\nWhat kind of home loan are you after?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1263
+        }
+      ]
+    },
+    {
+      "id": "kb-documents-borrow",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What documents do I need to apply for a home loan?",
+          "agent": "One sec, I'll find that for you. I don\u2019t have the home loan document list in the info I can access. For a home loan application, what are you looking to apply for?",
+          "spoken": "I don\u2019t have the home loan document list in the info I can access. For a home loan application, what are you looking to apply for?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2106
+        },
+        {
+          "caller": "And how much could I borrow? I earn about 95 grand a year.",
+          "agent": "Sure, let me just check that. I can\u2019t tell you how much you could borrow from income alone. Lending depends on your full finances, and the bank also checks you could still afford repayments if rates were 3 percentage points higher.\n\nIf you want, I can help with a rough repayment estimate for a loan amount you have in mind.",
+          "spoken": "I can\u2019t tell you how much you could borrow from income alone. Lending depends on your full finances, and the bank also checks you could still afford repayments if rates were 3 percentage points higher.\n\nIf you want, I can help with a rough repayment estimate for a loan amount you have in mind.",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2381
+        },
+        {
+          "caller": "Roughly though? Just a ballpark.",
+          "agent": "I can give a rough repayment estimate if you give me a loan amount, but I can\u2019t ballpark how much you\u2019d be approved for from income alone. What loan amount are you thinking about?",
+          "spoken": "I can give a rough repayment estimate if you give me a loan amount, but I can\u2019t ballpark how much you\u2019d be approved for from income alone. What loan amount are you thinking about?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1345
+        }
+      ]
+    }
+  ]
+}

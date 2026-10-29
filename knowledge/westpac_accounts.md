@@ -18,11 +18,11 @@ id: accounts.westpac.unclaimed-money
 authority: westpac
 source: Westpac – Unclaimed moneys
 url: https://www.westpac.com.au/personal-banking/bank-accounts/manage/unclaimed-moneys-changes-legislation/
-verified: 2026-10-28
-tags: unclaimed money, dormant account, old account, forgotten account, inactive 7 years, ASIC, reclaim money, lost money
+verified: 2026-10-29
+tags: unclaimed money, dormant account, old account, forgotten account, inactive 7 years, ASIC, reclaim money, lost money, keep account active, emergency fund I never touch
 questions: I had an old Westpac account I forgot about, where did the money go? | How do I get my unclaimed money back from Westpac? | When does an inactive account become unclaimed money?
 -->
-Westpac says money in a bank account is considered "unclaimed" when the account has a balance of $500 or more and there have been no customer deposits or withdrawals for 7 years or longer. Interest earned and fees charged do not count as activity. Westpac must close these accounts and send the funds to ASIC by 31 March each year. To reclaim the money, search ASIC's Moneysmart unclaimed money tool, note the Original Transaction Number, and take the completed claim form to a Westpac branch with two forms of ID (one with a photo) and proof of account ownership. Westpac says the process can take up to 3 months.
+Westpac says money in a bank account is considered "unclaimed" when the account has a balance of $500 or more, there have been no customer deposits or withdrawals for 7 years or longer, and the customer has not notified Westpac that they wish to treat the account as active. Exemptions for particular account types apply. Interest earned and fees charged do not count as activity. A customer can activate the account with a transfer or deposit of at least $0.01, or call 132 032 for help. Westpac must close these accounts and send the funds to ASIC by 31 March each year. To reclaim the money, search ASIC's Moneysmart unclaimed money tool, note the Original Transaction Number, and take the completed claim form to a Westpac branch with two forms of ID (one with a photo) and proof of account ownership. Westpac says the process can take up to 3 months.
 
 ## When Westpac can close an inactive or misused account
 <!--
@@ -42,11 +42,11 @@ id: accounts.westpac.close-own
 authority: westpac
 source: Westpac – How do I close my account?
 url: https://www.westpac.com.au/faq/close-account/
-verified: 2026-10-28
+verified: 2026-10-29
 tags: close account, cancel account, close credit card, switch banks, leave Westpac
 questions: How do I close my Westpac account? | Can I close my credit card in the app? | I want to close my savings account
 -->
-Westpac customers can close eligible everyday and savings accounts, credit cards and Flexi Loan accounts in Westpac Online Banking or the Westpac App. Customers can also visit a Westpac branch or call 132 032, 8am to 8pm Sydney time, 7 days a week (+61 2 9293 9270 from overseas). Customers closing an account need to update anyone who pays into or debits the account and cancel periodical payments and direct debits.
+Westpac customers can close eligible everyday and savings accounts, credit cards and Flexi Loan accounts in Westpac Online Banking or the Westpac App. Customers can also visit a Westpac branch or call 132 032, 8am to 8pm Sydney time, 7 days a week (+61 2 9293 9270 from overseas).
 
 ## Westpac deposits and the Financial Claims Scheme government guarantee
 <!--
@@ -71,3 +71,15 @@ tags: fee increase, new fee, change of terms, notice period, 30 days notice, int
 questions: How much notice does Westpac give before increasing fees? | Can Westpac change my account terms without telling me? | Will Westpac tell me before my interest rate changes?
 -->
 Westpac's Personal Accounts Terms and Conditions (effective 27 August 2026) say Westpac will always let customers know if the terms and conditions of their account change. Westpac gives at least 30 days' notice of a new or increased fee and of changes it believes are unfavourable to the customer. Advance notice may not be given where a change is needed immediately to restore or maintain security, or to manage a material and immediate risk. Interest rate changes are notified no later than the day of the change, except where the rate is linked to money market or other rates. Notice may be in writing, electronically or by media advertisement.
+
+## Things to do before closing a Westpac personal account
+<!--
+id: accounts.westpac.closing-checklist
+authority: westpac
+source: Westpac – Personal Accounts Terms and Conditions (effective 27 August 2026)
+url: https://www.westpac.com.au/content/dam/public/wbc/documents/pdf/pb/PersonalAccounts-tandc.pdf
+verified: 2026-10-29
+tags: close account, closing account checklist, cancel direct debits, ATO, Medicare, return card, cheques, switching banks
+questions: What do I need to sort out before closing my Westpac account? | Will my direct debits stop automatically if I close my account? | Do I need to tell the ATO when I close my bank account?
+-->
+Westpac's Personal Accounts Terms and Conditions (effective 27 August 2026) say that when closing an account, the customer must return any card that operates the account (including additional cardholders' cards), unused cheques and passbooks. An account with cheque access can only be closed once all outstanding cheques have been presented. Westpac says it is the customer's responsibility to notify anyone who directly credits or debits their accounts (including the ATO, Medicare and their accountant or tax agent), and to cancel any Periodical Payments, direct debits or credits, or regular transfers to or from the accounts being closed.

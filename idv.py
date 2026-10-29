@@ -588,6 +588,17 @@ def _assemble(carry, new, today, pivot):
     return DobParse('incomplete', missing=missing, parts={**parts, 'either': either} if either else parts, assembled=assembled)
 
 
+def _swapped(text, value, today):
+    """An all-number date read the other way round ("09/01/1999" said month-first), when both numbers could be the
+    month. Only someone who knows the date can say it either way, so accepting both readings costs almost nothing."""
+    items = spoken_items(text)
+    if any(isinstance(x, Word) and x.text in MONTHS for x in items) or any(isinstance(x, Num) and x.ordinal for x in items): return None
+    y, m, d = map(int, value.split('-'))
+    if d > 12 or d == m: return None
+    other = date(y, d, m)
+    return other.isoformat() if other <= today else None
+
+
 def _dob_known(parts):
     return {p for p in ('day', 'month', 'year') if p in parts} | {('either', e) for e in parts.get('either', [])}
 
@@ -614,7 +625,8 @@ async def match_dob(text, stored, cfg, judge=None, today=None, carry=None):
         return FieldResult('dob', 'incomplete', 'deterministic', missing=parsed.missing,
                            components={'_carry': {**parsed.parts, 'said': spoken}})
     if parsed.status == 'ok':
-        return FieldResult('dob', 'pass' if parsed.value == stored else 'fail', 'exact', normalized=parsed.value)
+        match = stored in (parsed.value, _swapped(text, parsed.value, today))
+        return FieldResult('dob', 'pass' if match else 'fail', 'exact', normalized=parsed.value)
     result = FieldResult('dob', 'uncertain', 'llm', components={'candidates': parsed.candidates})
     if not (cfg['llm_fallback_enabled'] and judge): result.method = 'deterministic'; return result
     result.llm = info = await _ask(judge, 'dob', {'spoken': spoken})
@@ -625,8 +637,10 @@ async def match_dob(text, stored, cfg, judge=None, today=None, carry=None):
         if carry: result.components['_carry'] = carry  # Keep what they've said; this turn added nothing certain.
     elif checked:
         result.normalized = checked[1]
-        # A month-first guess ("$19.91") or a date joined from pieces that doesn't match is more likely a mishearing.
-        result.outcome = 'pass' if checked[1] == stored else 'uncertain' if parsed.month_first or parsed.assembled else 'fail'
+        # A month-first guess ("$19.91"), a date joined from pieces or words that don't read as one date ("ninth September
+        # first") that doesn't match is more likely a mishearing.
+        misheard = parsed.month_first or parsed.assembled or parsed.status == 'unparsed'
+        result.outcome = 'pass' if checked[1] == stored else 'uncertain' if misheard else 'fail'
     return result
 
 
@@ -966,16 +980,18 @@ class Verification:
             lines.append(f"VERIFIED for this call. Address the caller as {self.customer()['preferred_name']} if natural. "
                          "Account tools are unlocked. Don't ask for identity details again.")
             if fresh and fresh['outcome'] == 'pass':
-                lines.append("Verification just finished. Let them know warmly they're all set, then get on with what they wanted, as they last put it (a correction replaces what it corrects).")
+                lines.append("Verification just finished. Let them know warmly, in your own words, that the checks are all done, then get on with what they wanted, as they last put it (a correction replaces what it corrects), "
+                             "without repeating back what they told you.")
         elif self.status == 'paused':
             by = 'the Worker, after turns that weren\'t answers' if self.paused_by == 'worker' else 'you'
             lines.append(f"PAUSED by {by}: the caller moved on from what needed verification, so don't push for identity "
                          "details. As soon as they want to continue, want something from their own records, or start giving "
                          f"identity details, call begin_identity_verification: it resumes at the {STEP_LABEL[self.step]} step.")
         elif self.status == 'failed':
-            lines.append("FAILED: the attempt limit was reached. Don't retry verification, don't say which detail "
-                         "failed, and don't discuss account records. Offer a human follow-up (request_human_followup). "
-                         "General questions, hardship notices and complaints are still fine.")
+            lines.append("FAILED: the attempt limit was reached. Don't retry verification, don't say which detail failed, and "
+                         "don't discuss or note anything against account records. Tell them kindly you weren't able to verify them, "
+                         "and that the team can call them back: in that same reply, call open_contact_form, which puts a short form on "
+                         "their screen for their name and number, without asking first. General questions and complaints are still fine.")
         else:
             done = [STEP_LABEL[s] for s in self.cfg['steps'] if self.steps[s]['status'] == 'passed']
             cfg = self.cfg[STEP_CONFIG[self.step]]

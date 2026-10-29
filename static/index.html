@@ -9,17 +9,18 @@
 <main>
 <section id="voice" class="view">
 <div class="call-layout">
+<div class="call-column">
 <div class="call card">
 <div class="call-stage">
 <div id="avatar" class="avatar" aria-hidden="true"><svg viewBox="-3 -10 75 48"><g fill="#DA1710"><path class="w-part" d="M24.0303 25.0896L17.3333 4.1147C16.447 0.903226 14.7727 0 12.4091 0H0C0.984848 0.401434 1.57576 2.91039 1.57576 2.91039L7.58333 23.9857C8.27273 26.595 10.4394 28 12.9015 28H26C25.0152 27.8996 24.0303 25.0896 24.0303 25.0896Z"/><path class="w-part" d="M42 0H27V28H42V0Z"/><path class="w-part" d="M44.9697 25.0896L51.6667 4.1147C52.553 0.903226 54.2273 0 56.5909 0H69C68.0152 0.401434 67.4242 2.91039 67.4242 2.91039L61.4167 23.9857C60.7273 26.595 58.5606 28 56.0985 28H43C43.9848 27.8996 44.9697 25.0896 44.9697 25.0896Z"/></g></svg></div>
-<p id="live-state" class="call-state">Ready</p>
-<p id="auth-state" class="auth-chip" hidden></p>
+<div class="call-info"><p id="live-state" class="call-state">Ready</p><p id="auth-state" class="auth-chip" hidden></p></div>
 <div class="call-actions"><button id="start-live" class="primary">Start call</button><button id="end-live" class="secondary" hidden disabled>End call</button><button id="enable-live-audio" class="secondary" hidden>Enable audio</button></div>
 <p id="live-status" class="status" role="status"></p>
 </div>
 <ol id="transcript" class="transcript" aria-label="Transcript" aria-live="polite"></ol>
 <div id="live-audio" hidden></div>
-<section class="tests" aria-labelledby="tests-title"><h2 id="tests-title">Try these</h2><ul id="test-cards" class="test-cards"></ul></section>
+</div>
+<section class="tests card" aria-labelledby="tests-title"><h2 id="tests-title">Try these</h2><ul id="test-cards" class="test-cards"></ul></section>
 </div>
 <aside class="inspector card" aria-labelledby="inspector-title">
 <div class="inspector-head"><h2 id="inspector-title">Customer data</h2><button id="reset-demo" class="text-button">Reset data</button></div>
@@ -40,8 +41,7 @@
 <div class="modal-head"><h2 id="callback-title">Talk to a lending specialist</h2><button type="button" id="callback-close" class="close" aria-label="Close">&times;</button></div>
 <label for="cb-name">Name</label><input id="cb-name" autocomplete="name" maxlength="80" required><p class="field-error" id="cb-name-error"></p>
 <label for="cb-phone">Phone</label><input id="cb-phone" type="tel" autocomplete="tel" maxlength="20" required><p class="field-error" id="cb-phone-error"></p>
-<label class="check"><input type="checkbox" id="cb-consent"> I agree to be contacted about this request</label><p class="field-error" id="cb-consent-error"></p>
-<p class="fine">Demo only: this saves a mock request and nobody will call.</p>
+<div id="cb-consent-row"><label class="check"><input type="checkbox" id="cb-consent"> I agree to be contacted about this request</label><p class="field-error" id="cb-consent-error"></p></div>
 <p class="field-error" id="cb-form-error" role="alert"></p>
 <div class="modal-actions"><button type="button" id="callback-cancel" class="secondary">Cancel</button><button type="submit" id="callback-submit" class="primary">Request callback</button></div>
 </form>
@@ -68,6 +68,7 @@
 <section id="knowledge" class="view" hidden>
 <div class="page-head"><h1>Knowledge</h1></div>
 <div id="knowledge-list" class="knowledge-grid"></div>
+<div id="knowledge-file" class="knowledge-file" hidden></div>
 </section>
 
 <section id="lab" class="view" hidden>

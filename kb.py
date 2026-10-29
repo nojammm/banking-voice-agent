@@ -75,3 +75,24 @@ def search(query, k=3):
 
 def document(doc_id):
     return next((d for d in _documents() if d['id'] == doc_id), None)
+
+
+def files():
+    """The RAG files behind the agent, for the Knowledge page: each knowledge/*.md with its compiled chunks and raw text."""
+    root = Path(__file__).resolve().parent
+    out = []
+    if POLICY_KB_PATH.exists():
+        by_file = {}
+        for d in json.loads(POLICY_KB_PATH.read_text())['documents']: by_file.setdefault(d['file'], []).append(d)
+        for name, docs in sorted(by_file.items()):
+            raw = (root / 'knowledge' / name).read_text()
+            out.append({'file': 'knowledge/' + name, 'title': raw.partition('\n')[0].lstrip('# ').strip(), 'fetched': max(d['verified'] for d in docs),
+                        'raw': raw, 'chunks': [{'id': d['id'], 'title': d['title'], 'text': d['text'], 'source': d['source'], 'url': d['url'],
+                                                'label': LABELS[d['type']]} for d in docs]})
+    corpus = engine.load_corpus()
+    sources = {s['id']: s for s in corpus['sources']}
+    out.append({'file': 'data/knowledge.json', 'title': 'Westpac digital banking guides', 'fetched': max(s['fetched_at'] for s in sources.values())[:10],
+                'raw': json.dumps(corpus['chunks'], indent=1, ensure_ascii=False),
+                'chunks': [{'id': c['id'], 'title': c['section'], 'text': ' '.join([c['text']] + c['conditions']), 'source': sources[c['parent']]['title'],
+                            'url': sources[c['parent']]['url'], 'label': LABELS['westpac_public']} for c in corpus['chunks']]})
+    return out

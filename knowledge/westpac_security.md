@@ -6,11 +6,11 @@ id: scams.westpac.report
 authority: westpac
 source: Westpac – How to report fraud and scams
 url: https://www.westpac.com.au/security/how-to-report/
-verified: 2026-10-28
+verified: 2026-10-29
 tags: report scam, scammed, fraud, suspicious transaction, sent money to scammer, fraud phone number, report fraud, IDCARE, ReportCyber
 questions: I think I've been scammed, what do I do? | How do I report fraud to Westpac? | What is Westpac's fraud phone number?
 -->
-Westpac says the fastest way to report a suspicious transaction, scam or fraud is through the Westpac App or Westpac Online Banking. Customers without access to Online Banking or the App can call Westpac on 1300 364 294, or +61 2 9155 7777 from outside Australia. Westpac's reporting page does not state that this line is open 24/7. Westpac also recommends reporting the activity to the Australian Signals Directorate (ASD) through the Australian Cyber Security Centre, and has partnered with IDCARE, which offers free support on 1800 595 160.
+Westpac says the fastest way to report a suspicious transaction, scam or fraud is through the Westpac App or Westpac Online Banking. Customers without access to Online Banking or the App can call Westpac on 1300 364 294, or +61 2 9155 7777 from outside Australia. If the fraud or scam case involves a payment activity, Westpac says to also report it to the Australian Signals Directorate (ASD) through the Australian Cyber Security Centre (ACSC). Westpac has partnered with IDCARE, which offers free, confidential support to people targeted by fraud, scams, identity theft or compromise, on 1800 595 160.
 
 ## Forwarding scam emails and text messages that pretend to be Westpac
 <!--
@@ -30,11 +30,11 @@ id: scams.westpac.verify-caller
 authority: westpac
 source: Westpac – SafeCall
 url: https://www.westpac.com.au/security/how-we-protect-you/westpac-safecall/
-verified: 2026-10-28
+verified: 2026-10-29
 tags: bank impersonation, someone called pretending to be Westpac, is this call real, SafeCall, fake bank call, hang up and call back
 questions: Someone called saying they were from Westpac, how do I know it's real? | What is Westpac SafeCall? | A caller from the bank asked me to move my money, is it legit?
 -->
-SafeCall is a Westpac in-app calling feature designed to help customers know when it is really Westpac calling: Optus verifies that the call is coming from Westpac. Not every genuine Westpac call will be a SafeCall, and only Australian-registered mobile numbers are eligible. Because not all genuine calls are SafeCalls, a call that is not a SafeCall is not automatically a scam; Westpac's separate security guidance explains how to check a caller.
+SafeCall is a Westpac in-app calling feature designed to help customers know when it is really Westpac calling: Optus verifies that the call is coming from Westpac. Not every genuine Westpac call will be a SafeCall, and only Australian-registered mobile numbers are eligible. Customers may still receive genuine calls outside the App. Westpac says that if you're not sure it's Westpac calling, ask for a reference number, then hang up and call Westpac back on 132 032.
 
 ## What Westpac will never ask you to do
 <!--
@@ -54,11 +54,11 @@ id: scams.westpac.never-links
 authority: westpac
 source: Westpac – Online banking scam and fraud flyer (WL1766 05/25)
 url: https://www.westpac.com.au/content/dam/public/wbc/documents/pdf/security/wbc_security-scam_6pp_flyer_online_banking.pdf
-verified: 2026-10-28
+verified: 2026-10-29
 tags: remote access, install software, AnyDesk, TeamViewer, link to sign in, phishing link, screen sharing, scam
 questions: Someone from the bank wants me to install an app to fix my account, is that safe? | Does Westpac send links to log in? | Would Westpac ask for remote access to my computer?
 -->
-Westpac's online banking scam and fraud flyer says Westpac will never send links requesting personal or financial information, never ask customers to share their password or Security Code, never ask customers to install software that connects to their device, and never send a link that directly opens the Westpac sign-in page. A message or caller doing any of these is a warning sign of a scam, and it should be reported to Westpac through the Westpac App, Online Banking, or 1300 364 294.
+Westpac's online banking scam and fraud flyer says Westpac will never send links requesting personal or financial information, never ask customers to share their password or Security Code, never ask customers to install software that connects to their device, and never send a link that directly opens the Westpac sign-in page. For updates on an existing scam or fraud case, the flyer points to westpac.com.au/scamcase or 1300 364 294.
 
 ## What Westpac does after you report a card scam or fraud
 <!--
@@ -88,13 +88,13 @@ After an online banking scam or fraud is reported, Westpac says it may stop paym
 <!--
 id: scams.westpac.guarantee-conditions
 authority: westpac
-source: Westpac – Security
-url: https://www.westpac.com.au/security/
-verified: 2026-10-28
+source: Westpac – How we protect you
+url: https://www.westpac.com.au/security/how-we-protect-you/
+verified: 2026-10-29
 tags: guarantee conditions, eligible for refund, keep password private, shared my code, report immediately, Online Banking Security Guarantee
 questions: When does Westpac's online banking guarantee not apply? | Do I get my money back if I gave the scammer my code? | What do I have to do to be covered by the Westpac guarantee?
 -->
-Under the Westpac Online Banking Security Guarantee, if a Westpac account is compromised as a result of internet fraud, Westpac guarantees to repay any missing funds, provided the customer complies with Westpac's Online Banking Terms and Conditions. This includes keeping sign-in details, such as passwords, Westpac Protect SMS codes and SecurID token codes, private. The customer must also tell Westpac immediately if they suspect their access details have been compromised or suspect an unauthorised transaction or potential fraud. Westpac says the guarantee does not apply to Corporate Online Banking.
+Under the Westpac Online Banking Security Guarantee, if a Westpac account is compromised as a result of internet fraud, Westpac guarantees to repay any missing funds, provided the customer complies with Westpac's Online Banking Terms and Conditions. This includes keeping sign-in details, such as passwords, Westpac Protect SMS codes and SecurID token codes, private. The customer must also tell Westpac immediately if they suspect their access details have been compromised or suspect an unauthorised transaction or potential fraud. To qualify, Westpac says the customer must not have voluntarily participated in the transaction or shared their sign-in details or security codes. The guarantee is not applicable to Corporate Online Banking.
 
 ## SafeBlock: lock all your Westpac accounts and cards
 <!--
@@ -103,8 +103,8 @@ authority: westpac
 source: Westpac – SafeBlock
 url: https://www.westpac.com.au/security/how-we-protect-you/westpac-safeblock/
 verified: 2026-10-28
-tags: SafeBlock, lock accounts, freeze account, block my account, shared details with scammer, emergency lock, card lock
-questions: How do I freeze all my Westpac accounts if I've been scammed? | What does SafeBlock stop? | I gave my details to a scammer, can I lock everything?
+tags: SafeBlock, lock accounts, freeze account, block my account, shared details with scammer, emergency lock, card lock, gave a code, told someone my code, gave my password, money taken, urgent, stop more money leaving, hacked, fraud right now
+questions: How do I freeze all my Westpac accounts if I've been scammed? | What does SafeBlock stop? | I gave my details to a scammer, can I lock everything? | Someone tricked me into reading out an SMS code and money is disappearing, how do I stop it?
 -->
 Westpac SafeBlock is a security feature customers can use in the Westpac App or Online Banking (search "SafeBlock") if they suspect fraud or think they have shared details with a scammer. It instantly locks the customer's accounts and cards. SafeBlock blocks new Online Banking payments and transfers, new card purchases, ATM withdrawals and most recurring card payments. It does not stop deposits, direct debits, scheduled payments set up with an account number, branch transactions or telephone banking. Unlocking may require identity verification and can take time.
 
@@ -114,11 +114,11 @@ id: security.westpac.card-lock
 authority: westpac
 source: Westpac – Lost or stolen card
 url: https://www.westpac.com.au/personal-banking/online-banking/making-the-most/lost-stolen-card
-verified: 2026-10-28
+verified: 2026-10-29
 tags: lock card, lost card, misplaced card, stolen card, temporary lock, 15 days, cancel card, replacement card
 questions: I lost my card, can I lock it temporarily? | How long does a Westpac card lock last? | How do I cancel a stolen Westpac card?
 -->
-Westpac customers can temporarily lock a card in the Westpac App for up to 15 days while they look for it: search "Lock card" and tap "Lock/Unlock card temporarily". The card unlocks automatically after 15 days. To permanently cancel a lost or stolen card and order a replacement, the customer should report it as lost or stolen in the Westpac App or Online Banking instead of locking it.
+Westpac customers can temporarily lock a card in the Westpac App for up to 15 days while they look for it: search "Lock card" and tap "Lock/Unlock card temporarily". The card unlocks automatically after 15 days. To permanently cancel a lost or stolen card and order a replacement, report it as lost or stolen in the Westpac App or Online Banking (Card services, Report lost or stolen cards). For Emergency Card Services, Westpac suggests the Westpac App first, or call 1300 651 089 (+61 2 9155 7700 from overseas).
 
 ## Westpac Verify and Confirmation of Payee when paying someone new
 <!--
@@ -132,17 +132,17 @@ questions: What does "details don't match" mean when paying someone? | Does West
 -->
 When paying someone new by BSB and account number, Westpac Verify with Confirmation of Payee checks the details against the receiving bank's records and Westpac's payment data. Results include "Everything checks out", "Details don't match", "Worth a second look" and "Try again later". If the details don't match, Westpac advises calling the payee to confirm the details and warns that if money is sent to the wrong account it may not be able to recover the funds. The check is only available in Westpac Online Banking and the Westpac App. Eligible individual and sole trader customers can request to opt out of Confirmation of Payee.
 
-## Westpac SaferPay and payment delays to new payees
+## Westpac SaferPay: why a payment was stopped or questioned
 <!--
 id: security.westpac.saferpay
 authority: westpac
 source: Westpac – SaferPay
 url: https://www.westpac.com.au/security/how-we-protect-you/westpac-saferpay/
-verified: 2026-10-28
+verified: 2026-10-29
 tags: SaferPay, payment stopped, payment blocked, payment held, extra questions, scam check, why was my payment stopped
 questions: Why did Westpac stop my payment? | Westpac asked me questions about my payment, why? | My transfer was blocked as a possible scam
 -->
-Westpac SaferPay asks the customer extra questions when a payment shows signs of a scam. If the answers raise concerns, Westpac will prevent the money from leaving the account, and a payment Westpac has categorised as consistent with scam activity will not be processed. Westpac also says payments may take longer when paying a first-time payee or when a payment is caught for additional security screening, and paying someone for the first time usually requires a Security Code. Westpac does not publish a fixed hold period for these payments.
+Westpac SaferPay asks the customer extra questions when a payment shows signs of a scam. If the answers raise concerns, Westpac will prevent the money from leaving the account, and a payment Westpac has categorised as consistent with scam activity will not be processed. Westpac says the extra questions only appear when it detects a potential scam, and that answering them could save a customer who has been targeted by scammers time and money.
 
 ## Disputing a card transaction with Westpac
 <!--
@@ -162,11 +162,11 @@ id: disputes.westpac.chargeback-limits
 authority: westpac
 source: Westpac – Debit Mastercard Terms and Conditions (effective 27 August 2026)
 url: https://www.westpac.com.au/docs/pdf/pb/Debit_MasterCard_TandC.pdf
-verified: 2026-10-28
+verified: 2026-10-29
 tags: chargeback, time limit, 120 days, too late to dispute, BPAY, debit card dispute, card scheme rules
 questions: Is there a time limit to dispute a debit card transaction? | Can I get a chargeback on a BPAY payment? | I noticed a wrong charge from 3 months ago, can I still dispute it?
 -->
-Westpac's Debit Mastercard Terms and Conditions (effective 27 August 2026) say a chargeback is when Westpac charges a disputed transaction back to the merchant under card scheme rules. Mastercard's rules require notice within 120 days of the transaction, so customers should contact Westpac as soon as possible; late notice may prevent Westpac investigating within card scheme time limits. These timeframes may not apply where the ePayments Code applies. Chargebacks are not available for all transactions; for example, Westpac cannot claim a chargeback for BPAY payments. Time limits for other card types were not checked for this knowledge base.
+Westpac's Debit Mastercard Terms and Conditions (effective 27 August 2026) say a chargeback is when Westpac charges a disputed transaction back to the merchant under card scheme rules. Mastercard's rules require notice within 120 days of the transaction, so customers should contact Westpac as soon as possible; late notice may prevent Westpac investigating within card scheme time limits. These timeframes may not apply where the ePayments Code applies. Chargebacks are not available for all transactions; for example, Westpac cannot claim a chargeback for BPAY payments.
 
 ## Liability for unauthorised Westpac debit card transactions
 <!--
@@ -179,3 +179,27 @@ tags: unauthorised transaction, who pays, liable, shared my PIN, wrote PIN on ca
 questions: Do I have to pay for transactions I didn't make on my debit card? | Am I liable if I told my brother my PIN? | What is the most I can lose from an unauthorised transaction?
 -->
 Under Westpac's Debit Mastercard Terms and Conditions (effective 27 August 2026), the account holder is not liable for unauthorised transactions where it is clear the user has not contributed to the loss, including transactions after Westpac was told the card was lost, stolen or misused. The account holder can be liable where the user engaged in fraud, voluntarily disclosed a code to anyone (including a family member or friend), wrote the PIN on the card, acted with extreme carelessness in protecting codes, or unreasonably delayed reporting. Where a code was required and it is unclear whether the user contributed, liability is limited to the least of $150, the account balance including pre-arranged credit, or the actual loss when Westpac is notified.
+
+## Paying a new Westpac payee: Security Codes, delays and red flags
+<!--
+id: security.westpac.new-payee
+authority: westpac
+source: Westpac – Creating or amending a payee
+url: https://www.westpac.com.au/security/articles/creating-a-payee/
+verified: 2026-10-29
+tags: new payee, first time payee, payment delayed, payment taking longer, Osko, security code, changed bank details invoice, red flags, someone guiding me to add a payee, remote access
+questions: Why is my payment to a new person taking so long? | Why does Westpac ask for a Security Code when I pay someone new? | A supplier emailed new bank details, what should I check?
+-->
+Westpac says that when paying someone for the first time, customers will likely be asked to enter a Security Code. Fast payments by Osko may take longer in some instances, such as a technical interruption, a payment to a first time payee, or a payment caught for additional security screening; banks may delay some transactions where they hold valid fraud or scam concerns. Westpac's red flags include someone outside the bank guiding you through adding a payee, being asked to return an unexpected credit, and a PayID name that doesn't match who you're dealing with. If a payee emails new account details, Westpac says to call them on a number you've used before. Once received funds are moved, retrieving them may no longer be possible.
+
+## Recalling a Westpac payment sent to the wrong account
+<!--
+id: payments.westpac.recall
+authority: westpac
+source: Westpac – What should I do if I make an incorrect payment?
+url: https://www.westpac.com.au/faq/incorrect-payment/
+verified: 2026-10-29
+tags: wrong account, paid wrong person, typo in account number, payment recall, trace payment, duplicate payment, get money back, report this transaction, mistaken payment
+questions: I put the wrong account number in, how do I ask Westpac to get my money back? | How do I recall a payment in the Westpac app? | Can Westpac trace a payment the payee says they never got?
+-->
+Westpac customers can request a payment recall or trace on selected payments through Online Banking or the Westpac App: sign in, select the transaction, choose "Report this transaction", answer the questions and submit. A recall is where Westpac tries to get the funds back when a payment was made to the incorrect account or duplicated; a trace finds the account the funds were paid into when a payee says they have not received a payment. Westpac says it cannot guarantee that a payment recall will be successful. Progress can be tracked online. Business customers requesting a trace or recall on Osko payments should call or visit a branch.

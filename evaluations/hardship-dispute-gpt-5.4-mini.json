@@ -1,0 +1,1062 @@
+{
+  "executed_at": "2026-10-29T20:21:10+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "balance-and-duplicate",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-5097"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Of course, I can help with that. For your security, I just need to confirm who I\u2019m speaking with so I can check your accounts.\n\nWhat\u2019s your full name?",
+          "spoken": "Of course, I can help with that. For your security, I just need to confirm who I\u2019m speaking with so I can check your accounts.\n\nWhat\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1563
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?\n",
+          "spoken": "[warm] Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1498
+        },
+        {
+          "caller": "oh one, oh nine, ninety nine",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1138
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "You\u2019re all set, Alice. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.\n\nWould you like the balance for another account as well?",
+          "spoken": "You\u2019re all set, Alice. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.\n\nWould you like the balance for another account as well?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 1911
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Certainly\u2026 I\u2019ll pull up the recent transactions now. Sure thing, Alice. Your last few transactions were Uber Eats Sydney for $42.35 on 27 October, Paypal Gamevault for $249.00 on 26 October, Shell Coles Express Fairy Meadow for $50.00 pending on 25 October, and two Coles Newtown transactions for $84.20 each on 24 October.\n\nDo you want me to check one of those in more detail?",
+          "spoken": "Certainly\u2026 I\u2019ll pull up the recent transactions now.Sure thing, Alice. Your last few transactions were Uber Eats Sydney for $42.35 on 27 October, Paypal Gamevault for $249.00 on 26 October, Shell Coles Express Fairy Meadow for $50.00 pending on 25 October, and two Coles Newtown transactions for $84.20 each on 24 October.\n\nDo you want me to check one of those in more detail?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2296
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "That\u2019s frustrating, Alice. I\u2019ll check those two charges and get the right one lodged. Right, I\u2019ve got the match. That does look like a duplicate charge for the same amount and the same day. It\u2019s lodged, Alice. The reference is D S P 5 0 9 7.\n\nThe dispute team will investigate it. It can take up to 45 days.\n\nWould you like me to help with anything else today?",
+          "spoken": "That\u2019s frustrating, Alice. I\u2019ll check those two charges and get the right one lodged.Right, I\u2019ve got the match. That does look like a duplicate charge for the same amount and the same day.It\u2019s lodged, Alice. The reference is D S P 5 0 9 7.\n\nThe dispute team will investigate it. It can take up to 45 days.\n\nWould you like me to help with anything else today?",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4071
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "It\u2019s already been lodged, Alice. The reference is D S P 5 0 9 7.\n\nIs there anything else I can help you with today?",
+          "spoken": "It\u2019s already been lodged, Alice. The reference is D S P 5 0 9 7.\n\nIs there anything else I can help you with today?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1174
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice st newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-2839"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-5895"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "That sounds worrying. Lock your card in your app straight away if you can.  I\u2019m sorry, that would be worrying. It\u2019s for your security, and so the right team can help with your accounts. What\u2019s your full name?",
+          "spoken": "That sounds worrying. Lock your card in your app straight away if you can. I\u2019m sorry, that would be worrying. It\u2019s for your security, and so the right team can help with your accounts. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2386
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?\n",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1105
+        },
+        {
+          "caller": "the first of September 1999",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1027
+        },
+        {
+          "caller": "50 Alice St Newtown New South Wales 2020",
+          "agent": "Got it, Alice. I\u2019ve found a PayPal charge on 26 October for 249 dollars. Is that the one you\u2019re saying you didn\u2019t make?\n",
+          "spoken": "Got it, Alice. I\u2019ve found a PayPal charge on 26 October for 249 dollars. Is that the one you\u2019re saying you didn\u2019t make?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2147
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Right, thanks. I\u2019ve got the transaction.  Thanks, Alice. I\u2019ve lodged that as suspected fraud.\n\nYour reference is F, R, D, 2, 8, 3, 9. The fraud team will review it. Lock the card in your app straight away and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one-time codes.\n\nIs there anything else I can help you with today?",
+          "spoken": "Right, thanks. I\u2019ve got the transaction. Thanks, Alice. I\u2019ve lodged that as suspected fraud.\n\nYour reference is F, R, D, 2, 8, 3, 9. The fraud team will review it. Lock the card in your app straight away and keep it locked until a replacement arrives. Don\u2019t share any passwords, PINs or one-time codes.\n\nIs there anything else I can help you with today?",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4050
+        }
+      ]
+    },
+    {
+      "id": "hardship-and-complaint",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "minji kim",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-10-24",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-2852"
+        },
+        {
+          "type": "complaint",
+          "ref": "CMP-5920"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-7935"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Look, my hours at work got cut in half last month and I honestly don't know how I'm going to make next month's mortgage payment.",
+          "agent": "I\u2019m sorry, that sounds really stressful. There is help for this, and I\u2019ll get you through to the right team now. It\u2019s for your security, and so the right team can help with your accounts. I just need 3 quick details, and first, what\u2019s your full name?",
+          "spoken": "I\u2019m sorry, that sounds really stressful. There is help for this, and I\u2019ll get you through to the right team now.It\u2019s for your security, and so the right team can help with your accounts. I just need 3 quick details, and first, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2469
+        },
+        {
+          "caller": "Minji Kim",
+          "agent": "Great, thanks. And what\u2019s your date of birth?",
+          "spoken": "Great, thanks. And what\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1092
+        },
+        {
+          "caller": "24th of October 1998",
+          "agent": "Lovely, thanks. And what\u2019s your residential address?",
+          "spoken": "Lovely, thanks. And what\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 938
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "All set, Minji.  Sorry you\u2019re dealing with that, Minji. H, D, S, 2, 8, 5, 2. The hardship team will look at your situation and the options with you, and nothing\u2019s been approved on this call. What would you like to know about the hardship support options?",
+          "spoken": "[warm] All set, Minji. [h warm] Sorry you\u2019re dealing with that, Minji. H, D, S, 2, 8, 5, 2. The hardship team will look at your situation and the options with you, and nothing\u2019s been approved on this call. What would you like to know about the hardship support options?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "verified",
+          "ms": 3356
+        },
+        {
+          "caller": "And honestly I'm fed up. I asked to downgrade my card weeks ago and still got charged the annual fee, and nobody's got back to me.",
+          "agent": "Yeah, that\u2019s frustrating.  It\u2019s recorded now. C, M, P, 5, 9, 2, 0. You should get a response within 30 days. What would you like help with next?",
+          "spoken": "Yeah, that\u2019s frustrating. It\u2019s recorded now. C, M, P, 5, 9, 2, 0. You should get a response within 30 days. What would you like help with next?",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "verified",
+          "ms": 2522
+        },
+        {
+          "caller": "I just want that fee refunded, and for someone to actually get back to me.",
+          "agent": "Understood. I\u2019ll get a person to follow up on the fee and the delay. A follow-up request\u2019s been recorded. E, S, C, 7, 9, 3, 5. What else can I help you with today?",
+          "spoken": "Understood. I\u2019ll get a person to follow up on the fee and the delay.A follow-up request\u2019s been recorded. E, S, C, 7, 9, 3, 5. What else can I help you with today?",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "verified",
+          "ms": 2242
+        }
+      ]
+    },
+    {
+      "id": "hardship-distressed",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "minji kim",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-10-24",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-7530"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I don't even know where to start. I lost my job last week and I can't sleep, I've got the car loan and rent and I just don't know what to do.",
+          "agent": "I\u2019m sorry, that sounds really overwhelming. There is help for this, and I\u2019ll get you to the right team. I\u2019m just confirming who you are for your security, and so the right team can help with your accounts. It\u2019s 3 quick details\u2026 what\u2019s your full name?",
+          "spoken": "I\u2019m sorry, that sounds really overwhelming. There is help for this, and I\u2019ll get you to the right team.I\u2019m just confirming who you are for your security, and so the right team can help with your accounts. It\u2019s 3 quick details\u2026 what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2552
+        },
+        {
+          "caller": "Minji Kim",
+          "agent": "Great, thanks. What\u2019s your date of birth?",
+          "spoken": "Great, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1008
+        },
+        {
+          "caller": "24th of October 1998",
+          "agent": "Lovely, thanks. What\u2019s your residential address?",
+          "spoken": "Lovely, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1106
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "You\u2019re all set, Minji.  I\u2019ve recorded that for you. The reference is H, D, S, 7, 5, 3, 0. The hardship team will look at your situation and the options with you, and nothing is approved on this call. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling.\n\nWhat\u2019s the main thing you want help with first, the car loan or the rent?",
+          "spoken": "You\u2019re all set, Minji. [warm] I\u2019ve recorded that for you. The reference is H, D, S, 7, 5, 3, 0. The hardship team will look at your situation and the options with you, and nothing is approved on this call. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling.\n\nWhat\u2019s the main thing you want help with first, the car loan or the rent?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "verified",
+          "ms": 2794
+        },
+        {
+          "caller": "Okay. Thank you.",
+          "agent": "No worries, Minji. What would you like to sort out next?",
+          "spoken": "No worries, Minji. What would you like to sort out next?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1187
+        }
+      ]
+    },
+    {
+      "id": "hardship-illness-pause",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "minji kim",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-10-24",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-2322"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I've just been diagnosed with cancer and I'm off work for treatment. Can you just pause my home loan payments for six months?",
+          "agent": "I\u2019m really sorry you\u2019re dealing with that. I can get this to the right team and record the hardship notice, but I can\u2019t promise a pause myself\u2026  For your security, and so the right team can help with your home loan, I just need 3 quick details. What\u2019s your full name?",
+          "spoken": "I\u2019m really sorry you\u2019re dealing with that. I can get this to the right team and record the hardship notice, but I can\u2019t promise a pause myself\u2026 For your security, and so the right team can help with your home loan, I just need 3 quick details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2406
+        },
+        {
+          "caller": "Minji Kim",
+          "agent": "Great, thanks. What\u2019s your date of birth?",
+          "spoken": "Great, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 960
+        },
+        {
+          "caller": "24th of October 1998",
+          "agent": "Lovely, thanks. What\u2019s your residential address?",
+          "spoken": "Lovely, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 962
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "Alright, Minji\u2026 you\u2019re all set.  I\u2019m sorry you\u2019re going through that, Minji. H, D, S, 2, 3, 2, 2. The hardship team will look at your situation and the options with you, and nothing is approved on this call. What would you like to know about hardship support?",
+          "spoken": "Alright, Minji\u2026 you\u2019re all set. I\u2019m sorry you\u2019re going through that, Minji. H, D, S, 2, 3, 2, 2. The hardship team will look at your situation and the options with you, and nothing is approved on this call. What would you like to know about hardship support?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "verified",
+          "ms": 3335
+        },
+        {
+          "caller": "So that's a yes? The payments are paused?",
+          "agent": "No, it isn\u2019t paused yet. The hardship notice is recorded, and the team will review it with you. What would you like to know about the support options?",
+          "spoken": "No, it isn\u2019t paused yet. The hardship notice is recorded, and the team will review it with you. What would you like to know about the support options?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 2155
+        }
+      ]
+    },
+    {
+      "id": "hardship-separation",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "minji kim",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-10-24",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-8659"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "My partner and I have split up and he's stopped paying his half of the mortgage. I can't cover it on my own.",
+          "agent": "I\u2019m sorry you\u2019re dealing with that. There is help for this, and I\u2019ll get you through to the right team. For your security, and so the right team can help with your accounts, I just need 3 quick details. What\u2019s your full name?",
+          "spoken": "I\u2019m sorry you\u2019re dealing with that. There is help for this, and I\u2019ll get you through to the right team.For your security, and so the right team can help with your accounts, I just need 3 quick details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2820
+        },
+        {
+          "caller": "Minji Kim",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1488
+        },
+        {
+          "caller": "24th of October 1998",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 904
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "Thanks, Minji. You\u2019re all set now, and I\u2019m really sorry you\u2019re carrying that on your own. I\u2019ve got the hardship team to the right place now. Your reference is H, D, S, 8, 6, 5, 9. The hardship team will look at your situation and the options with you, but nothing\u2019s approved on this call. Do you want me to explain what support options the hardship team can look at for you?",
+          "spoken": "Thanks, Minji. You\u2019re all set now, and I\u2019m really sorry you\u2019re carrying that on your own. [warm] I\u2019ve got the hardship team to the right place now.Your reference is H, D, S, 8, 6, 5, 9. The hardship team will look at your situation and the options with you, but nothing\u2019s approved on this call. Do you want me to explain what support options the hardship team can look at for you?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "verified",
+          "ms": 3642
+        },
+        {
+          "caller": "I'm honestly not sure what would help.",
+          "agent": "That\u2019s okay. The hardship team can work through the options with you, and they\u2019ll ask what would make things more manageable. What part of the mortgage is the hardest for you right now?",
+          "spoken": "That\u2019s okay. The hardship team can work through the options with you, and they\u2019ll ask what would make things more manageable. What part of the mortgage is the hardest for you right now?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1127
+        }
+      ]
+    },
+    {
+      "id": "dispute-not-received",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-5694"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I ordered a TV from JB Hi-Fi on my credit card for delivery and it never turned up. Can you dispute it for me?",
+          "agent": "That\u2019s frustrating. I\u2019ll get this to the team that handles disputes, and for a delivery that never arrived it isn\u2019t a fraud lock issue.  For your security, and so the right team can help with your accounts, I just need 3 quick details. What\u2019s your full name?",
+          "spoken": "That\u2019s frustrating. I\u2019ll get this to the team that handles disputes, and for a delivery that never arrived it isn\u2019t a fraud lock issue. For your security, and so the right team can help with your accounts, I just need 3 quick details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2541
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?\n",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 969
+        },
+        {
+          "caller": "1 September 1999",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1311
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "All set, Alice.  I found a JB Hi-Fi charge for 11 October for 399 dollars. Was that the TV delivery that never turned up?\n",
+          "spoken": "[warm] All set, Alice. I found a JB Hi-Fi charge for 11 October for 399 dollars. Was that the TV delivery that never turned up?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2456
+        },
+        {
+          "caller": "Yes, that's the 399 dollar one. Please dispute it.",
+          "agent": "Understood.  It\u2019s lodged. The reference is D, S, P, 5, 6, 9, 4. It\u2019ll usually be investigated within up to 45 days. Is there anything else I can help you with today?",
+          "spoken": "Understood. It\u2019s lodged. The reference is D, S, P, 5, 6, 9, 4. It\u2019ll usually be investigated within up to 45 days. Is there anything else I can help you with today?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2448
+        },
+        {
+          "caller": "Will I get my money back?",
+          "agent": "I can\u2019t promise that outcome. The dispute team will look into it and decide based on what they find. Is there anything else I can help you with today?",
+          "spoken": "I can\u2019t promise that outcome. The dispute team will look into it and decide based on what they find. Is there anything else I can help you with today?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1320
+        }
+      ]
+    },
+    {
+      "id": "dispute-scam",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-4922"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-6450"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I think I've been scammed. I paid a seller through PayPal for a game console and now they've blocked me and nothing's come.",
+          "agent": "That\u2019s really frustrating. Please lock the card in your app straight away so nothing else can go through.  For your security, I just need to confirm who I\u2019m speaking with so the right team can help with your account. It\u2019s 3 quick details, and I\u2019ll start with your full name.",
+          "spoken": "That\u2019s really frustrating. Please lock the card in your app straight away so nothing else can go through. For your security, I just need to confirm who I\u2019m speaking with so the right team can help with your account. It\u2019s 3 quick details, and I\u2019ll start with your full name.",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2456
+        },
+        {
+          "caller": "Not yet, I'll do that now. Can you report it? It was on my credit card.",
+          "agent": "Yeah, I can help with that. I\u2019ll need your full name first so I can report it on the right account. What\u2019s your full name?\n",
+          "spoken": "Yeah, I can help with that. I\u2019ll need your full name first so I can report it on the right account. What\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1270
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 959
+        },
+        {
+          "caller": "first of September 1999",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 933
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "Thanks, Alice. You\u2019re all set.  Right, I\u2019ve found the payment. Was it the PayPal Gamevault charge for 249 dollars on 26 October?\n",
+          "spoken": "Thanks, Alice. You\u2019re all set. Right, I\u2019ve found the payment. Was it the PayPal Gamevault charge for 249 dollars on 26 October?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2292
+        },
+        {
+          "caller": "Yes, that's the one, the PayPal GameVault payment, 249 dollars.",
+          "agent": "Thanks, Alice.  I\u2019ve lodged that for you, and the reference is F, R, D, 4, 9, 2, 2. Please keep the card locked in the app, and don\u2019t share any passwords, PINs or one-time codes with anyone.\n\nThe fraud team will review it as a priority. Have you already locked the card?",
+          "spoken": "Thanks, Alice. I\u2019ve lodged that for you, and the reference is F, R, D, 4, 9, 2, 2. Please keep the card locked in the app, and don\u2019t share any passwords, PINs or one-time codes with anyone.\n\nThe fraud team will review it as a priority. Have you already locked the card?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2752
+        },
+        {
+          "caller": "Am I going to get that back?",
+          "agent": "I can\u2019t promise that, sorry. The fraud team will review what happened and decide the outcome.\n\nHave you locked the card in the app yet?",
+          "spoken": "I can\u2019t promise that, sorry. The fraud team will review what happened and decide the outcome.\n\nHave you locked the card in the app yet?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1022
+        }
+      ]
+    },
+    {
+      "id": "hardship-second-turn-details",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "minji kim",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-10-24",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-6070"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I hurt my back at work a few weeks ago and I've been off since. I'm falling behind on the home loan.",
+          "agent": "I\u2019m sorry to hear that. There is help for this, and I\u2019ll get it to the right team\u2026  For your security, and so the right team can help with your accounts, I just need 3 quick details. What\u2019s your full name?",
+          "spoken": "I\u2019m sorry to hear that. There is help for this, and I\u2019ll get it to the right team\u2026 For your security, and so the right team can help with your accounts, I just need 3 quick details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2698
+        },
+        {
+          "caller": "Minji Kim",
+          "agent": "Lovely, thanks. What\u2019s your date of birth?",
+          "spoken": "Lovely, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 999
+        },
+        {
+          "caller": "24th of October 1998",
+          "agent": "Great, thanks. What\u2019s your residential address?",
+          "spoken": "Great, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1042
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "I\u2019m sorry you\u2019re dealing with that. H, D, S, 6, 0, 7, 0. The hardship team will look at your situation and the options with you. Nothing\u2019s approved on this call.\n\nWould you like me to explain what usually happens next?",
+          "spoken": "I\u2019m sorry you\u2019re dealing with that. H, D, S, 6, 0, 7, 0. The hardship team will look at your situation and the options with you. Nothing\u2019s approved on this call.\n\nWould you like me to explain what usually happens next?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "verified",
+          "ms": 3382
+        },
+        {
+          "caller": "Oh, and my partner's hours got cut too, so it's both of us really. Can you add that in?",
+          "agent": "Got it, I\u2019ve updated that. What would you like to know about the hardship options next?",
+          "spoken": "Got it, I\u2019ve updated that. What would you like to know about the hardship options next?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "verified",
+          "ms": 2372
+        }
+      ]
+    },
+    {
+      "id": "hardship-goodbye-midway",
+      "run": 1,
+      "passed": false,
+      "problems": [
+        "expected tool record_hardship_notice was not called",
+        "expected a hardship record",
+        "agent never said anything matching /Is there anything else I can help you with today\\?\\s*$/"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Things have been really tight since my business closed, and I'm not sure I can keep up with the home loan.",
+          "agent": "I\u2019m sorry, that sounds really stressful. There is help for this, and I\u2019ll get you to the right team now. For your security, and so the right team can help with your home loan, I just need 3 quick details. What\u2019s your full name?",
+          "spoken": "I\u2019m sorry, that sounds really stressful. There is help for this, and I\u2019ll get you to the right team now.For your security, and so the right team can help with your home loan, I just need 3 quick details. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2561
+        },
+        {
+          "caller": "Sorry, I've got to go, my kid's calling me. Bye.",
+          "agent": "No worries, take your time. I can keep this brief when you\u2019re back, and I\u2019ll just need your full name to continue.\n",
+          "spoken": "No worries, take your time. I can keep this brief when you\u2019re back, and I\u2019ll just need your full name to continue.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1175
+        }
+      ]
+    }
+  ]
+}

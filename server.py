@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import bank
 import engine
+import kb
 import providers
 import openai_provider
 import speech
@@ -49,10 +50,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, {'csrf_token': TOKEN, 'provider': openai_provider.status(), 'speech': speech.status(), 'live_voice': live_voice.status(), 'date': engine.today(),
                 'corpus_hash': engine.canonical_hash(engine.load_corpus()), 'prompt_version': providers.PROMPT_VERSION})
         if self.path == '/api/knowledge':
-            corpus = engine.load_corpus()
-            for source in corpus['sources']:
-                source['current_status'] = engine.source_state(source, corpus['chunks'], engine.today())
-            return self.send(200, corpus)
+            return self.send(200, {'files': kb.files()})
         if self.path == '/api/evaluation':
             with EVAL_LOCK: state = dict(EVAL_STATE)
             return self.send(200, state)

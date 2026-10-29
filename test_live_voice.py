@@ -144,6 +144,12 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(out, "Perfect, that lines up. What's your date of birth?\n")
         out, _ = await self.speak(['Lock the card in your app now. ', "What's your full name? ", call])
         self.assertEqual(out, 'Lock the card in your app now. ')  # Statements before a tool call still stream.
+        out, _ = await self.speak(['I can help with that. ', 'It protects your account, so I just need to start identity checks first.', call])
+        self.assertEqual(out, 'I can help with that. ')  # The reply after the tool explains verification and asks, in one go.
+        out, _ = await self.speak(["Sure… I'll just verify you first so I can look that up.", call])
+        self.assertEqual(out, 'Sure… ')
+        out, _ = await self.speak(['For your security, I need to check 3 details. ', "What's your full name?"], allowed={'3'})
+        self.assertEqual(out, "For your security, I need to check 3 details. What's your full name?")  # No tool: said in full.
         out, _ = await self.speak(["I'm so sorry. Which repayments are ", 'affected? ', 'Take your time.'])
         self.assertEqual(out, "I'm so sorry. Which repayments are affected? Take your time.")  # No tool: all of it, in order.
         seen = set()
@@ -341,7 +347,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
     async def test_a_name_in_the_turn_that_starts_verification_counts(self):
         from livekit.agents import llm
         agent, wf = self.agent()
-        message = llm.ChatMessage(role='user', content=["Hi, it's Alice Wonderland here. Can you check my balance?"])
+        message = llm.ChatMessage(role='user', content=["Hi, it's Alice Wonderland here. There's a charge I want to ask about."])
         await agent.on_user_turn_completed(llm.ChatContext(), message)
         self.assertEqual(wf.idv.status, 'not_started')
         result = json.loads(await agent._run('get_account_summary'))
@@ -354,6 +360,52 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         await agent2.on_user_turn_completed(llm.ChatContext(), other)
         json.loads(await agent2._run('begin_identity_verification', reason='balance'))
         self.assertEqual((wf2.idv.step, wf2.idv.history), ('full_name', []))
+
+    async def test_the_callback_form_opens_only_after_an_earlier_offer(self):
+        agent, wf = self.agent()
+        agent.turn_seen = ('m1', set())
+        result = json.loads(await agent.open_callback_form(None, 'car_loan'))  # Asked for a loan; nothing offered yet.
+        self.assertEqual(result['error'], 'not_offered')
+        self.assertIn('lending specialist', result['next'])
+        agent.callback_offered = 'm1'  # Offered in this same reply: the caller hasn't said yes.
+        self.assertEqual(json.loads(await agent.open_callback_form(None, 'car_loan'))['error'], 'not_offered')
+        agent.turn_seen = ('m2', set())  # They said yes in the next turn.
+        self.assertNotIn('error', json.loads(await agent.open_callback_form(None, 'car_loan')))
+        self.assertEqual([f['status'] for f in wf.forms.values()], ['open'])
+
+    def test_the_fixed_prompt_keeps_the_claude_cache_mark(self):
+        from live_agent import fixed_prompt_cached
+        mark = {'type': 'ephemeral'}
+        system = [{'type': 'text', 'text': 'Role and rules'}, {'type': 'text', 'text': 'Worker note', 'cache_control': mark}]
+        self.assertEqual(fixed_prompt_cached(system), [{'type': 'text', 'text': 'Role and rules', 'cache_control': mark},
+                                                       {'type': 'text', 'text': 'Worker note'}])
+        alone = [{'type': 'text', 'text': 'Role and rules', 'cache_control': mark}]
+        self.assertEqual(fixed_prompt_cached(alone), alone)
+
+    async def test_the_worker_starts_verification_when_the_caller_asks_for_their_own_records(self):
+        from livekit.agents import Agent, llm
+        for text, step in [("I want to know my account balance.", 'full_name'), ("Hi, it's Alice Wonderland. What's my balance?", 'dob')]:
+            agent, wf = self.agent()
+            message, turn = llm.ChatMessage(role='user', content=[text]), llm.ChatContext()
+            await agent.on_user_turn_completed(turn, message)
+            with self.subTest(text):
+                self.assertEqual((wf.idv.status, wf.idv.step), ('in_progress', step))
+                self.assertEqual(turn.items[-1].role, 'system')  # Changes the turn, so a preemptive draft is discarded.
+        seen = {}
+        async def fake_llm(self, chat_ctx, tools, settings):
+            seen['note'] = chat_ctx.items[-1].text_content
+            yield "For your security, I need to check three details. What's your full name?"
+        agent, wf = self.agent()
+        ctx = llm.ChatContext()
+        ctx.add_message(role='user', content='I want to know my account balance.')
+        await agent.on_user_turn_completed(llm.ChatContext(), ctx.items[-1])
+        with patch.object(Agent.default, 'llm_node', fake_llm):
+            [p async for p in agent.llm_node(ctx, [], None)]
+        self.assertIn('three quick details', seen['note'])
+        for text in ["Can you check my wife's balance?", "There's a payment on my card I didn't make.", "What's your home loan rate?"]:
+            agent, wf = self.agent()
+            await agent.on_user_turn_completed(llm.ChatContext(), llm.ChatMessage(role='user', content=[text]))
+            with self.subTest(text): self.assertEqual(wf.idv.status, 'not_started')
 
     async def test_preemptive_drafts_during_verification_never_reach_the_model(self):
         from livekit.agents import Agent, llm
@@ -414,25 +466,22 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
             await session.start(agent=agent, record=False)
             with patch.object(Agent.default, 'llm_node', fake_llm):
                 await session.run(user_input="What's the difference between fixed and variable?")
-        said = [i.text_content for i in session.history.items if getattr(i, 'role', None) == 'assistant']
+        said = [i.text_content.strip() for i in session.history.items if getattr(i, 'role', None) == 'assistant']
         self.assertIn(said[0], LOOKUP_LINES)
         self.assertEqual(said[1], 'A fixed rate stays the same for the fixed term.')
 
     def test_lookup_line_only_when_silent_and_never_twice_in_a_row(self):
+        from livekit.agents import llm
         agent, _ = self.agent()
-        class Session:
-            def __init__(self): self.said = []
-            def say(self, text, **kwargs): self.said.append((text, kwargs))
-        session = Session()
-        agent.current_said = ['Sure, let me check the rates. ']
-        agent.announce_lookup(session)
-        self.assertEqual(session.said, [])  # The model already filled the gap itself.
-        for _ in range(6):
-            agent.current_said = []
-            agent.announce_lookup(session)
-        lines = [text for text, _ in session.said]
-        self.assertTrue(all(a != b for a, b in zip(lines, lines[1:])))
-        self.assertEqual(session.said[0][1], {'allow_interruptions': True, 'add_to_chat_ctx': True})
+        search = llm.ChatChunk(id='a', delta=llm.ChoiceDelta(role='assistant', tool_calls=[llm.FunctionToolCall(
+            name='search_banking_knowledge', arguments='{}', call_id='c1')]))
+        other = llm.ChatChunk(id='b', delta=llm.ChoiceDelta(role='assistant', tool_calls=[llm.FunctionToolCall(
+            name='get_account_summary', arguments='{}', call_id='c2')]))
+        self.assertIsNone(agent.lookup_line(search, ['Sure, let me check the rates. ']))  # The model already filled the gap itself.
+        self.assertIsNone(agent.lookup_line(other, []))
+        self.assertIsNone(agent.lookup_line('Some text. ', []))
+        lines = [agent.lookup_line(search, []) for _ in range(6)]
+        self.assertTrue(all(lines) and all(a != b for a, b in zip(lines, lines[1:])))
 
     def test_greeting_cannot_be_interrupted_and_voice_is_expressive(self):
         import inspect
@@ -442,7 +491,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         with patch.dict(os.environ, {'ELEVENLABS_STABILITY': '0.35', 'ELEVENLABS_SPEED': '0.9'}):
             settings = live_agent.voice_settings()
         self.assertEqual((settings.stability, settings.speed), (0.35, 0.9))
-        self.assertEqual(live_agent.voice_settings().stability, 0.4)
+        self.assertEqual(live_agent.voice_settings().stability, 0.5)
 
     async def test_override_attempts_are_refused_without_model(self):
         from livekit.agents import Agent, AgentSession, llm
@@ -488,7 +537,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(names, {'begin_identity_verification', 'get_account_summary', 'get_recent_transactions', 'get_transaction_details',
                                  'get_loans', 'get_loan_applications', 'get_case_status', 'lodge_dispute', 'search_banking_knowledge',
                                  'estimate_loan_repayment', 'record_hardship_notice', 'lodge_complaint', 'request_human_followup',
-                                 'open_callback_form', 'pause_identity_verification'})
+                                 'open_callback_form', 'open_contact_form', 'pause_identity_verification'})
 
     async def test_provider_and_audio_detector_configuration(self):
         from live_agent import make_session

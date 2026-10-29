@@ -178,7 +178,7 @@ def form(conn, form_id):
     return dict(row) if row else None
 
 
-def validate_callback(body):
+def validate_callback(body, consent=True):
     errors = {}
     name = body.get('name') if isinstance(body.get('name'), str) else ''
     name = ' '.join(name.split())
@@ -186,20 +186,26 @@ def validate_callback(body):
     phone = re.sub(r'[\s()-]', '', body.get('phone') if isinstance(body.get('phone'), str) else '')
     if phone.startswith('+61'): phone = '0' + phone[3:]
     if not re.fullmatch(r'0[2378]\d{8}|04\d{8}', phone): errors['phone'] = 'Enter an Australian mobile or landline number.'
-    if body.get('consent') is not True: errors['consent'] = 'Consent is required for a callback.'
+    if consent and body.get('consent') is not True: errors['consent'] = 'Consent is required for a callback.'
     return {'name': name, 'phone': phone}, errors
 
 
+FORM_KINDS = {'loan_callback': 'Lending specialist callback', 'contact_callback': 'Call back an unverified caller'}
+
+
 def submit_callback(conn, form_id, body):
-    """Validate and save a lending callback request. Returns (form, reference, errors)."""
+    """Validate and save a callback request: a lending callback (name, phone, consent) or a call back for a caller who
+    couldn't be verified (name and phone only). Returns (form, reference, errors)."""
     record = form(conn, form_id)
-    if not record or record['kind'] != 'loan_callback': return None, None, {'form': 'This form is no longer available.'}
+    if not record or record['kind'] not in FORM_KINDS: return None, None, {'form': 'This form is no longer available.'}
     if record['status'] != 'open': return record, None, {'form': 'This form was already ' + record['status'] + '.'}
-    clean, errors = validate_callback(body)
+    lending = record['kind'] == 'loan_callback'
+    clean, errors = validate_callback(body, consent=lending)
     if errors: return record, None, errors
     customer_id = (session_state(conn, record['session_id']) or {}).get('verified_customer')
-    ref = create_case(conn, 'callback', f"Lending specialist callback: {record['purpose'].replace('_', ' ')}",
-                      {'name': clean['name'], 'phone': clean['phone'], 'consent': True, 'purpose': record['purpose'], 'mock': True},
+    details = {'name': clean['name'], 'phone': clean['phone'], 'purpose': record['purpose'], 'mock': True}
+    if lending: details['consent'] = True
+    ref = create_case(conn, 'callback', f"{FORM_KINDS[record['kind']]}: {record['purpose'].replace('_', ' ')}", details,
                       customer_id=customer_id, session_id=record['session_id'])
     conn.execute('UPDATE forms SET status=?, updated_at=?, result=? WHERE id=?', ('submitted', now(), json.dumps({'reference': ref}), form_id))
     return record, ref, {}

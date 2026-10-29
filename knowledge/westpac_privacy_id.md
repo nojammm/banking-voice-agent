@@ -78,11 +78,11 @@ id: credit.westpac.ban-period
 authority: westpac
 source: Westpac – Privacy Statement and Credit Reporting Policy (effective August 2026)
 url: https://www.westpac.com.au/content/dam/public/wbc/documents/pdf/privacy/wbc-privacy-statement.pdf
-verified: 2026-10-28
-tags: identity theft, identity stolen, credit ban, freeze credit file, fraud victim, someone applied for credit in my name, pre-screening opt out
-questions: Someone stole my identity, can I freeze my credit file? | How do I stop someone taking out a loan in my name? | Can I opt out of credit pre-screening?
+verified: 2026-10-29
+tags: identity theft, identity stolen, credit ban, freeze credit file, fraud victim, someone applied for credit in my name, pre-screening opt out, data breach, details leaked, hack, my information was stolen, licence number exposed
+questions: Someone stole my identity, can I freeze my credit file? | How do I stop someone taking out a loan in my name? | Can I opt out of credit pre-screening? | My personal details were exposed in a company's cyber attack, how do I protect my credit?
 -->
-Westpac's Credit Reporting Policy (part of its Privacy Statement, effective August 2026) says a customer who reasonably believes they have been, or are likely to be, a victim of fraud, including identity theft, can ask a credit reporting body not to use or share their credit-related information for a period. This is often called a credit ban. Westpac's policy also says customers can ask credit reporting bodies not to use their information for credit "pre-screening" for direct marketing. Westpac uses Equifax (13 83 32) and Experian (1300 783 684).
+Westpac's Credit Reporting Policy (part of its Privacy Statement, effective August 2026) says a customer who reasonably believes they have been, or are likely to be, a victim of fraud, including identity theft, can ask a credit reporting body not to use or share their credit-related information for a period. Westpac's policy also says customers can ask credit reporting bodies not to use their information for credit "pre-screening" for direct marketing. Westpac uses Equifax (13 83 32) and Experian (1300 783 684).
 
 ## Why Westpac asks you to verify your identity (Know Your Customer)
 <!--
@@ -119,3 +119,27 @@ tags: AML/CTF Act, anti-money laundering law, Scams Prevention Framework, legal 
 questions: What law makes Westpac check my identity? | Is Westpac legally required to verify who I am? | Does Westpac use my information to stop scams?
 -->
 Westpac's Privacy Statement (effective August 2026) says Westpac collects personal information to verify customers' identity and comply with its obligations under the Anti-Money Laundering and Counter-Terrorism Financing Act 2006 (Cth). Westpac also handles personal information to help prevent, detect, report, disrupt and respond to scams in accordance with the Scams Prevention Framework Act 2025 (Cth).
+
+## Sharing your Westpac data through open banking safely
+<!--
+id: openbanking.westpac.share
+authority: westpac
+source: Westpac – Open Banking
+url: https://www.westpac.com.au/about-westpac/innovation/open-banking/
+verified: 2026-10-29
+tags: open banking, Consumer Data Right, CDR, budgeting app, connect app to Westpac, share bank data, accredited data recipient, ADR, password, one time password, is it safe
+questions: Do I give a budgeting app my Westpac password to connect it? | How does open banking work with Westpac? | Which apps can get my Westpac data through open banking?
+-->
+Westpac says Open Banking lets customers share their banking data with parties they trust, but only Accredited Data Recipients (ADRs), which must be accredited by the Australian Competition and Consumer Commission (ACCC) and comply with privacy and security requirements. A personal customer starts at the ADR's consent portal and is then connected to Westpac to authorise the share using their Westpac Customer Number and a One Time Password through Westpac Protect SMS. For security, Westpac says customers cannot use their Online Banking password for data sharing. Westpac will only share a customer's data with an ADR if the customer gives permission, unless required by law, and an ADR must only use the data for the purpose the customer requested.
+
+## Stopping open banking data sharing with Westpac's data sharing dashboard
+<!--
+id: openbanking.westpac.dashboard
+authority: westpac
+source: Westpac – Open Banking
+url: https://www.westpac.com.au/about-westpac/innovation/open-banking/
+verified: 2026-10-29
+tags: stop sharing data, withdraw consent, revoke app access, data sharing dashboard, open banking consent, 12 months, expired consent, joint account data sharing
+questions: How do I cut off an app's access to my Westpac data? | Where can I see which apps I've shared my Westpac data with? | How long does an open banking consent last?
+-->
+Westpac customers can see all active consents, and past consents that expired or were revoked or cancelled, in the data sharing dashboard in Westpac Online Banking. A customer can withdraw permission to share data on any account at any time using the dashboard; Westpac then stops sharing and sends a notice as soon as practicable. A consent can be a one-time share or last up to a maximum of 12 months, after which a new consent is needed. Any joint account holder can disable data sharing on a joint account through the dashboard, and re-enabling it needs all joint holders to approve.
