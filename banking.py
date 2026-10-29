@@ -3,6 +3,7 @@
 Every customer-data tool checks the Worker's verification state itself; the prompt is not the
 control. Results carry only what the reply needs, with account numbers masked.
 """
+import asyncio
 import re
 from datetime import date
 import bank
@@ -22,10 +23,18 @@ LOAN_PURPOSES = {'home_loan', 'refinance', 'personal_loan', 'car_loan', 'other'}
 FAILED_NEXT = ("Verification can't be retried and records can't be accessed or noted against an account on this call. Tell them "
                "kindly that you weren't able to verify them, and that the team can call them back; in that same reply, without asking "
                "first, call open_contact_form to put a short form on their screen for their name and number.")
+BOX_LEAD_IN = ("Right after your words, the Worker asks them to type their customer number into a box on their screen, with a "
+               "fixed line. So don't ask for it, mention the box, or explain why you need to check who they are; if nothing else "
+               "needs saying, say nothing.")
 MOCK = "Don't promise when or how anyone will be in touch."
 MOCK_GIVEN = "Don't repeat what happens next unless they ask."
 OTHER_ASKS = ("If they asked for other things too that you haven't mentioned yet, touch on each in a few words first: the answer if a "
               "search found it, otherwise that you'll come back to it, never that it's done or started unless a tool result shows it. Then ")
+
+
+def short_reason(reason):
+    """A model-written reason worth carrying: a few plain words."""
+    return isinstance(reason, str) and 0 < len(reason) <= 80 and '\n' not in reason
 
 
 def money(value):
@@ -75,6 +84,10 @@ class Workflow:
         self.acknowledged = False  # Set by the agent before a tool call: it already responded to how the caller feels this turn.
         self.turn, self.shown = None, {}  # Caller turns (set by the voice agent) and when each transaction was first shown.
         self.verified_turn = None  # The caller turn in which verification passed.
+        # Set by the voice worker: the customer number box waits until the agent has finished asking for it, so the caller
+        # isn't typing while it's still talking. show_box() puts it up; a timer does if no reply ends.
+        self.hold_box, self.held_box, self.box_timer = False, None, None
+        self.waiting = []  # What the caller asked for that needed verification, so it isn't lost on the way.
         verification.on_event = self.audit
         bank.save_session(conn, session_id, self.snapshot())
 
@@ -109,6 +122,44 @@ class Workflow:
     async def auth_changed(self):
         await self.emit({'type': 'auth', 'state': self.idv.status,
                          'step': idv.STEP_LABEL.get(self.idv.step) if self.idv.step else None})
+        await self.sync_number_form()
+
+    async def sync_number_form(self):
+        """The customer number box is on screen exactly while verification waits for it."""
+        waiting = self.idv.status == 'in_progress' and self.idv.step == 'customer_number'
+        open_ = [f for f, v in self.forms.items() if v['status'] == 'open' and v.get('kind') == 'customer_number']
+        if waiting and not open_:
+            missed = bool(self.idv.last) and self.idv.last['step'] == 'customer_number' and self.idv.last['outcome'] == 'fail'
+            notice = 'not_found' if missed else None
+            form_id = bank.open_form(self.conn, self.session_id, 'customer_number', 'identification')
+            self.forms[form_id] = {'status': 'open', 'purpose': 'identification', 'kind': 'customer_number', 'notice': notice}
+            self.audit('form_opened', {'form_id': form_id, 'kind': 'customer_number'})
+            payload = {'type': 'form', 'action': 'open', 'form_id': form_id, 'kind': 'customer_number', 'notice': notice}
+            if not self.hold_box: return await self.emit(payload)
+            self.held_box = payload
+            self.box_timer = asyncio.get_running_loop().call_later(12, lambda: asyncio.ensure_future(self.show_box()))
+        elif open_ and not waiting:  # Paused or finished some other way: take the box away.
+            self._drop_held()
+            for form_id in open_:
+                bank.close_form(self.conn, form_id, 'withdrawn')
+                self.forms[form_id]['status'] = 'withdrawn'
+                self.audit('form_withdrawn', {'form_id': form_id, 'idv': self.idv.status})
+                await self.emit({'type': 'form', 'action': 'close', 'form_id': form_id})
+
+    async def show_box(self):
+        """The agent has finished speaking: put up the customer number box if it's waiting."""
+        payload = self._drop_held()
+        if payload: await self.emit(payload)
+
+    def _drop_held(self):
+        payload, self.held_box = self.held_box, None
+        if self.box_timer: self.box_timer.cancel()
+        self.box_timer = None
+        return payload
+
+    def typing(self):
+        """The open customer number box, if the caller has started typing into it."""
+        return next((f for f, v in self.forms.items() if v['status'] == 'open' and v.get('kind') == 'customer_number' and v.get('typing')), None)
 
     def state_note(self, fresh=None):
         contact = [f['status'] for f in self.forms.values() if f.get('kind') == 'contact_callback']
@@ -118,7 +169,13 @@ class Workflow:
                      "again or repeat that you couldn't verify them. General questions and complaints are still fine."]
         else:
             lines = [self.idv.note(fresh)]
-        open_forms = [f for f, v in self.forms.items() if v['status'] == 'open']
+        if self.idv.verified and fresh and fresh.get('outcome') == 'pass' and self.waiting:
+            lines.append("Before verification they asked for: " + '; '.join(w.replace('_', ' ') for w in self.waiting) +
+                         ". Do each now that's still wanted, calling its tool, as well as anything they've raised since.")
+        if self.typing():
+            lines.append("They're typing their customer number into the box right now. Don't ask for it again or explain why it's "
+                         "needed: if they say something, answer in a few words and let them finish.")
+        open_forms = [f for f, v in self.forms.items() if v['status'] == 'open' and v.get('kind') != 'customer_number']
         if open_forms:
             lines.append('A callback form is open on the caller\'s screen. Wait for its form event; never assume it was submitted.')
         if self.created:
@@ -143,6 +200,7 @@ class Workflow:
         status = self.idv.status
         if status == 'verified': return None
         self.audit('tool_blocked', {'tool': tool, 'idv': status})
+        if tool not in self.waiting: self.waiting.append(tool)
         if status in ('not_started', 'paused'):
             fresh = status == 'not_started'
             self.idv.begin('tool')  # A paused check resumes where it stopped, attempts intact.
@@ -177,6 +235,7 @@ class Workflow:
         if self.idv.status == 'verified': return {'status': 'already_verified'}
         if self.idv.status == 'failed': return {'status': 'failed', 'next': FAILED_NEXT}
         fresh = self.idv.status == 'not_started'
+        if reason and short_reason(reason) and reason not in self.waiting: self.waiting.append(reason)
         self.idv.begin('tool')
         await self.auth_changed()
         return {'status': 'in_progress', 'next': self.ask_step(fresh)}
@@ -184,13 +243,17 @@ class Workflow:
     def ask_step(self, fresh):
         """What the reply that starts or resumes verification says, as one reply. If the agent already responded to how the
         caller feels this turn (acknowledged), it goes straight to the request."""
-        if fresh and self.idv.step == 'full_name':
+        if self.idv.step == 'customer_number':  # The Worker asks for it itself, with the box: the reply is only the lead-in.
+            feel = ("You've already responded to how they feel this turn, so don't again. " if self.acknowledged or not fresh else
+                    "Respond to what they've told you as a caring person would: real empathy if they're struggling, upset or worried, "
+                    "a few friendly words otherwise. ")
+            return f"{feel}{OTHER_ASKS.replace(' Then ', ' ')}{BOX_LEAD_IN}"
+        if fresh and self.idv.step == self.idv.cfg['steps'][0]:
             feel = ("You've already responded to how they feel this turn, so go straight on: " if self.acknowledged else
                     "respond to what they've told you as a caring person would: real empathy if they're struggling, upset or worried, "
                     "a few friendly words otherwise. Then ")
             return (f"{OTHER_ASKS}in this one reply, {feel}say briefly why you need to confirm who they are (for their security, and "
-                    "so you can help with their accounts), that it's three quick details, and ask for their full name as a "
-                    "question.")
+                    "so you can help with their accounts), that it's three quick details, and ask for their full name as a question.")
         return f"{OTHER_ASKS}ask for the caller's {idv.STEP_LABEL[self.idv.step]} naturally."
 
     async def pause_identity_verification(self, reason=''):
@@ -397,10 +460,28 @@ class Workflow:
                                             "happens next for after they've sent it, and don't say it's submitted until a form event "
                                             "arrives."}
 
+    def _number_event(self, status, event):
+        """The caller used the customer number box. The Worker, not the backend, decides whether it found anyone."""
+        if status == 'submitted':
+            if self.idv.enter_customer_number(event.get('customer_number')) is None: return None
+            return 'Frontend event: the caller typed a customer number into the box on their screen.\n\n' + self.idv.note(self.idv.last)
+        if status in ('cancelled', 'closed'):
+            self.idv.pause('caller', 'closed the customer number box')
+            return ("Frontend event: the caller closed the customer number box without entering a number, so verification is paused. "
+                    "Ask lightly whether they'd like to carry on; if they do, call begin_identity_verification and the box comes back. "
+                    "Otherwise help with what they want now.")
+        return ("Frontend event: what the caller typed isn't a customer number (those look like CUS and five digits). The box is still "
+                "open and shows the error. Briefly let them know, without reading anything back.")
+
     def form_event(self, event):
         """Apply a backend-confirmed form event. Returns reply instructions, or None to ignore it."""
         form_id, status = event.get('form_id'), event.get('status')
         record = self.forms.get(form_id)
+        if status == 'typing':  # Not an outcome: the agent just shouldn't talk over it.
+            if record and record['status'] == 'open' and record.get('kind') == 'customer_number' and not record.get('typing'):
+                record['typing'] = True
+                self.audit('caller_typing', {'form_id': form_id})
+            return None
         if not record or status not in ('submitted', 'cancelled', 'closed', 'error'):
             self.audit('form_event_ignored', {'form_id': form_id, 'status': status, 'reason': 'unknown form or status'})
             return None
@@ -409,6 +490,7 @@ class Workflow:
             return None
         if status != 'error': record['status'] = status
         self.audit('form_event_received', {'form_id': form_id, 'status': status})
+        if record.get('kind') == 'customer_number': return self._number_event(status, event)
         if status == 'submitted':
             ref = event.get('reference', '')
             if not re.fullmatch(r'CBK-\d{4}', ref): return None

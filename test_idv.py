@@ -18,7 +18,9 @@ CUSTOMERS = [EMILY, ARJUN]
 
 
 def config(**overrides):
+    """Name first: these tests check spoken answers. CustomerNumberTests covers the default, number-first flow."""
     cfg = copy.deepcopy(idv.DEFAULTS)
+    cfg['steps'] = ['full_name', 'dob', 'address']
     for key, value in overrides.items(): cfg[key].update(value)
     return idv.validate_config(cfg)
 
@@ -622,6 +624,57 @@ class SplitUtteranceTests(unittest.TestCase):
 
 
 EMILY_ANSWERS = ['Emily Carter', '14 March 1991', 'unit 4 56 Harbour Street Wollongong NSW 2500']
+
+
+class CustomerNumberTests(unittest.TestCase):
+    """The default flow: the number typed into the box finds one record, and every spoken answer is checked against it alone."""
+    RECORDS = [{**EMILY, 'id': 'CUS-10001'}, {**ARJUN, 'id': 'CUS-20002'}]
+
+    def make(self):
+        v = idv.Verification(self.RECORDS, idv.validate_config(copy.deepcopy(idv.DEFAULTS)), None, TODAY)
+        v.begin('tool')
+        return v
+
+    def test_typed_forms_of_the_number_are_the_same(self):
+        for text in ['CUS-10001', 'cus 10001', 'cus-10001', ' 10001 ']:
+            with self.subTest(text): self.assertEqual(idv.normalize_customer_number(text), 'CUS-10001')
+        for text in ['CUS-1000', 'CUS-100011', 'Emily Carter', '', None]:
+            with self.subTest(text): self.assertIsNone(idv.normalize_customer_number(text))
+
+    def test_only_the_box_gives_the_number_and_the_name_is_checked_against_that_record(self):
+        v = self.make()
+        self.assertEqual(v.step, 'customer_number')
+        self.assertIsNone(run(v.answer('CUS-10001')))  # Spoken, it doesn't count and costs nothing.
+        self.assertIsNone(run(v.answer('Emily Carter')))
+        self.assertEqual((v.step, v.history), ('customer_number', []))
+        self.assertIn('box', v.note())
+        self.assertIn("can't get into their records", v.note())  # They've spoken twice without typing it.
+        self.assertNotIn("can't get into their records", self.make().note())  # The first ask isn't a refusal.
+        self.assertEqual(v.enter_customer_number('cus 10001').outcome, 'pass')
+        self.assertEqual((v.step, v.customer_id), ('full_name', 'CUS-10001'))
+        self.assertIn('three quick details', v.note(v.last))
+        self.assertIsNone(v.enter_customer_number('CUS-20002'))  # Once found, the record can't be swapped.
+        self.assertEqual(run(v.answer('Arjun Raghavan')).outcome, 'fail')  # A real customer, but not this one.
+        self.assertEqual(v.customer_id, 'CUS-10001')
+        for text in EMILY_ANSWERS: run(v.answer(text))
+        self.assertEqual((v.status, v.customer_id), ('verified', 'CUS-10001'))
+
+    def test_unknown_numbers_use_attempts_and_never_reach_the_note(self):
+        v = self.make()
+        self.assertEqual(v.enter_customer_number('CUS-99999').outcome, 'fail')
+        note = v.note(v.last)
+        self.assertIn("didn't match a record", note)
+        self.assertNotIn('99999', note)
+        self.assertIsNone(v.enter_customer_number('not a number'))  # Malformed input is the backend's to reject.
+        v.enter_customer_number('CUS-99998'); v.enter_customer_number('CUS-99997')
+        self.assertEqual((v.status, v.customer_id), ('failed', None))
+
+    def test_a_name_first_profile_cant_put_the_number_after_the_name(self):
+        cfg = copy.deepcopy(idv.DEFAULTS)
+        cfg['steps'] = ['full_name', 'customer_number', 'dob']
+        with self.assertRaises(ValueError): idv.validate_config(cfg)
+        cfg['steps'] = ['full_name', 'dob', 'address']
+        self.assertEqual(idv.validate_config(cfg)['steps'][0], 'full_name')
 
 
 @unittest.skipUnless(importlib.util.find_spec('yaml'), 'PyYAML ships in .venv-livekit')

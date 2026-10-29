@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import idv
+
 ROOT = Path(__file__).resolve().parent
 DB_PATH = ROOT / 'data/bank.db'
 SEED_PATH = ROOT / 'data/bank_seed.json'
@@ -209,6 +211,18 @@ def submit_callback(conn, form_id, body):
                       customer_id=customer_id, session_id=record['session_id'])
     conn.execute('UPDATE forms SET status=?, updated_at=?, result=? WHERE id=?', ('submitted', now(), json.dumps({'reference': ref}), form_id))
     return record, ref, {}
+
+
+def submit_customer_number(conn, form_id, body):
+    """Check the format and close the box. Whether the number belongs to anyone is the Worker's call, not the backend's.
+    Returns (form, number, errors)."""
+    record = form(conn, form_id)
+    if not record or record['kind'] != 'customer_number': return None, None, {'form': 'This form is no longer available.'}
+    if record['status'] != 'open': return record, None, {'form': 'This form was already ' + record['status'] + '.'}
+    number = idv.normalize_customer_number(body.get('customer_number'))
+    if not number: return record, None, {'customer_number': 'Enter a customer number like CUS-12345.'}
+    conn.execute('UPDATE forms SET status=?, updated_at=? WHERE id=?', ('submitted', now(), form_id))
+    return record, number, {}
 
 
 def close_form(conn, form_id, reason):

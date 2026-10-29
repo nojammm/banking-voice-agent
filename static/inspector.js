@@ -4,7 +4,7 @@
   const el = id => document.getElementById(id);
   const make = (tag, text, cls) => { const n = document.createElement(tag); if(text !== undefined && text !== null) n.textContent = text; if(cls) n.className = cls; return n; };
   const money = v => (v < 0 ? '-' : '') + '$' + Math.abs(v).toLocaleString('en-AU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-  const STEP = {full_name: 'Full name', dob: 'Date of birth', address: 'Address'};
+  const STEP = {customer_number: 'Customer number', full_name: 'Full name', dob: 'Date of birth', address: 'Address'};
   let overview = null, sessionId = null, lastSeq = 0, polling = null;
 
   document.querySelectorAll('.inspector .tab').forEach(tab => tab.addEventListener('click', () => {

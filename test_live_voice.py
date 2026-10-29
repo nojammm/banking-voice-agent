@@ -79,9 +79,11 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
     async def publish(self, payload):
         self.events.append(payload)
 
-    def agent(self):
+    def agent(self, name_first=False):
         from live_agent import VoiceAgent
-        cfg = idv.validate_config(json.loads(json.dumps(idv.DEFAULTS)))
+        cfg = json.loads(json.dumps(idv.DEFAULTS))
+        if name_first: cfg['steps'] = ['full_name', 'dob', 'address']  # The name finds the record: no customer number box.
+        cfg = idv.validate_config(cfg)
         wf = banking.Workflow.create('evidence-' + 'c' * 24, conn=self.conn, publish=self.publish, config=cfg, today=date(2026, 10, 28))
         return VoiceAgent(wf, self.publish), wf
 
@@ -344,6 +346,11 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         from livekit.agents import llm
         agent, wf = self.agent()
         wf.idv.begin('tool')
+        agent.raw_finals = ['CUS-10482']  # Said aloud, the number doesn't count: only the box on screen does.
+        message = llm.ChatMessage(role='user', content=['CUS-10482'])
+        await agent.on_user_turn_completed(llm.ChatContext(), message)
+        self.assertEqual((wf.idv.step, message.text_content), ('customer_number', 'CUS-10482'))
+        wf.idv.enter_customer_number('CUS-10482')
         for raw, step in [('Alice Wonderland', 'dob'), ('oh one oh nine ninety nine', 'address')]:
             agent.raw_finals = [raw]
             message, turn = llm.ChatMessage(role='user', content=['[REDACTED]']), llm.ChatContext()
@@ -360,7 +367,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_a_name_in_the_turn_that_starts_verification_counts(self):
         from livekit.agents import llm
-        agent, wf = self.agent()
+        agent, wf = self.agent(name_first=True)
         message = llm.ChatMessage(role='user', content=["Hi, it's Alice Wonderland here. There's a charge I want to ask about."])
         await agent.on_user_turn_completed(llm.ChatContext(), message)
         self.assertEqual(wf.idv.status, 'not_started')
@@ -370,7 +377,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('date of birth', result['next'])
         self.assertIn('just checked out', wf.state_note(agent.fresh[message.id]))
         other = llm.ChatMessage(role='user', content=['What are your home loan rates?'])
-        agent2, wf2 = self.agent()
+        agent2, wf2 = self.agent(name_first=True)
         await agent2.on_user_turn_completed(llm.ChatContext(), other)
         json.loads(await agent2._run('begin_identity_verification', reason='balance'))
         self.assertEqual((wf2.idv.step, wf2.idv.history), ('full_name', []))
@@ -398,7 +405,8 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_the_worker_starts_verification_when_the_caller_asks_for_their_own_records(self):
         from livekit.agents import Agent, llm
-        for text, step in [("I want to know my account balance.", 'full_name'), ("Hi, it's Alice Wonderland. What's my balance?", 'dob')]:
+        # Before the customer number, a name can't be matched: there's no record to check it against yet.
+        for text, step in [("I want to know my account balance.", 'customer_number'), ("Hi, it's Alice Wonderland. What's my balance?", 'customer_number')]:
             agent, wf = self.agent()
             message, turn = llm.ChatMessage(role='user', content=[text]), llm.ChatContext()
             await agent.on_user_turn_completed(turn, message)
@@ -408,18 +416,84 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         seen = {}
         async def fake_llm(self, chat_ctx, tools, settings):
             seen['note'] = chat_ctx.items[-1].text_content
-            yield "For your security, I need to check three details. What's your full name?"
+            yield "For your security, could you type your customer number into the box on your screen?"
+        self.events.clear()
         agent, wf = self.agent()
         ctx = llm.ChatContext()
         ctx.add_message(role='user', content='I want to know my account balance.')
         await agent.on_user_turn_completed(llm.ChatContext(), ctx.items[-1])
         with patch.object(Agent.default, 'llm_node', fake_llm):
             [p async for p in agent.llm_node(ctx, [], None)]
-        self.assertIn('three quick details', seen['note'])
+        self.assertIn("don't ask for it", seen['note'])
+        self.assertEqual([e['kind'] for e in self.events if e.get('type') == 'form'], ['customer_number'])
         for text in ["Can you check my wife's balance?", "There's a payment on my card I didn't make.", "What's your home loan rate?"]:
             agent, wf = self.agent()
             await agent.on_user_turn_completed(llm.ChatContext(), llm.ChatMessage(role='user', content=[text]))
             with self.subTest(text): self.assertEqual(wf.idv.status, 'not_started')
+
+    async def test_the_worker_asks_for_the_customer_number_with_one_fixed_line(self):
+        from livekit.agents import Agent, llm
+        from live_agent import ASK_NUMBER, ASK_NUMBER_AGAIN
+        agent, wf = self.agent()
+        message = llm.ChatMessage(role='user', content=["I can't make my loan payment next month."])
+        await agent.on_user_turn_completed(llm.ChatContext(), message)
+        agent.turn_seen = (message.id, {'i’m sorry you’re dealing with that.'})  # Said before the tool call.
+        await agent._run('begin_identity_verification', reason='hardship')
+        ctx = llm.ChatContext()
+        ctx.items.append(message)
+        call = llm.FunctionCall(call_id='c1', name='begin_identity_verification', arguments='{}')
+        ctx.items.extend([call, llm.FunctionCallOutput(call_id='c1', name=call.name, output='{"status": "in_progress"}', is_error=False)])
+        with patch.object(Agent.default, 'llm_node', side_effect=AssertionError('nothing left for the model to say')):
+            self.assertEqual(''.join([p async for p in agent.llm_node(ctx, [], None)]), ASK_NUMBER)
+        self.assertIsNone(agent.box_to_ask())  # Asked once per box.
+        form_id = next(f for f, v in wf.forms.items() if v.get('kind') == 'customer_number')
+        bank.submit_customer_number(self.conn, form_id, {'customer_number': 'CUS-99999'})
+        wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'submitted', 'customer_number': 'CUS-99999'})
+        await wf.auth_changed()  # A fresh box after the miss.
+        ctx.add_message(role='assistant', content=ASK_NUMBER)  # What was said; the form event's reply comes after it.
+        async def lead_in(self, chat_ctx, tools, settings):
+            yield "Hmm, that one didn't come up. For your security, please type your customer number in again."
+        with patch.object(Agent.default, 'llm_node', lead_in):
+            said = ''.join([p async for p in agent.llm_node(ctx, [], None)])
+        self.assertEqual(said, "Hmm, that one didn't come up. " + ASK_NUMBER_AGAIN)  # The model's own ask is dropped.
+
+    async def test_the_end_of_an_answer_sent_as_its_own_turn_is_never_matched_again(self):
+        # Replay of a live call: "September first nineteen ninety" + "nine" passed the date of birth, then the framework made a
+        # second turn of the trailing "nine", which was checked as the address and failed.
+        from livekit.agents import llm
+        agent, wf = self.agent()
+        agent.heard = True
+        wf.idv.begin('tool')
+        wf.idv.enter_customer_number('CUS-10482')
+        for finals in (['Alice Wonderland'], ['September first nineteen ninety', 'nine']):
+            agent.raw_finals = list(finals)
+            message = llm.ChatMessage(role='user', content=[' '.join(finals)])
+            await agent.on_user_turn_completed(llm.ChatContext(), message)
+        self.assertEqual(wf.idv.step, 'address')
+        for finals in ([], ['nine']):  # No new transcript, or the same words again straight away.
+            with self.subTest(finals):
+                agent.raw_finals = list(finals)
+                leftover, turn = llm.ChatMessage(role='user', content=['nine.']), llm.ChatContext()
+                await agent.on_user_turn_completed(turn, leftover)
+                self.assertEqual((wf.idv.steps['address']['attempts'], len(wf.idv.history)), (0, 3))
+                self.assertIn('withheld', leftover.text_content)
+                self.assertEqual(agent.fresh[leftover.id], agent.fresh[message.id])  # Its reply is the date of birth's.
+        agent.raw_finals = ['50 Alice Street Newtown NSW 2020']
+        await agent.on_user_turn_completed(llm.ChatContext(), llm.ChatMessage(role='user', content=['50 Alice Street']))
+        self.assertEqual(wf.idv.status, 'verified')
+
+    async def test_speech_while_typing_the_number_gets_no_reply_unless_its_a_question(self):
+        from livekit.agents import StopResponse, llm
+        agent, wf = self.agent()
+        agent.heard = True
+        await wf.call('begin_identity_verification', reason='hardship')
+        form_id = next(f for f, v in wf.forms.items() if v.get('kind') == 'customer_number')
+        wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'typing'})
+        agent.raw_finals = ['C U S one oh four eight two']
+        with self.assertRaises(StopResponse):
+            await agent.on_user_turn_completed(llm.ChatContext(), llm.ChatMessage(role='user', content=['C U S 10482']))
+        agent.raw_finals = ['Where do I find it?']
+        await agent.on_user_turn_completed(llm.ChatContext(), llm.ChatMessage(role='user', content=['Where do I find it?']))
 
     async def test_preemptive_drafts_during_verification_never_reach_the_model(self):
         from livekit.agents import Agent, llm
@@ -432,6 +506,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_the_reply_after_the_tool_that_starts_verification_is_spoken_from_a_reused_draft(self):
         from livekit.agents import Agent, llm
+        from live_agent import ASK_NUMBER
         agent, wf = self.agent()
         final = llm.ChatMessage(role='user', content=['I wanna check my account balance.'])
         await agent.on_user_turn_completed(llm.ChatContext(), final)
@@ -441,10 +516,10 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         call = llm.FunctionCall(call_id='c1', name='begin_identity_verification', arguments='{}')
         ctx.items.extend([call, llm.FunctionCallOutput(call_id='c1', name=call.name, output='{}', is_error=False)])
         async def fake_llm(self, chat_ctx, tools, settings):
-            yield "What's your full name?"
+            yield "Sure. What's your full name?"  # Not this step: dropped.
         with patch.object(Agent.default, 'llm_node', fake_llm):
             said = ''.join([p async for p in agent.llm_node(ctx, [], None)])
-        self.assertEqual((wf.idv.status, said), ('in_progress', "What's your full name?"))
+        self.assertEqual((wf.idv.status, said), ('in_progress', 'Sure. ' + ASK_NUMBER))
 
     async def test_worker_state_reaches_the_model_and_regex_activation_runs_on_its_reply(self):
         from livekit.agents import Agent, llm
@@ -452,15 +527,15 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         seen = {}
         async def fake_llm(self, chat_ctx, tools, settings):
             seen['note'] = chat_ctx.items[-1].text_content
-            for piece in ['Sure, I just need to verify ', "a few details. What's your full name?"]: yield piece
+            for piece in ['Sure, I just need to verify ', "who you are. Could you type your customer number in?"]: yield piece
         ctx = llm.ChatContext()
         ctx.add_message(role='user', content="What's my balance?")
         with patch.object(Agent.default, 'llm_node', fake_llm):
             said = ''.join([p async for p in agent.llm_node(ctx, [], None)])
         self.assertIn('IDENTITY VERIFICATION', seen['note'])
-        self.assertIn('full name', said)
+        self.assertIn('customer number', said)
         await asyncio.sleep(0)
-        self.assertEqual((wf.idv.status, wf.idv.steps['full_name']['activated_by']), ('in_progress', 'regex'))
+        self.assertEqual((wf.idv.status, wf.idv.steps['customer_number']['activated_by']), ('in_progress', 'regex'))
 
     async def test_knowledge_search_speaks_a_lookup_line_before_the_answer(self):
         from livekit.agents import Agent, AgentSession, llm

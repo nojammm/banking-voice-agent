@@ -6,7 +6,9 @@ as a live call. Text stands in for the transcript, so STT and TTS are not exerci
     .venv-livekit/bin/python scripts/eval_agent.py fraud --repeat 3     # one scenario, three times
     .venv-livekit/bin/python scripts/eval_agent.py --out evaluations/overnight/run.json --parallel 4
 
-Scenarios live in scripts/eval_scenarios.json. "expect" keys:
+Scenarios live in scripts/eval_scenarios.json. When the customer number box opens, the caller types their number before
+their next turn: "customer_number" if the scenario gives one, else the record matching a name they say (none: box left open).
+"expect" keys:
   verified (bool), idv ("failed" | "paused" | ...), tools (must be called), forbidden_tools (must not be called),
   cases (record types that must be created), no_cases (bool: nothing may be created), no_failed_attempts (bool),
   no_leak (extra strings the agent must not say before verification),
@@ -53,6 +55,15 @@ class TextAgent(live_agent.VoiceAgent):
             yield piece
 
 
+async def caller_number(scenario, customers, cfg):
+    """The scripted caller knows their own number: the record a name they say matches."""
+    if 'customer_number' in scenario: return scenario['customer_number']
+    for text in (t for t in scenario['turns'] if isinstance(t, str)):
+        result = await idv.match_name(text, customers, cfg)
+        if result.outcome == 'pass': return result.customer_id
+    return None
+
+
 async def converse(scenario):
     ui = []
 
@@ -79,7 +90,12 @@ async def converse(scenario):
                                'idv': workflow.idv.status, 'ms': round((time.monotonic() - started) * 1000)})
             agent.spoken = ''
 
+        number, typed = await caller_number(scenario, workflow.idv.customers, workflow.idv.cfg['name_match']), set()
         for step in scenario['turns']:
+            box = next((f for f, v in workflow.forms.items() if v['status'] == 'open' and v.get('kind') == 'customer_number'), None)
+            if box and number and box not in typed and not (isinstance(step, dict) and 'customer_number' in step.get('fields', {})):
+                typed.add(box)
+                await enter_number(workflow, box, number, turn)
             if isinstance(step, str):
                 await turn(step)
                 continue
@@ -88,6 +104,9 @@ async def converse(scenario):
                 transcript.append({'caller': f"[frontend: {step['form']}] no form was open", 'agent': '', 'tools': [], 'idv': workflow.idv.status, 'ms': 0})
                 continue
             action, event = step['form'], {'type': 'form_event', 'form_id': form['form_id']}
+            if action == 'submit' and form.get('kind') == 'customer_number':
+                await enter_number(workflow, form['form_id'], step['fields']['customer_number'], turn)
+                continue
             if action == 'submit':
                 _, ref, errors = bank.submit_callback(workflow.conn, form['form_id'], step.get('fields', {}))
                 event.update({'status': 'error', 'fields': sorted(errors)} if errors else {'status': 'submitted', 'reference': ref})
@@ -99,6 +118,16 @@ async def converse(scenario):
             await turn(instructions=workflow.form_event(event), label=f"[frontend: form {event['status']}]")
     workflow.audit('session_closed', {})
     return workflow, transcript
+
+
+async def enter_number(workflow, form_id, number, turn):
+    """What the browser and backend do when the caller types into the box, then the Worker's reply."""
+    _, clean, errors = bank.submit_customer_number(workflow.conn, form_id, {'customer_number': number})
+    event = {'type': 'form_event', 'form_id': form_id}
+    event.update({'status': 'error', 'fields': sorted(errors)} if errors else {'status': 'submitted', 'customer_number': clean})
+    instructions = workflow.form_event(event)
+    await workflow.auth_changed()
+    await turn(instructions=instructions, label=f'[frontend: typed customer number {number}]')
 
 
 def check(scenario, workflow, transcript):

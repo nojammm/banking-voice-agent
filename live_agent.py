@@ -13,7 +13,7 @@ from typing import Literal
 os.environ['LIVEKIT_AGENTS_PRELOAD_LOCAL_INFERENCE'] = '0'
 from livekit import rtc
 from livekit.agents import (Agent, AgentServer, AgentSession, AudioConfig, BackgroundAudioPlayer, BuiltinAudioClip, JobContext,
-                            MetricsCollectedEvent, RunContext, cli, function_tool, inference, llm, room_io, stt)
+                            MetricsCollectedEvent, RunContext, StopResponse, cli, function_tool, inference, llm, room_io, stt)
 import anthropic as anthropic_sdk
 from livekit.plugins import anthropic, deepgram, elevenlabs, openai
 import banking
@@ -25,6 +25,13 @@ GREETING = "Hi, I'm Red, Westpac's AI assistant. How can I help you today?"
 # Spoken by the knowledge tool itself the moment a search starts, so the wait is never silent.
 LOOKUP_LINES = ("Let me look that up for you.", "Sure, let me just check that.", "Good question… let me check.",
                 "One sec, I'll find that for you.")
+
+# The customer number box comes with its own line, said by the Worker, so the ask is always the same and never
+# hallucinated. The model's reply is only the lead-in; any ask or ID&V explanation in it is dropped (BOX_TALK).
+ASK_NUMBER = "Could you type your customer number into the box on your screen for me?"
+ASK_NUMBER_AGAIN = "Could you check it and type it in again for me?"
+BOX_TALK = re.compile(r"\bcustomer (?:number|id)\b|\bbox\b|\bverif|\bidentity\b|\bsecurity\b|"
+                      r"\bconfirm (?:who|it['’]?s|your)\b|\bcheck (?:who|it['’]?s you)\b|\b(?:full|your) name\b|\bdate of birth\b", re.I)
 
 TTS_MODEL = os.environ.get('ELEVENLABS_LIVE_MODEL', 'eleven_v4_turbo')
 # ElevenLabs v3/v4 perform bracketed audio tags; Flash and older models read them aloud.
@@ -231,7 +238,7 @@ def sentences(text):
     return out + ([text[start:]] if text[start:] else [])
 
 
-async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=None, backed=True, flags=None):
+async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=None, backed=True, flags=None, drop=None):
     """Pass tool calls through untouched; stop speech that states a number nobody supplied.
 
     Speech goes out a sentence at a time. A question, or an announcement that a record is being made or verification is
@@ -245,7 +252,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
 
     Unless a record tool ran this turn (backed), a claim that a record was updated waits too. If the reply ends without
     a tool call, the claim is never said: with flags, nothing held is said and flags['unbacked'] asks the caller to
-    regenerate; without, only the claim sentences are left out."""
+    regenerate; without, only the claim sentences are left out. A sentence matching drop is never said."""
     audio_tags = AUDIO_TAGS if audio_tags is None else audio_tags
     pending, held, tool_called, searched, spoken, blocked = '', [], False, False, False, False
     said = [] if said is None else said
@@ -295,6 +302,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
         out = []
         for piece in pieces:
             key = ' '.join(AUDIO_TAG.sub('', piece).lower().split())
+            if drop and drop.search(key): continue
             if len(key) >= 8 and key in seen: continue
             if not re.search(r'\d', key) and any(close(key, e) for e in earlier): continue
             seen.add(key)
@@ -358,6 +366,21 @@ def recorded_this_turn(chat_ctx, names=RECORD_TOOLS):
     return False
 
 
+def verification_only(chat_ctx):
+    """Whether this is the reply straight after tool results that only started or resumed verification (nothing to say
+    about them). A later reply in the same turn, like one after a form event, isn't."""
+    outputs = []
+    for item in reversed(chat_ctx.items):
+        if isinstance(item, llm.ChatMessage) and item.role == 'user': break
+        if isinstance(item, llm.ChatMessage) and item.role == 'assistant': return False
+        if isinstance(item, llm.FunctionCallOutput): outputs.append(item.output)
+    def started(output):
+        try: result = json.loads(output)
+        except ValueError: return False
+        return result.get('error') in ('verification_required', 'verification_in_progress') or result.get('status') == 'in_progress'
+    return bool(outputs) and all(started(o) for o in outputs)
+
+
 def ends_flat(reply, caller=''):
     """Whether a finished reply leaves the caller nothing to respond to: it asks and invites nothing, and it isn't
     a goodbye or a reply to a caller who is wrapping up ("that's all, thanks", "bye")."""
@@ -389,6 +412,8 @@ class VoiceAgent(Agent):
         self.callback_offered = None  # The caller turn in which the agent explained the lending callback.
         self.check_ins = []  # Check-ins added after flat replies, so the next one is worded differently.
         self.started = set()  # Caller turns in which the Worker started verification from their words.
+        self.heard = False  # Speech-to-text is in use, so every real caller turn brings new final transcripts.
+        self.last_turn = None  # (message id, content the model saw, raw words, when) for the caller's previous turn.
 
     async def stt_node(self, audio, model_settings):
         async for event in Agent.default.stt_node(self, audio, model_settings):
@@ -396,6 +421,7 @@ class VoiceAgent(Agent):
                 if event.type == stt.SpeechEventType.FINAL_TRANSCRIPT and event.alternatives:
                     # The ID&V matcher needs the words as spoken; everything downstream sees the redacted copy.
                     self.raw_finals.append(event.alternatives[0].text)
+                    self.heard = True
                 for alternative in event.alternatives:
                     alternative.text = redact(alternative.text)
             yield event
@@ -406,9 +432,15 @@ class VoiceAgent(Agent):
 
     async def on_user_turn_completed(self, turn_ctx, new_message):
         raw = ' '.join(self.raw_finals).strip() or new_message.text_content or ''
+        if self.leftover(raw):
+            self._same_turn(new_message, turn_ctx)
+            return
         self.raw_finals.clear()
         self.seen.add(new_message.id)
         self.workflow.new_turn()
+        self.last_turn = (new_message.id, new_message.content, raw, time.monotonic())
+        if self.workflow.typing() and not (idv.is_question(raw) or '?' in (new_message.text_content or '')):
+            raise StopResponse()  # They're typing the number and talking to themselves (or reading it out): let them finish.
         verification = self.workflow.idv
         # A name said before verification starts counts if a tool starts verification in this same turn.
         self.opening = (new_message.id, raw) if verification.status == 'not_started' else None
@@ -423,15 +455,38 @@ class VoiceAgent(Agent):
         if result.outcome != 'no_answer':
             # The model never sees identity answers; it only learns the Worker's outcome.
             new_message.content = [f'[The caller answered the {idv.STEP_LABEL[step]} question. The Worker withheld the answer.]']
+        self.last_turn = (new_message.id, new_message.content, raw, self.last_turn[3])
         # Always changing this turn's context stops a preemptive draft from being reused.
         turn_ctx.add_message(role='system', content='The Worker processed this turn for identity verification.')
         await self.workflow.auth_changed()
+
+    def leftover(self, raw):
+        """A turn made only of words the previous turn already used: speech-to-text sent the end of an answer ("…ninety" +
+        "nine") after the turn was taken, and the framework made it a turn of its own. No new final transcript, or the
+        same words again within a few seconds."""
+        if not self.heard or self.last_turn is None: return False
+        if not self.raw_finals: return True
+        words, before = ' '.join(re.findall(r'\w+', raw.lower())), ' '.join(re.findall(r'\w+', self.last_turn[2].lower()))
+        return bool(words) and time.monotonic() - self.last_turn[3] < 3 and f' {words} ' in f' {before} '
+
+    def _same_turn(self, message, turn_ctx):
+        """Treat a leftover turn as the previous one: nothing is matched again, and the reply is the one that turn needed."""
+        self.raw_finals.clear()
+        self.seen.add(message.id)
+        before, content = self.last_turn[0], self.last_turn[1]
+        if before in self.fresh:
+            self.fresh[message.id] = self.fresh[before]
+            message.content = list(content)  # An identity answer stays withheld.
+        if before in self.started: self.started.add(message.id)
+        self.workflow.audit('caller_turn_leftover', {'words': len(message.text_content.split()) if message.text_content else 0})
+        turn_ctx.add_message(role='system', content='This turn only repeated the end of the previous one; the Worker had already processed it.')
 
     async def _start_verification(self, message, raw, turn_ctx):
         """The caller wants their own records: start verification now, so the reply explains and asks in one go.
         A name said in the same turn counts if it clearly matches."""
         verification = self.workflow.idv
         verification.begin('worker')
+        self.workflow.waiting.append('what they asked for in the message that started verification')
         self.opening = None
         if await verification.take_volunteered_name(raw): self.fresh[message.id] = verification.last
         else: self.started.add(message.id)
@@ -469,8 +524,10 @@ class VoiceAgent(Agent):
             note += '\n\n' + JUST_VERIFIED_HARDSHIP
         if verification.status == 'in_progress' and WRAP_UP.search(text) and '?' not in text:
             note += '\n\n' + LEAVING
-        if last is not None and last.id in self.started and self.workflow.idv.step == 'full_name':
+        if last is not None and last.id in self.started and not verification.history and verification.step == verification.cfg['steps'][0]:
             note += '\n\nVerification has just started for what they asked. ' + self.workflow.ask_step(True)
+        box = self.box_to_ask()
+        if box and banking.BOX_LEAD_IN not in note: note += '\n\n' + banking.BOX_LEAD_IN
         ctx.add_message(role='system', content=note)
         allowed = allowed_numbers(ctx, self.workflow.facts)
         said = self.current_said = []
@@ -482,11 +539,20 @@ class VoiceAgent(Agent):
                          and not recorded_this_turn(chat_ctx, None))
         backed, flags = recorded_this_turn(chat_ctx), {'verified_now': just_verified}
         try:
-            async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen,
-                                       backed=backed, flags=flags):
-                if (line := self.lookup_line(piece, said)): yield line
-                yield piece
-            tool_called = not flags.get('no_tool')
+            if box and seen and verification_only(chat_ctx):
+                tool_called = False  # They've been answered before the tool call: the Worker's line is the whole reply.
+            else:
+                async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said,
+                                           seen=seen, backed=backed, flags=flags, drop=BOX_TALK if box else None):
+                    if (line := self.lookup_line(piece, said)): yield line
+                    yield piece
+                tool_called = not flags.get('no_tool')
+            if box and not tool_called:  # A tool call means another reply follows: the ask goes at the end of that one.
+                self.workflow.forms[box]['asked'] = True
+                line = ASK_NUMBER_AGAIN if self.workflow.forms[box].get('notice') == 'not_found' else ASK_NUMBER
+                lead = '' if not said or said[-1][-1:].isspace() else ' '
+                async for piece in guarded(self._one(lead + line), allowed, self.publish, said=said, seen=seen):
+                    yield piece
             # One retry: a record change claimed with no tool, or verification just finished and nothing was looked up.
             retry = UNBACKED if flags.get('unbacked') else VERIFIED_NOW if just_verified and flags.get('no_tool') else None
             if retry:
@@ -518,6 +584,15 @@ class VoiceAgent(Agent):
                 task = asyncio.ensure_future(self.workflow.auth_changed())
                 self.pending.add(task)
                 task.add_done_callback(self.pending.discard)
+
+    def box_to_ask(self):
+        """The customer number box, if it's open and the Worker hasn't asked for it yet."""
+        return next((f for f, v in self.workflow.forms.items() if v['status'] == 'open' and v.get('kind') == 'customer_number'
+                     and not v.get('asked')), None)
+
+    @staticmethod
+    async def _one(text):
+        yield text
 
     async def _check_in(self, ctx, said, allowed, seen, backed):
         """One short check-in in the agent's own words, written by a second call without tools and spoken after a flat
@@ -741,6 +816,9 @@ class VoiceAgent(Agent):
         return await self._run('open_contact_form', reason=reason)
 
 
+TAKE_YOUR_TIME = 'No rush, take your time.'
+
+
 def backend_instructions(packet, workflow):
     """Only the web backend (a server SDK call, so no participant) may report form outcomes.
     The browser token can't publish data, so the caller can't forge these."""
@@ -890,6 +968,12 @@ async def entrypoint(ctx: JobContext):
 
     safe_publish = send_async(publish)
     workflow = banking.Workflow.create(ctx.room.name, AGENT_NAME, idv.OpenAIJudge(), publish=safe_publish)
+    workflow.hold_box = True  # The customer number box comes up once the agent has finished asking for it.
+
+    def spawn(coro):
+        task = asyncio.create_task(coro)
+        tasks.add(task)
+        task.add_done_callback(tasks.discard)
 
     @session.on('user_state_changed')
     def user_state(event):
@@ -903,6 +987,7 @@ async def entrypoint(ctx: JobContext):
     @session.on('agent_state_changed')
     def agent_state(event):
         send({'type': 'agent_state', 'state': event.new_state})
+        if event.new_state == 'listening' and workflow.held_box: spawn(workflow.show_box())  # The whole reply has finished.
         # End of the customer's speech to the agent's first audio, measured in this process.
         if event.new_state == 'speaking' and turn['stopped'] is not None:
             send({'type': 'latency', 'ms': round((time.monotonic() - turn['stopped']) * 1000)})
@@ -919,6 +1004,12 @@ async def entrypoint(ctx: JobContext):
         if handled is None: return
         event, instructions = handled
         send({'type': 'form', 'action': 'ack', 'form_id': event.get('form_id'), 'status': event.get('status'), 'handled': bool(instructions)})
+        if event.get('status') == 'typing':
+            if workflow.typing() and session.agent_state == 'speaking':  # Still talking as they start: stop and let them type.
+                session.interrupt()
+                session.say(TAKE_YOUR_TIME, add_to_chat_ctx=True)
+            return
+        spawn(workflow.auth_changed())  # A typed customer number moves verification on, or brings the box back.
         if instructions: session.generate_reply(instructions=instructions)
 
     async def cleanup():

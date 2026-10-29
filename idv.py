@@ -20,15 +20,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 CONFIG_PATH = ROOT / 'config/assistants.yaml'
-STEP_CONFIG = {'full_name': 'name_match', 'dob': 'dob_match', 'address': 'address_match'}
-STEP_LABEL = {'full_name': 'full name', 'dob': 'date of birth', 'address': 'residential address'}
+STEP_CONFIG = {'customer_number': 'customer_number_match', 'full_name': 'name_match', 'dob': 'dob_match', 'address': 'address_match'}
+STEP_LABEL = {'customer_number': 'customer number', 'full_name': 'full name', 'dob': 'date of birth', 'address': 'residential address'}
+IDENTIFY = ('customer_number', 'full_name')  # Steps that can pick the record; whichever comes first does.
 
 DEFAULTS = {
-    'steps': ['full_name', 'dob', 'address'],
+    'steps': ['customer_number', 'full_name', 'dob', 'address'],
     'max_incomplete': 3,
     'free_uncertain_per_step': 1,
     'auto_pause_after_non_answers': 2,
     'debug': True,
+    'customer_number_match': {'max_attempts': 3},
     'name_match': {'high_threshold': 0.55, 'low_threshold': 0.15, 'component_floor': 0.5,
                    'llm_fallback_enabled': True, 'max_attempts': 3},
     'dob_match': {'two_digit_year_pivot': 8, 'llm_fallback_enabled': True, 'max_attempts': 2},
@@ -52,8 +54,8 @@ def _merge(base, override, where):
 def validate_config(cfg):
     if not cfg['steps'] or any(s not in STEP_CONFIG for s in cfg['steps']) or len(set(cfg['steps'])) != len(cfg['steps']):
         raise ValueError('steps must list distinct values from ' + ', '.join(STEP_CONFIG))
-    if cfg['steps'][0] != 'full_name':
-        raise ValueError('full_name must come first: it identifies the record the other steps check')
+    if cfg['steps'][0] not in IDENTIFY or (cfg['steps'][0] == 'full_name' and 'customer_number' in cfg['steps']):
+        raise ValueError('customer_number (or full_name, without it) must come first: it identifies the record the other steps check')
     for key in ('name_match', 'address_match'):
         low, high = cfg[key]['low_threshold'], cfg[key]['high_threshold']
         if not 0 <= low <= high <= 1: raise ValueError(f'{key}: need 0 <= low_threshold <= high_threshold <= 1')
@@ -403,6 +405,24 @@ def _valid_name_verdict(response):
 QUESTION = re.compile(r"(?:^|[.,;:!]\s*|\b(?:and|so|but|oh|um|also|sorry|actually|one)\s+)"
                       r"(?:is|are|was|were|do|does|did|can|could|will|would|should|what|why|how)(?:['’]s)?\s+"
                       r"(?:my|your|you|it|its|there|the|this|that|i|we|they)\b", re.I)
+
+
+CUSTOMER_NUMBER = re.compile(r'(?:CUS)?-?(\d{5})')
+
+
+def normalize_customer_number(text):
+    """'cus 10482', 'CUS-10482' and '10482' are the same number; anything else isn't one."""
+    m = CUSTOMER_NUMBER.fullmatch(re.sub(r'\s+', '', text).upper()) if isinstance(text, str) else None
+    return f'CUS-{m.group(1)}' if m else None
+
+
+def match_customer_number(text, customers):
+    """Typed into the box on screen, so it's exact: one record or none."""
+    number = normalize_customer_number(text)
+    if not number: return FieldResult('customer_number', 'no_answer', 'none', reason='format')
+    found = next((c for c in customers if c['id'] == number), None)
+    return FieldResult('customer_number', 'pass' if found else 'fail', 'exact', 1.0 if found else 0.0, number,
+                       customer_id=found['id'] if found else None)
 
 
 def is_question(text):
@@ -819,9 +839,11 @@ async def match_address(text, stored, cfg, judge=None, carry=None):
 # Volunteering one of these while paused resumes verification. Names have a strong "is this an answer?"
 # gate; stray numbers could look like a date or street number, so those steps resume only on request.
 RESUME_BY_ANSWER = {'full_name'}
-CLARIFY = {'full_name': 'spell their surname', 'dob': 'say it again with the month as a word',
+CLARIFY = {'customer_number': 'check it and type it in again',
+           'full_name': 'spell their surname', 'dob': 'say it again with the month as a word',
            'address': 'repeat the street and suburb slowly'}
 ASK_PATTERNS = {
+    'customer_number': re.compile(r"\bcustomer (?:number|id)\b", re.I),
     'full_name': re.compile(r"\b(?:full name|your name|first and last name|surname|last name|legal name)\b", re.I),
     'dob': re.compile(r"\b(?:date of birth|birth ?date|d\.?o\.?b|when (?:were|was) you born|birthday)\b", re.I),
     'address': re.compile(r"\b(?:residential address|home address|your address|street address|address (?:we|on file)|postcode)\b", re.I),
@@ -841,6 +863,7 @@ class Verification:
         self.steps = {s: {'status': 'pending', 'attempts': 0, 'incomplete': 0, 'uncertain': 0, 'asked': False, 'activated_by': None}
                       for s in self.cfg['steps']}
         self.address_carry, self.dob_carry, self.history, self.non_answers, self.paused_by = {}, {}, [], 0, None
+        self.box_turns = 0  # Caller turns spoken while the customer number box waited for them.
 
     @property
     def verified(self):
@@ -848,6 +871,10 @@ class Verification:
 
     def customer(self):
         return next((c for c in self.customers if c['id'] == self.customer_id), None)
+
+    def pool(self):
+        """The records a name is checked against: the one the customer number found, or (name first) all of them."""
+        return [self.customer()] if self.customer_id else self.customers
 
     def _event(self, kind, **data):
         self.on_event(kind, data)
@@ -912,16 +939,27 @@ class Verification:
     async def take_volunteered_name(self, text):
         """A name given in the turn that started verification counts, but only if it clearly matches."""
         if self.status != 'in_progress' or self.step != 'full_name' or self.history: return None
-        if (await match_name(text, self.customers, self.cfg['name_match'])).outcome != 'pass': return None
+        if (await match_name(text, self.pool(), self.cfg['name_match'])).outcome != 'pass': return None
         return await self.answer(text)
+
+    def enter_customer_number(self, text):
+        """What the caller typed into the customer number box on their screen."""
+        if self.status != 'in_progress' or self.step != 'customer_number': return None
+        result = match_customer_number(text, self.customers)
+        if result.outcome == 'no_answer': return None  # The backend checks the format first; this never counts.
+        return self._settle('customer_number', result)
 
     async def answer(self, text):
         resuming = self.status == 'paused' and self.step in RESUME_BY_ANSWER
         if self.status != 'in_progress' and not resuming: return None
+        if self.step == 'customer_number':  # It comes only from the box on screen, never from speech.
+            if self.status == 'in_progress': self.box_turns += 1
+            return None
         step, today = self.step, self.today or date.today()
         cfg = self.cfg[STEP_CONFIG[step]]
+        added = False
         if step == 'full_name':
-            result = await match_name(text, self.customers, cfg, self.judge)
+            result = await match_name(text, self.pool(), cfg, self.judge)
         elif step == 'dob':
             before = self.dob_carry
             result = await match_dob(text, self.customer()['dob'], cfg, self.judge, today, self.dob_carry)
@@ -934,10 +972,14 @@ class Verification:
         if resuming:
             if result.outcome == 'no_answer': return None  # Still moved on: nothing is recorded.
             self.begin('caller')  # They volunteered the detail; it counts like any other attempt.
-        state = self.steps[step]
+        return self._settle(step, result, added)
+
+    def _settle(self, step, result, added=False):
+        """Record an answer's outcome and move the state machine on."""
+        cfg, state = self.cfg[STEP_CONFIG[step]], self.steps[step]
         if result.outcome == 'pass':
             state['status'] = 'passed'
-            if step == 'full_name': self.customer_id = result.customer_id
+            if step in IDENTIFY: self.customer_id = result.customer_id
             remaining = [s for s in self.cfg['steps'] if self.steps[s]['status'] == 'pending']
             if remaining:
                 self._activate(remaining[0], 'progression')
@@ -983,7 +1025,7 @@ class Verification:
                 lines.append("Verification just finished. Let them know warmly, in your own words, that the checks are all done, then get on with what they wanted, as they last put it (a correction replaces what it corrects), "
                              "without repeating back what they told you.")
         elif self.status == 'paused':
-            by = 'the Worker, after turns that weren\'t answers' if self.paused_by == 'worker' else 'you'
+            by = {'worker': "the Worker, after turns that weren't answers", 'caller': 'the caller closing the customer number box'}.get(self.paused_by, 'you')
             lines.append(f"PAUSED by {by}: the caller moved on from what needed verification, so don't push for identity "
                          "details. As soon as they want to continue, want something from their own records, or start giving "
                          f"identity details, call begin_identity_verification: it resumes at the {STEP_LABEL[self.step]} step.")
@@ -1000,7 +1042,14 @@ class Verification:
                          f"Current step: the caller's {STEP_LABEL[self.step]}. Attempts left: {left}.")
             if fresh:
                 outcome = fresh['outcome']
-                if fresh['step'] != self.step and outcome == 'pass':
+                if fresh['step'] == 'customer_number' and outcome == 'pass':
+                    count = {1: 'one', 2: 'two', 3: 'three'}.get(len(self.cfg['steps']) - 1, 'a few')
+                    lines.append("The customer number they typed in found their record. Thank them briefly, then say that for their "
+                                 f"security you just need {count} quick details to confirm it's them, and ask for their {STEP_LABEL[self.step]}.")
+                elif fresh['step'] == 'customer_number' and outcome == 'fail':
+                    lines.append("The customer number they typed in didn't match a record. Kindly let them know, as a likely typo, "
+                                 "without reading anything back. The Worker then asks them to type it again, so don't ask yourself.")
+                elif fresh['step'] != self.step and outcome == 'pass':
                     lines.append(f"Their {STEP_LABEL[fresh['step']]} just checked out. React warmly in your own words, "
                                  f"then ask for their {STEP_LABEL[self.step]} in the same turn.")
                 elif outcome == 'incomplete':
@@ -1021,6 +1070,14 @@ class Verification:
                                  "catch it. Respond to what they actually said. A side question doesn't mean they've moved on: "
                                  "answer it, then come back to the question. Only if they no longer want what needed "
                                  "verification, call pause_identity_verification and help with the new request.")
+            elif self.step == 'customer_number':
+                lines.append("The Worker has asked them to type their customer number (it starts with CUS) into a box on their "
+                             "screen; wait for them to type it in. Don't ask them to say it aloud.")
+                if self.box_turns:  # Once they've had a say: the first ask shouldn't sound like a refusal.
+                    lines.append("If they read it out, ask them to type it into the box instead.")
+                    lines.append("If they don't have one, can't find it, or still haven't typed it after you've asked twice, stop "
+                                 "asking: call pause_identity_verification, say you can't get into their records without it, and "
+                                 "offer general help or a call back from the team (open_contact_form).")
             else:
                 lines.append(f"Ask for their {STEP_LABEL[self.step]} naturally, one item at a time.")
         lines.append("Never say, hint at, or confirm any stored identity detail, and never claim the caller is "

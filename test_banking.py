@@ -18,8 +18,8 @@ import kb
 import server
 
 TODAY = date(2026, 10, 28)
-ALICE = ['Alice Wonderland', 'first of September 1999', '50 Alice Street Newtown NSW 2020']
-MINJI = ['Minji Kim', 'twenty four ten ninety eight', '17 Kooyong Road Caulfield North Victoria 3161']
+ALICE = ['CUS-10482', 'Alice Wonderland', 'first of September 1999', '50 Alice Street Newtown NSW 2020']
+MINJI = ['CUS-20917', 'Minji Kim', 'twenty four ten ninety eight', '17 Kooyong Road Caulfield North Victoria 3161']
 
 
 def run(coro):
@@ -45,7 +45,8 @@ class TempDB(unittest.TestCase):
 
     def verify(self, wf, answers=ALICE):
         wf.idv.begin('tool')
-        for text in answers: run(wf.idv.answer(text))
+        wf.idv.enter_customer_number(answers[0])  # Typed into the box on screen.
+        for text in answers[1:]: run(wf.idv.answer(text))
         self.assertTrue(wf.idv.verified)
 
 
@@ -61,8 +62,10 @@ class AccessControlTests(TempDB):
                 result = run(wf.call(tool, **args))
                 self.assertIn(result['error'], ('verification_required', 'verification_in_progress'))
                 self.assertNotIn('2,418', json.dumps(result))
-        self.assertEqual((wf.idv.status, wf.idv.step, wf.idv.steps['full_name']['activated_by']), ('in_progress', 'full_name', 'tool'))
-        self.assertEqual(self.ui[0], {'type': 'auth', 'state': 'in_progress', 'step': 'full name'})
+        self.assertEqual((wf.idv.status, wf.idv.step, wf.idv.steps['customer_number']['activated_by']), ('in_progress', 'customer_number', 'tool'))
+        self.assertEqual(self.ui[0], {'type': 'auth', 'state': 'in_progress', 'step': 'customer number'})
+        boxes = [e for e in self.ui if e['type'] == 'form']  # One box, however many tools asked.
+        self.assertEqual([(e['action'], e['kind']) for e in boxes], [('open', 'customer_number')])
 
     def test_data_is_returned_only_for_the_verified_customer(self):
         wf = self.workflow()
@@ -78,6 +81,7 @@ class AccessControlTests(TempDB):
     def test_failed_verification_keeps_records_locked(self):
         wf = self.workflow()
         wf.idv.begin()
+        wf.idv.enter_customer_number('CUS-10482')
         run(wf.idv.answer('Alice Wonderland'))
         run(wf.idv.answer('1 January 1990'))
         run(wf.idv.answer('2 January 1990'))
@@ -89,11 +93,12 @@ class AccessControlTests(TempDB):
         self.assertEqual(run(wf.call('pause_identity_verification', reason='x'))['status'], 'not_started')
         run(wf.call('get_loans'))
         self.assertEqual(run(wf.call('pause_identity_verification', reason='only wants general rates'))['status'], 'paused')
-        self.assertEqual(self.ui[-1]['state'], 'paused')
+        self.assertEqual([e['state'] for e in self.ui if e['type'] == 'auth'][-1], 'paused')
+        self.assertEqual(self.ui[-1]['action'], 'close')  # Paused: the customer number box is taken away.
         self.assertIn('rates', json.dumps(run(wf.call('search_banking_knowledge', query='current home loan rates'))))
         blocked = run(wf.call('get_loans'))
         self.assertEqual(blocked['error'], 'verification_required')
-        self.assertIn('full name', blocked['next'])
+        self.assertIn('customer number', blocked['next'])
         self.assertEqual(wf.idv.status, 'in_progress')
 
     def test_loans_applications_and_cases(self):
@@ -340,6 +345,88 @@ class CallbackFormTests(TempDB):
         self.assertEqual(bank.cases(self.conn, session_id=wf.session_id), [])
 
 
+class CustomerNumberBoxTests(TempDB):
+    def boxes(self):
+        return [e for e in self.ui if e['type'] == 'form']
+
+    def submit(self, wf, number):
+        form_id = self.boxes()[-1]['form_id']
+        _, clean, errors = bank.submit_customer_number(self.conn, form_id, {'customer_number': number})
+        if errors: return wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'error', 'fields': sorted(errors)})
+        reply = wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'submitted', 'customer_number': clean})
+        run(wf.auth_changed())  # What the voice worker does after every form event.
+        return reply
+
+    def test_the_box_finds_the_record_and_a_miss_brings_it_back(self):
+        wf = self.workflow()
+        self.assertIn("don't ask for it", run(wf.call('get_loans'))['next'])  # The Worker says the ask itself.
+        self.assertEqual([(e['action'], e['kind']) for e in self.boxes()], [('open', 'customer_number')])
+        self.assertNotIn('callback form is open', wf.state_note())  # The ID&V note covers this box.
+        self.assertIn('CUS and five digits', self.submit(wf, 'Alice'))  # Format: the same box stays up and nothing is used.
+        self.assertEqual((len(self.boxes()), wf.idv.steps['customer_number']['attempts']), (1, 0))
+        reply = self.submit(wf, 'CUS-99999')
+        self.assertIn("didn't match a record", reply)
+        self.assertNotIn('99999', reply)
+        self.assertEqual(self.boxes()[-1]['notice'], 'not_found')  # A fresh box, saying why.
+        self.assertIn('quick details', self.submit(wf, 'cus 20917'))
+        self.assertEqual((wf.idv.step, wf.idv.customer_id), ('full_name', 'CUS-20917'))
+        for text in ALICE[1:]: run(wf.idv.answer(text))  # Alice is a customer, but this is Minji's record.
+        self.assertFalse(wf.idv.verified)
+
+    def test_closing_the_box_pauses_and_continuing_brings_it_back(self):
+        wf = self.workflow()
+        run(wf.call('begin_identity_verification', reason='hardship'))
+        form_id = self.boxes()[-1]['form_id']
+        bank.close_form(self.conn, form_id, 'closed')
+        self.assertIn('paused', wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'closed'}))
+        run(wf.auth_changed())
+        self.assertEqual((wf.idv.status, wf.idv.paused_by, len(self.boxes())), ('paused', 'caller', 1))
+        self.assertIn('the Worker asks them', run(wf.call('begin_identity_verification', reason='hardship'))['next'])
+        self.assertEqual([e['action'] for e in self.boxes()], ['open', 'open'])
+        run(wf.call('pause_identity_verification', reason='general rates'))
+        self.assertEqual(self.boxes()[-1]['action'], 'close')  # The model paused: the box is taken away.
+        self.assertEqual(bank.form(self.conn, self.boxes()[-1]['form_id'])['status'], 'withdrawn')
+
+
+    def test_the_box_waits_for_the_reply_to_finish(self):
+        async def scenario():
+            wf = self.workflow()
+            wf.hold_box = True  # As the voice worker sets it.
+            await wf.call('begin_identity_verification', reason='hardship')
+            self.assertEqual((self.boxes(), wf.held_box['kind']), ([], 'customer_number'))  # Not while the agent is still asking.
+            self.assertIsNotNone(wf.box_timer)  # Shown anyway if no reply ends.
+            await wf.show_box()
+            self.assertEqual([e['action'] for e in self.boxes()], ['open'])
+            self.assertIsNone(wf.box_timer)
+            await wf.call('pause_identity_verification', reason='rates')
+            await wf.call('begin_identity_verification', reason='hardship')
+            await wf.call('pause_identity_verification', reason='rates')  # Withdrawn before it was ever shown.
+            await wf.show_box()
+            self.assertEqual([e['action'] for e in self.boxes()], ['open', 'close', 'close'])
+        run(scenario())
+
+    def test_what_they_asked_for_before_verification_is_carried_through(self):
+        wf = self.workflow()
+        run(wf.call('get_account_summary'))
+        run(wf.call('begin_identity_verification', reason='check balance and loan'))
+        self.verify(wf)
+        note = wf.state_note(wf.idv.last)
+        self.assertIn('Before verification they asked for: get account summary; check balance and loan', note)
+        self.assertNotIn('Before verification', wf.state_note())  # Only on the turn it finished.
+
+    def test_typing_is_noted_once_and_quiets_the_agent(self):
+        wf = self.workflow()
+        run(wf.call('begin_identity_verification', reason='balance'))
+        form_id = self.boxes()[-1]['form_id']
+        self.assertNotIn('typing', wf.state_note())
+        self.assertIsNone(wf.form_event({'type': 'form_event', 'form_id': form_id, 'status': 'typing'}))
+        self.assertEqual(wf.typing(), form_id)
+        self.assertIn("Don't ask for it again", wf.state_note())
+        self.assertEqual(wf.forms[form_id]['status'], 'open')  # Typing isn't an outcome.
+        self.submit(wf, 'CUS-99999')
+        self.assertIsNone(wf.typing())  # The fresh box after a miss starts untyped.
+
+
 class KnowledgeTests(unittest.TestCase):
     def test_retrieval_finds_the_right_document(self):
         cases = {"what's the difference between fixed and variable": 'fixed-vs-variable', 'what documents do I need': 'documents',
@@ -407,6 +494,30 @@ class EndpointTests(TempDB):
         self.assertEqual([e['data']['status'] for e in log], ['error', 'submitted'])
         self.assertEqual(self.post('/api/forms/submit', {'form_id': form_id, 'name': 'Minji K', 'phone': '0395550100', 'consent': True})[0], 400)
 
+    def test_customer_number_reaches_the_worker_only(self):
+        wf = self.workflow()
+        run(wf.call('begin_identity_verification', reason='balance'))
+        form_id = self.ui[-1]['form_id']
+        self.assertEqual(self.post('/api/forms/submit', {'form_id': form_id, 'name': 'Alice'})[0], 400)  # Not this box's fields.
+        code, body = self.post('/api/forms/submit', {'form_id': form_id, 'customer_number': 'CUS-1'})
+        self.assertEqual((code, set(body['errors'])), (400, {'customer_number'}))
+        code, body = self.post('/api/forms/submit', {'form_id': form_id, 'customer_number': 'cus 10482'})
+        self.assertEqual((code, body), (200, {'submitted': True, 'agent_notified': True}))  # The browser isn't told if it was found.
+        room, event = self.sent[-1]
+        self.assertEqual((room, event['status'], event['customer_number']), (wf.session_id, 'submitted', 'CUS-10482'))
+        self.assertEqual(self.post('/api/forms/submit', {'form_id': form_id, 'customer_number': 'CUS-10482'})[0], 400)
+        self.assertEqual(self.post('/api/forms/typing', {'form_id': form_id})[0], 400)  # Only an open box.
+
+    def test_typing_in_the_box_reaches_the_calls_room(self):
+        wf = self.workflow()
+        run(wf.call('open_callback_form', purpose='refinance'))
+        self.assertEqual(self.post('/api/forms/typing', {'form_id': self.ui[-1]['form_id']})[0], 400)  # Not a callback form.
+        run(wf.call('begin_identity_verification', reason='balance'))
+        form_id = self.ui[-1]['form_id']
+        self.assertEqual(self.post('/api/forms/typing', {'form_id': form_id, 'value': 'CUS'})[0], 400)  # Never what's typed.
+        self.assertEqual(self.post('/api/forms/typing', {'form_id': form_id}), (200, {'agent_notified': True}))
+        self.assertEqual(self.sent[-1], (wf.session_id, {'type': 'form_event', 'form_id': form_id, 'status': 'typing'}))
+
     def test_form_close_and_unknown_forms(self):
         wf = self.workflow()
         run(wf.call('open_callback_form', purpose='home_loan'))
@@ -426,7 +537,7 @@ class EndpointTests(TempDB):
         session = self.get('/api/demo/session')['session']
         self.assertEqual((session['id'], session['state']['idv']['status']), (wf.session_id, 'verified'))
         attempts = [e for e in session['events'] if e['kind'] == 'idv_attempt']
-        self.assertEqual([a['data']['step'] for a in attempts], ['full_name', 'dob', 'address'])
+        self.assertEqual([a['data']['step'] for a in attempts], ['customer_number', 'full_name', 'dob', 'address'])
         later = self.get('/api/demo/session?after=' + str(session['events'][-1]['seq']))['session']
         self.assertEqual(later['events'], [])
         run(wf.call('lodge_complaint', category='service', summary='Rude'))

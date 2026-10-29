@@ -1,0 +1,385 @@
+{
+  "executed_at": "2026-10-30T00:09:27+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "idv-wrong-dob-then-right",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "customer_number",
+          "field": "customer_number",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "CUS-10482",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "fail",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you tell me my credit card balance?",
+          "agent": "I can help with that. Could you type your customer number into the box on your screen for me?",
+          "spoken": "I can help with that. Could you type your customer number into the box on your screen for me?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1152
+        },
+        {
+          "caller": "[frontend: typed customer number CUS-10482]",
+          "agent": "Thanks. For your security, I just need three quick details to confirm it\u2019s you. What\u2019s your full name?",
+          "spoken": "Thanks. For your security, I just need three quick details to confirm it\u2019s you. What\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1058
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "That matches, thanks. What\u2019s your date of birth?\n",
+          "spoken": "That matches, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 2534
+        },
+        {
+          "caller": "1 September 1998",
+          "agent": "Sorry, I didn\u2019t catch that clearly. Could you say your date of birth again?",
+          "spoken": "Sorry, I didn\u2019t catch that clearly. Could you say your date of birth again?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1329
+        },
+        {
+          "caller": "Oh sorry, I meant 1 September 1999",
+          "agent": "That\u2019s all good. What\u2019s your residential address?\n",
+          "spoken": "That\u2019s all good. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1264
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "All set, Alice. Your credit card has 1,284.60 owing and 3,715.40 available credit.\n\nIs there anything else I can help you with today?",
+          "spoken": "All set, Alice. Your credit card has 1,284.60 owing and 3,715.40 available credit.\n\nIs there anything else I can help you with today?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 3329
+        }
+      ]
+    },
+    {
+      "id": "hardship-distressed",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "customer_number",
+          "field": "customer_number",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "CUS-20917",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "minji kim",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-10-24",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-6689"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I don't even know where to start. I lost my job last week and I can't sleep, I've got the car loan and rent and I just don't know what to do.",
+          "agent": "I\u2019m really sorry. Let me help you with this. Could you type your customer number into the box on your screen for me?",
+          "spoken": "I\u2019m really sorry. Let me help you with this.Could you type your customer number into the box on your screen for me?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2238
+        },
+        {
+          "caller": "[frontend: typed customer number CUS-20917]",
+          "agent": "Thanks. For your security, I just need your full name.",
+          "spoken": "Thanks. For your security, I just need your full name.",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1063
+        },
+        {
+          "caller": "Minji Kim",
+          "agent": "That\u2019s matched, thank you. What\u2019s your date of birth?\n",
+          "spoken": "That\u2019s matched, thank you. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1174
+        },
+        {
+          "caller": "24th of October 1998",
+          "agent": "That\u2019s matched, thanks. What\u2019s your residential address?",
+          "spoken": "That\u2019s matched, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1000
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "You\u2019re all checked through now.  You\u2019re all set, Minji. We\u2019ve noted it down and passed it to the team who can help with this. Your reference is H, D, S, 6, 6, 8, 9. We\u2019ll respond within 21 days, and no change to your repayments has been agreed yet. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Is there anything else I can help you with today?",
+          "spoken": "[warm] You\u2019re all checked through now. You\u2019re all set, Minji. We\u2019ve noted it down and passed it to the team who can help with this. Your reference is H, D, S, 6, 6, 8, 9. We\u2019ll respond within 21 days, and no change to your repayments has been agreed yet. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Is there anything else I can help you with today?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "verified",
+          "ms": 2703
+        },
+        {
+          "caller": "Okay. Thank you.",
+          "agent": "You\u2019re welcome, Minji. Is there anything else I can help you with today?",
+          "spoken": "You\u2019re welcome, Minji. Is there anything else I can help you with today?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1286
+        }
+      ]
+    },
+    {
+      "id": "idv-mistyped-customer-number",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "customer_number",
+          "field": "customer_number",
+          "outcome": "fail",
+          "method": "exact",
+          "score": 0.0,
+          "normalized": "CUS-10428",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "customer_number",
+          "field": "customer_number",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "CUS-10482",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What's my credit card balance?",
+          "agent": "Sure \u2014 I\u2019ll help with that. Could you type your customer number into the box on your screen for me?",
+          "spoken": "Sure \u2014 I\u2019ll help with that. Could you type your customer number into the box on your screen for me?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1371
+        },
+        {
+          "caller": "[frontend: typed customer number CUS-10428]",
+          "agent": "That looks like a small typo. Could you check it and type it in again for me?",
+          "spoken": "That looks like a small typo. Could you check it and type it in again for me?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1972
+        },
+        {
+          "caller": "[frontend: typed customer number CUS-10482]",
+          "agent": "Thanks. For your security, I just need three quick details to confirm it\u2019s you.\n\nWhat\u2019s your full name?",
+          "spoken": "[warm] Thanks. For your security, I just need three quick details to confirm it\u2019s you.\n\nWhat\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1247
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Great, that\u2019s matched. What\u2019s your date of birth?",
+          "spoken": "Great, that\u2019s matched. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1145
+        },
+        {
+          "caller": "1 September 1999",
+          "agent": "That\u2019s all matched nicely.  Lovely, thanks. What\u2019s your residential address?",
+          "spoken": "[warm] That\u2019s all matched nicely. Lovely, thanks. What\u2019s your residential address?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "in_progress",
+          "ms": 2761
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "All done \u2014 you\u2019re through the checks now. I\u2019m getting your credit card balance for you. All set, Alice. Your Low Rate Visa has 1,284.60 owing and 3,715.40 available credit. Is there anything else I can help you with today?",
+          "spoken": "All done \u2014 you\u2019re through the checks now. I\u2019m getting your credit card balance for you.All set, Alice. Your Low Rate Visa has 1,284.60 owing and 3,715.40 available credit. Is there anything else I can help you with today?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2477
+        }
+      ]
+    }
+  ]
+}

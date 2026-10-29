@@ -4,9 +4,13 @@
 #
 # Name thresholds are a demonstrator configuration, not a validated banking threshold.
 # A name score never unlocks data alone: every step in `steps` must pass.
+# customer_number comes first: the caller types it into a box on screen, it picks one record, and the
+# spoken steps are checked against that record only. Without it, the name is searched across all customers.
 
 defaults:
-  steps: [full_name, dob, address]
+  steps: [customer_number, full_name, dob, address]
+  customer_number_match:
+    max_attempts: 3          # numbers that match no record before verification fails
   max_incomplete: 3          # incomplete answers per step before one counts as a failed attempt
   free_uncertain_per_step: 1 # "probably right, can't confirm" answers that only ask for clarification
   auto_pause_after_non_answers: 2  # pause ID&V when the caller has clearly moved on (0 = never)

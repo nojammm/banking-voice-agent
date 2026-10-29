@@ -85,7 +85,7 @@ class Handler(BaseHTTPRequestHandler):
             try: return self.send(200, live_voice.issue_token(body))
             except ValueError as exc: return self.send(400, {'error': str(exc)})
             except Exception: return self.send(503, {'error': 'Live voice could not start. Use scripts/start_live.py.'})
-        if self.path in ('/api/forms/submit', '/api/forms/close'):
+        if self.path in ('/api/forms/submit', '/api/forms/close', '/api/forms/typing'):
             with closing(bank.connect()) as conn: return self.send(*form_action(conn, self.path, body))
         if self.path == '/api/demo/reset':
             if body != {'confirm': True}: return self.send(400, {'error': 'Confirmation required.'})
@@ -133,13 +133,27 @@ class Handler(BaseHTTPRequestHandler):
 
 def form_action(conn, path, body):
     """Validate and save in the backend first, then tell the agent what actually happened."""
+    if path == '/api/forms/typing':  # The caller started typing their customer number: the agent shouldn't talk over them.
+        record = bank.form(conn, body.get('form_id'))
+        if set(body) != {'form_id'} or not record or record['kind'] != 'customer_number' or record['status'] != 'open':
+            return 400, {'error': 'Invalid request.'}
+        return 200, {'agent_notified': live_voice.notify_room(record['session_id'], {'type': 'form_event', 'form_id': record['id'], 'status': 'typing'})}
     if path == '/api/forms/close':
         if set(body) != {'form_id', 'reason'} or body['reason'] not in ('cancelled', 'closed'): return 400, {'error': 'Invalid request.'}
         record = bank.close_form(conn, body['form_id'], body['reason'])
         if not record: return 404, {'error': 'This form is no longer open.'}
         event = {'type': 'form_event', 'form_id': record['id'], 'status': body['reason']}
         return 200, {'closed': True, 'agent_notified': deliver(conn, record['session_id'], event)}
-    if set(body) - {'form_id', 'name', 'phone', 'consent'}: return 400, {'error': 'Unknown request field.'}
+    number_box = (bank.form(conn, body.get('form_id')) or {}).get('kind') == 'customer_number'
+    if set(body) - ({'form_id', 'customer_number'} if number_box else {'form_id', 'name', 'phone', 'consent'}):
+        return 400, {'error': 'Unknown request field.'}
+    if number_box:
+        record, number, errors = bank.submit_customer_number(conn, body['form_id'], body)
+        if errors:
+            notified = record['status'] == 'open' and deliver(conn, record['session_id'], {'type': 'form_event', 'form_id': record['id'], 'status': 'error', 'fields': sorted(errors)})
+            return 400, {'errors': errors, 'agent_notified': notified}
+        event = {'type': 'form_event', 'form_id': record['id'], 'status': 'submitted', 'customer_number': number}
+        return 200, {'submitted': True, 'agent_notified': deliver(conn, record['session_id'], event)}
     record, ref, errors = bank.submit_callback(conn, body.get('form_id'), body)
     if record is None: return 404, {'errors': errors}
     if errors:

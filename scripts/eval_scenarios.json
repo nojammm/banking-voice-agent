@@ -1551,6 +1551,31 @@
           "Is there anything else I can help you with today\\?\\s*$"
         ]
       }
+    },
+    {
+      "id": "idv-mistyped-customer-number",
+      "turns": [
+        "What's my credit card balance?",
+        {
+          "form": "submit",
+          "fields": {
+            "customer_number": "CUS-10428"
+          }
+        },
+        "Alice Wonderland",
+        "1 September 1999",
+        "50 Alice Street, Newtown NSW 2020"
+      ],
+      "expect": {
+        "verified": true,
+        "tools": [
+          "get_account_summary"
+        ],
+        "must_not_say": [
+          "10428",
+          "\\b(?:Worker|dash)\\b"
+        ]
+      }
     }
   ]
 }

@@ -139,6 +139,44 @@
   el('callback-close').addEventListener('click', () => closeForm('closed'));
   dialog.addEventListener('cancel', event => { event.preventDefault(); closeForm('closed'); });
 
+  // Customer number box: the backend checks the format; the Worker looks the number up and tells the agent.
+  const numberDialog = el('number-dialog'), NUMBER = /^(CUS)?-?\d{5}$/;
+  let numberForm = null, typingSent = null;
+  function openNumber(formId, notice) {
+    numberForm = formId;
+    el('number-form').reset(); el('number-submit').disabled = false;
+    el('cn-number-error').textContent = notice === 'not_found' ? 'We couldn’t find that customer number.' : '';
+    if(!numberDialog.open) numberDialog.showModal();
+    el('cn-number').focus();
+  }
+  function closeNumber(reason) {
+    const formId = numberForm; numberForm = null;
+    if(numberDialog.open) numberDialog.close();
+    if(formId && reason) window.evidenceApp.api('/api/forms/close', {form_id: formId, reason}).catch(() => {});
+  }
+  el('number-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if(!numberForm) return;
+    const value = el('cn-number').value;
+    if(!NUMBER.test(value.replace(/\s+/g, '').toUpperCase())) { el('cn-number-error').textContent = 'Enter a customer number like CUS-12345.'; return; }
+    el('number-submit').disabled = true;
+    try {
+      await window.evidenceApp.api('/api/forms/submit', {form_id: numberForm, customer_number: value});
+      numberForm = null; numberDialog.close();
+    } catch(error) {
+      el('cn-number-error').textContent = (error.errors || {}).customer_number || (error.errors || {}).form || error.message;
+      el('number-submit').disabled = false;
+    }
+  });
+  el('cn-number').addEventListener('input', () => {  // Once per box: the agent stops talking over someone typing.
+    if(!numberForm || typingSent === numberForm) return;
+    typingSent = numberForm;
+    window.evidenceApp.api('/api/forms/typing', {form_id: numberForm}).catch(() => {});
+  });
+  el('number-cancel').addEventListener('click', () => closeNumber('cancelled'));
+  el('number-close').addEventListener('click', () => closeNumber('closed'));
+  numberDialog.addEventListener('cancel', event => { event.preventDefault(); closeNumber('closed'); });
+
   function setUserText(item, id, text, final) {
     const bubble = item.querySelector('.bubble');
     let span = [...bubble.children].find(child => child.dataset.segment === id);
@@ -183,6 +221,7 @@
     el('enable-live-audio').hidden = true;
     meters.user = meters.agent = null; pending = {}; currentAgent = null;
     closeForm(activeForm ? 'closed' : null);
+    closeNumber(numberForm ? 'closed' : null);
     setMode('idle'); lock(false); status(message);
   }
   async function start() {
@@ -244,6 +283,8 @@
           if(event.type === 'case') attach({cases: [{kind: event.kind, ref: event.ref}]});
           if(event.type === 'auth') setAuth(event.state);
           if(event.type === 'form' && event.action === 'open' && FORMS[event.kind]) openForm(event.form_id, event.kind);
+          if(event.type === 'form' && event.action === 'open' && event.kind === 'customer_number') openNumber(event.form_id, event.notice);
+          if(event.type === 'form' && event.action === 'close' && event.form_id === numberForm) closeNumber(null);
           if(event.type === 'guard') attach({guard: event.reason});
           if(event.type === 'latency') attach({latency: event.ms});
           if(event.type === 'error') status(event.message);
