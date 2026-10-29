@@ -1,0 +1,1161 @@
+{
+  "executed_at": "2026-10-29T19:10:12+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "balance-and-duplicate",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-4068"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Okay, I can check that for you.  Could I have your full name, please?",
+          "spoken": "Okay, I can check that for you. Could I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2532
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Thanks, that matched. What\u2019s your date of birth?\n",
+          "spoken": "Thanks, that matched. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1150
+        },
+        {
+          "caller": "oh one, oh nine, ninety nine",
+          "agent": "Great, thank you. What\u2019s your residential address?",
+          "spoken": "Great, thank you. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 938
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "You\u2019re all set, Alice. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76. Which account would you like me to check next?",
+          "spoken": "You\u2019re all set, Alice. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76. Which account would you like me to check next?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2112
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Sure. I\u2019ll pull up the recent transactions now. Your recent transactions are Uber Eats Sydney for $42.35 on 27 October, PayPal Gamevault for $249 on 26 October, Shell Coles Express Fairy Meadow for $50 pending on 25 October, and two Coles Newtown charges for $84.20 each on 24 October. Do you want me to look at any one of those in more detail?",
+          "spoken": "Sure. I\u2019ll pull up the recent transactions now.Your recent transactions are Uber Eats Sydney for $42.35 on 27 October, PayPal Gamevault for $249 on 26 October, Shell Coles Express Fairy Meadow for $50 pending on 25 October, and two Coles Newtown charges for $84.20 each on 24 October. Do you want me to look at any one of those in more detail?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2384
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Right, I can help with that. I\u2019m checking the two Coles charges now. That does look like a duplicate charge on 24 October for $84.20 at Coles Newtown. I can lodge that as a dispute for you now, what happened with that shop?",
+          "spoken": "Right, I can help with that. I\u2019m checking the two Coles charges now.That does look like a duplicate charge on 24 October for $84.20 at Coles Newtown. I can lodge that as a dispute for you now, what happened with that shop?",
+          "tools": [
+            "get_transaction_details"
+          ],
+          "idv": "verified",
+          "ms": 2243
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "It\u2019s lodged now. The reference is D S P 4 0 6 8. The investigation usually takes up to 45 days, and this is a demo record only, so no real bank staff will act on it. Which Coles charge would you like me to look at next, or is there something else on your account you want checked?",
+          "spoken": "It\u2019s lodged now. The reference is D S P 4 0 6 8. The investigation usually takes up to 45 days, and this is a demo record only, so no real bank staff will act on it. Which Coles charge would you like me to look at next, or is there something else on your account you want checked?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 2643
+        }
+      ]
+    },
+    {
+      "id": "fraud",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice st newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-8208"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-8537"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "There's a payment on my credit card I definitely didn't make, a PayPal one.",
+          "agent": "Lock your card in your app straight away. That\u2019s the quickest way to limit any further activity.  Thanks. What\u2019s your full name?",
+          "spoken": "Lock your card in your app straight away. That\u2019s the quickest way to limit any further activity. Thanks. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2618
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Great, thanks. What\u2019s your date of birth?\n",
+          "spoken": "Great, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1435
+        },
+        {
+          "caller": "the first of September 1999",
+          "agent": "Nice, thanks. What\u2019s your residential address?\n",
+          "spoken": "Nice, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1255
+        },
+        {
+          "caller": "50 Alice St Newtown New South Wales 2020",
+          "agent": "You\u2019re all set, Alice. Let me check that PayPal card payment now. Okay, I\u2019ve found a PayPal payment for 249 dollars on 26 October. Is that the one you\u2019re saying you didn\u2019t make?\n",
+          "spoken": "You\u2019re all set, Alice. Let me check that PayPal card payment now.Okay, I\u2019ve found a PayPal payment for 249 dollars on 26 October. Is that the one you\u2019re saying you didn\u2019t make?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2281
+        },
+        {
+          "caller": "Yes, that's the one. I've never heard of them.",
+          "agent": "Thanks, Alice. It\u2019s been reported as suspected fraud, reference F, R, D, 8, 2, 0, 8. Keep that card locked in the app, and don\u2019t share any passwords, PINs or one-time codes with anyone. Do you want the next steps for what to do if the card\u2019s still in your wallet or if you can\u2019t find it?",
+          "spoken": "[reassuring] Thanks, Alice. It\u2019s been reported as suspected fraud, reference F, R, D, 8, 2, 0, 8. Keep that card locked in the app, and don\u2019t share any passwords, PINs or one-time codes with anyone. Do you want the next steps for what to do if the card\u2019s still in your wallet or if you can\u2019t find it?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3560
+        }
+      ]
+    },
+    {
+      "id": "hardship-and-complaint",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-5973"
+        },
+        {
+          "type": "complaint",
+          "ref": "CMP-3105"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Look, my hours at work got cut in half last month and I honestly don't know how I'm going to make next month's mortgage payment.",
+          "agent": "That sounds really tough.  Your hardship notice is recorded. The reference is H, D, S, 5, 9, 7, 3. A hardship specialist will assess options, and nothing is approved on this call. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Would you like a specialist follow-up?",
+          "spoken": "[empathetic] That sounds really tough. Your hardship notice is recorded. The reference is H, D, S, 5, 9, 7, 3. A hardship specialist will assess options, and nothing is approved on this call. [sympathetic] The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Would you like a specialist follow-up?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2999
+        },
+        {
+          "caller": "It's the home loan. Probably three months or so until things pick up. Lower repayments for a while would really help.",
+          "agent": "Okay, thanks. I\u2019ve got that it\u2019s the home loan and you\u2019re expecting about 3 months.  Alright. What\u2019s your full name?",
+          "spoken": "Okay, thanks. I\u2019ve got that it\u2019s the home loan and you\u2019re expecting about 3 months. Alright. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2143
+        },
+        {
+          "caller": "And honestly I'm fed up. I asked to downgrade my card weeks ago and still got charged the annual fee, and nobody's got back to me.",
+          "agent": "That\u2019s frustrating. I can help with the complaint about the fee and the delay, and I still need your full name for the home loan check. Your complaint is recorded, and the reference is C, M, P, 3, 1, 0, 5. The timeframe is up to 30 days. What\u2019s your full name?",
+          "spoken": "That\u2019s frustrating. I can help with the complaint about the fee and the delay, and I still need your full name for the home loan check.Your complaint is recorded, and the reference is C, M, P, 3, 1, 0, 5. The timeframe is up to 30 days. What\u2019s your full name?",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "in_progress",
+          "ms": 2698
+        },
+        {
+          "caller": "I just want that fee refunded, and for someone to actually get back to me.",
+          "agent": "I\u2019ve got that. The complaint is logged for the fee refund and a response about the delay.\n\nWhat would you like to sort out next?",
+          "spoken": "I\u2019ve got that. The complaint is logged for the fee refund and a response about the delay.\n\nWhat would you like to sort out next?",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1144
+        }
+      ]
+    },
+    {
+      "id": "new-loan-callback",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "callback",
+          "ref": "CBK-7990"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'm thinking about buying my first place. What's the difference between a fixed and a variable rate?",
+          "agent": "Fixed means the interest rate stays the same for a set term, so your repayments are more predictable. Variable can move up or down over time, so the repayments can change too. Which one suits you best depends on whether you want certainty or more flexibility. A fixed rate stays the same for a set term, usually 1 to 5 years, so your repayments are more predictable. A variable rate can rise or fall over the life of the loan, and it usually gives you more flexibility with extra repayments, redraw and an offset account.\n\nA fixed rate can also have limits on extra repayments and break costs if you pay it out early or switch. Are you looking at owner occupied loans or an investment place?",
+          "spoken": "[thoughtful] Fixed means the interest rate stays the same for a set term, so your repayments are more predictable. Variable can move up or down over time, so the repayments can change too. Which one suits you best depends on whether you want certainty or more flexibility.A fixed rate stays the same for a set term, usually 1 to 5 years, so your repayments are more predictable. A variable rate can rise or fall over the life of the loan, and it usually gives you more flexibility with extra repayments, redraw and an offset account.\n\nA fixed rate can also have limits on extra repayments and break costs if you pay it out early or switch. Are you looking at owner occupied loans or an investment place?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 3170
+        },
+        {
+          "caller": "What would repayments roughly be on 500,000 dollars over 30 years at your variable rate?",
+          "agent": "Sure. I can estimate that at the demo variable rate of 6.09 percent a year.  Roughly 3,026.75 dollars a month. That\u2019s an estimate only, based on 500,000 dollars over 30 years at 6.09 percent a year, with the rate unchanged. Are you comparing that with a fixed rate as well?",
+          "spoken": "Sure. I can estimate that at the demo variable rate of 6.09 percent a year. Roughly 3,026.75 dollars a month. That\u2019s an estimate only, based on 500,000 dollars over 30 years at 6.09 percent a year, with the rate unchanged. Are you comparing that with a fixed rate as well?",
+          "tools": [
+            "estimate_loan_repayment"
+          ],
+          "idv": "not_started",
+          "ms": 2186
+        },
+        {
+          "caller": "That sounds good. Could someone help me with an application?",
+          "agent": "Absolutely.  The form\u2019s open on your screen now for your details and consent. What sort of place are you looking to buy?",
+          "spoken": "Absolutely. The form\u2019s open on your screen now for your details and consent. What sort of place are you looking to buy?",
+          "tools": [
+            "open_callback_form"
+          ],
+          "idv": "not_started",
+          "ms": 2520
+        },
+        {
+          "caller": "Yes please.",
+          "agent": "Okay. I\u2019ll wait for that form outcome\u2026 what type of property are you thinking about?",
+          "spoken": "Okay. I\u2019ll wait for that form outcome\u2026 what type of property are you thinking about?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1512
+        },
+        {
+          "caller": "[frontend: form submitted]",
+          "agent": "Thanks, that\u2019s come through. The demo callback request is saved, and the reference is C, B, K, 7, 9, 9, 0.\n\nWhat would you like to know about the home loan process next?",
+          "spoken": "Thanks, that\u2019s come through. The demo callback request is saved, and the reference is C, B, K, 7, 9, 9, 0.\n\nWhat would you like to know about the home loan process next?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1878
+        },
+        {
+          "caller": "Great, thanks. That was everything.",
+          "agent": "Is there anything else I can help you with today?",
+          "spoken": "Is there anything else I can help you with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 910
+        }
+      ]
+    },
+    {
+      "id": "idv-wrong-dob-then-right",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "fail",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you tell me my credit card balance?",
+          "agent": "Alright. What\u2019s your full name?",
+          "spoken": "Alright. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2339
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Great, thanks. What\u2019s your date of birth?",
+          "spoken": "Great, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1204
+        },
+        {
+          "caller": "1 September 1998",
+          "agent": "Sorry, I didn\u2019t catch that properly. Could you say your date of birth again?",
+          "spoken": "Sorry, I didn\u2019t catch that properly. Could you say your date of birth again?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1193
+        },
+        {
+          "caller": "Oh sorry, I meant 1 September 1999",
+          "agent": "Perfect, thanks. What\u2019s your residential address?",
+          "spoken": "Perfect, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1123
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "You\u2019re all set, Alice. Your Low Rate Visa is owing $1,284.60, and the available credit is $3,715.40. Is there anything else you want to check on that card?",
+          "spoken": "You\u2019re all set, Alice. Your Low Rate Visa is owing $1,284.60, and the available credit is $3,715.40. Is there anything else you want to check on that card?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2028
+        }
+      ]
+    },
+    {
+      "id": "idv-refuse-dob-then-continue",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "minji kim",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1998-10-24",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 17 3161 \u00b7 state VIC \u00b7 words kooyong road caulfield north",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What's the balance on my credit card?",
+          "agent": "Sure. What\u2019s your full name?",
+          "spoken": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2197
+        },
+        {
+          "caller": "Minji Kim",
+          "agent": "Great, thanks. What\u2019s your date of birth?",
+          "spoken": "Great, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1131
+        },
+        {
+          "caller": "I'd rather not give my birthday over the phone, to be honest.",
+          "agent": "Fair enough. It protects your account, and I can\u2019t check the balance without it. If you\u2019d like to go ahead, what\u2019s your date of birth?",
+          "spoken": "Fair enough. It protects your account, and I can\u2019t check the balance without it. If you\u2019d like to go ahead, what\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1098
+        },
+        {
+          "caller": "Hmm, okay fine. It's the 24th of October 1998.",
+          "agent": "Good, thanks. What\u2019s your residential address?",
+          "spoken": "Good, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1037
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "All set. Your credit card is owing $8,950.22, and the available credit is $1,049.78. What else would you like to check on it?",
+          "spoken": "All set. Your credit card is owing $8,950.22, and the available credit is $1,049.78. What else would you like to check on it?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2143
+        }
+      ]
+    },
+    {
+      "id": "kb-documents-borrow",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What documents do I need to apply for a home loan?",
+          "agent": "One sec, I'll find that for you. Applications start online, in a branch or with a lending specialist. The bank asks about your requirements, objectives and finances, and then verifies them with documents, but I don\u2019t have the exact document list here. What kind of home loan are you looking at?",
+          "spoken": "Applications start online, in a branch or with a lending specialist. The bank asks about your requirements, objectives and finances, and then verifies them with documents, but I don\u2019t have the exact document list here. What kind of home loan are you looking at?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2367
+        },
+        {
+          "caller": "And how much could I borrow? I earn about 95 grand a year.",
+          "agent": "Good question\u2026 let me check. I can\u2019t give you a borrowing amount from that alone. Lending depends on the full picture, and the bank has to check it against your expenses and debts as well as your income.\n\nIf you want, I can run through the home loan options and the borrowing process. What sort of home are you buying?",
+          "spoken": "I can\u2019t give you a borrowing amount from that alone. Lending depends on the full picture, and the bank has to check it against your expenses and debts as well as your income.\n\nIf you want, I can run through the home loan options and the borrowing process. What sort of home are you buying?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2387
+        },
+        {
+          "caller": "Roughly though? Just a ballpark.",
+          "agent": "Let me look that up for you. I don\u2019t have a real ballpark from that. It depends on your expenses, debts and the lender\u2019s serviceability checks, so I can\u2019t responsibly guess a number.\n\nWhat type of home loan are you looking at?",
+          "spoken": "I don\u2019t have a real ballpark from that. It depends on your expenses, debts and the lender\u2019s serviceability checks, so I can\u2019t responsibly guess a number.\n\nWhat type of home loan are you looking at?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2388
+        }
+      ]
+    },
+    {
+      "id": "hardship-distressed",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-6084"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I don't even know where to start. I lost my job last week and I can't sleep, I've got the car loan and rent and I just don't know what to do.",
+          "agent": "I\u2019m sorry, that sounds really heavy. We can sort through it one bit at a time. What repayments are affected just now?\n",
+          "spoken": "[reassuring] I\u2019m sorry, that sounds really heavy. We can sort through it one bit at a time. What repayments are affected just now?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1653
+        },
+        {
+          "caller": "Mostly the car loan. I don't know how long, until I find something. I just need some breathing room.",
+          "agent": "One sec, I'll find that for you. I\u2019m sorry, that\u2019s a lot to carry. Hardship reference H D S 6 0 8 4. A hardship specialist will assess the options, and nothing is approved on this call. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Would you like a specialist follow-up recorded for the car loan?",
+          "spoken": "[reassuring] I\u2019m sorry, that\u2019s a lot to carry. Hardship reference H D S 6 0 8 4. A hardship specialist will assess the options, and nothing is approved on this call. The National Debt Helpline on 1800 007 007 offers free, confidential financial counselling. Would you like a specialist follow-up recorded for the car loan?",
+          "tools": [
+            "search_banking_knowledge",
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 3118
+        },
+        {
+          "caller": "Okay. Thank you.",
+          "agent": "You\u2019re welcome. Is there anything else I can help you with today?",
+          "spoken": "You\u2019re welcome. Is there anything else I can help you with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 910
+        }
+      ]
+    },
+    {
+      "id": "hardship-illness-pause",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-3842"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I've just been diagnosed with cancer and I'm off work for treatment. Can you just pause my home loan payments for six months?",
+          "agent": "I\u2019m really sorry you\u2019re going through that. I can\u2019t promise a pause or approve one.  H, D, S, 3, 8, 4, 2.\n\nA hardship specialist will assess the options, but nothing is approved on this call. Would you like a specialist follow-up recorded?",
+          "spoken": "I\u2019m really sorry you\u2019re going through that. I can\u2019t promise a pause or approve one. H, D, S, 3, 8, 4, 2.\n\nA hardship specialist will assess the options, but nothing is approved on this call. Would you like a specialist follow-up recorded?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 3274
+        },
+        {
+          "caller": "It's the home loan. About six months, my doctor reckons.",
+          "agent": "Got it. If it\u2019s the home loan and about 6 months, that gives the hardship team a clearer picture. Was there anything else affecting your repayments, or is it just the home loan at the moment?",
+          "spoken": "Got it. If it\u2019s the home loan and about 6 months, that gives the hardship team a clearer picture. Was there anything else affecting your repayments, or is it just the home loan at the moment?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 2374
+        },
+        {
+          "caller": "So that's a yes? The payments are paused?",
+          "agent": "No, it\u2019s not paused yet. The hardship notice is recorded, and a specialist will assess it, but I can\u2019t approve a pause here. Would you like me to explain what usually happens next with a hardship notice?",
+          "spoken": "No, it\u2019s not paused yet. The hardship notice is recorded, and a specialist will assess it, but I can\u2019t approve a pause here. Would you like me to explain what usually happens next with a hardship notice?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 2345
+        }
+      ]
+    },
+    {
+      "id": "hardship-separation",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-1934"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "My partner and I have split up and he's stopped paying his half of the mortgage. I can't cover it on my own.",
+          "agent": "I\u2019m sorry, that\u2019s a lot to be carrying.  Your hardship reference is H, D, S, 1, 9, 3, 4. A hardship specialist will assess the options, and nothing is approved on this call. Would you like a specialist follow-up?",
+          "spoken": "I\u2019m sorry, that\u2019s a lot to be carrying. Your hardship reference is H, D, S, 1, 9, 3, 4. A hardship specialist will assess the options, and nothing is approved on this call. Would you like a specialist follow-up?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2608
+        },
+        {
+          "caller": "The home loan. I don't know how long, until we sort out the house.",
+          "agent": "Got it. So it\u2019s the home loan, and the timing is unknown for now. That\u2019s enough for the notice\u2026 what would you say would help most, even just in general?\n",
+          "spoken": "Got it. So it\u2019s the home loan, and the timing is unknown for now. That\u2019s enough for the notice\u2026 what would you say would help most, even just in general?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1276
+        },
+        {
+          "caller": "I'm honestly not sure what would help.",
+          "agent": "That\u2019s okay. If anything changes, like what you think might help or which repayments are affected, just tell me and I can update it.",
+          "spoken": "That\u2019s okay. If anything changes, like what you think might help or which repayments are affected, just tell me and I can update it.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 2423
+        }
+      ]
+    },
+    {
+      "id": "dispute-scam",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "alice wonderland",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1999-09-01",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 50 2020 \u00b7 state NSW \u00b7 words alice street newtown",
+          "missing": [],
+          "components": {
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "fraud",
+          "ref": "FRD-1299"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-8475"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I think I've been scammed. I paid a seller through PayPal for a game console and now they've blocked me and nothing's come.",
+          "agent": "Okay, I\u2019m sorry that\u2019s happened. Please lock the card in your app straight away if you paid by card, and I\u2019ll help sort out the next step. Did the payment go from your bank card or from your PayPal balance?\n",
+          "spoken": "[reassuring] Okay, I\u2019m sorry that\u2019s happened. Please lock the card in your app straight away if you paid by card, and I\u2019ll help sort out the next step. Did the payment go from your bank card or from your PayPal balance?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1316
+        },
+        {
+          "caller": "Not yet, I'll do that now. Can you report it? It was on my credit card.",
+          "agent": "Yeah, I can do that. I just need to verify your account first so I can link it to the right card and report the scam properly.  Alright. What\u2019s your full name?",
+          "spoken": "[reassuring] Yeah, I can do that. I just need to verify your account first so I can link it to the right card and report the scam properly. Alright. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2545
+        },
+        {
+          "caller": "Alice Wonderland",
+          "agent": "Great, thanks. What\u2019s your date of birth?",
+          "spoken": "Great, thanks. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1375
+        },
+        {
+          "caller": "first of September 1999",
+          "agent": "That\u2019s matched, thanks. What\u2019s your residential address?",
+          "spoken": "That\u2019s matched, thanks. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1033
+        },
+        {
+          "caller": "50 Alice Street, Newtown NSW 2020",
+          "agent": "You\u2019re all set, Alice.  Got it, thanks. I\u2019ve found the payment. It\u2019s PayPal Gamevault for 249 dollars on 26 October. Was that the one you\u2019re disputing?\n",
+          "spoken": "You\u2019re all set, Alice. Got it, thanks. I\u2019ve found the payment. It\u2019s PayPal Gamevault for 249 dollars on 26 October. Was that the one you\u2019re disputing?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2179
+        },
+        {
+          "caller": "Yes, that's the one, the PayPal GameVault payment, 249 dollars.",
+          "agent": "Understood.  Thanks, Alice. It\u2019s been reported as suspected fraud.\n\nThe reference is F, R, D, 1, 2, 9, 9. The fraud team will review it as a priority. Please keep the card locked in the app, and don\u2019t share any passwords, PINs or one time codes. If you think anyone has remote access to your device, disconnect it from the internet. Do you want me to go over any of the next steps with you?",
+          "spoken": "[reassuring] Understood. Thanks, Alice. It\u2019s been reported as suspected fraud.\n\nThe reference is F, R, D, 1, 2, 9, 9. The fraud team will review it as a priority. Please keep the card locked in the app, and don\u2019t share any passwords, PINs or one time codes. If you think anyone has remote access to your device, disconnect it from the internet. Do you want me to go over any of the next steps with you?",
+          "tools": [
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3419
+        },
+        {
+          "caller": "Am I going to get that back?",
+          "agent": "I can\u2019t promise that, no. The fraud team will review it, and the outcome depends on what they find. Is there anything else I can help you with today?",
+          "spoken": "I can\u2019t promise that, no. The fraud team will review it, and the outcome depends on what they find. Is there anything else I can help you with today?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1218
+        }
+      ]
+    },
+    {
+      "id": "complaint-about-bot",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-4321"
+        },
+        {
+          "type": "escalation",
+          "ref": "ESC-6947"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Honestly, this bot is useless. I asked a simple question before and got nothing useful. I want to complain about this service.",
+          "agent": "I\u2019m sorry it\u2019s been frustrating.  It\u2019s recorded. The reference is C, M, P, 4, 3, 2, 1. It should be looked at within 30 days.\n\nIs there anything else I can help you with today?",
+          "spoken": "I\u2019m sorry it\u2019s been frustrating. It\u2019s recorded. The reference is C, M, P, 4, 3, 2, 1. It should be looked at within 30 days.\n\nIs there anything else I can help you with today?",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2708
+        },
+        {
+          "caller": "I want someone to actually look at how this thing works.",
+          "agent": "It\u2019s a demo. Nobody will actually call back.  A follow-up request\u2019s been recorded. The reference is E, S, C, 6, 9, 4, 7.\n\nIs there anything else I can help you with today?",
+          "spoken": "It\u2019s a demo. Nobody will actually call back. A follow-up request\u2019s been recorded. The reference is E, S, C, 6, 9, 4, 7.\n\nIs there anything else I can help you with today?",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "not_started",
+          "ms": 2348
+        },
+        {
+          "caller": "And what if I'm still not happy after that?",
+          "agent": "Sure, let me just check that. If you\u2019re not happy with the response or how it\u2019s handled, you can go to AFCA. It\u2019s free and independent, and the phone number is 1800 931 678. Do you want me to explain what AFCA looks at?",
+          "spoken": "If you\u2019re not happy with the response or how it\u2019s handled, you can go to AFCA. It\u2019s free and independent, and the phone number is 1800 931 678. Do you want me to explain what AFCA looks at?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 3500
+        }
+      ]
+    },
+    {
+      "id": "human-angry-transfer",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "escalation",
+          "ref": "ESC-6310"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "This is bloody ridiculous. I've been going round in circles. Transfer me to a damn human now!",
+          "agent": "I\u2019m sorry this has been such a runaround.  I\u2019ve recorded a follow-up request. Reference E, S, C, 6, 3, 1, 0. This is a demo, so no live transfer happened. Is there anything else I can help you with today?",
+          "spoken": "[reassuring] I\u2019m sorry this has been such a runaround. I\u2019ve recorded a follow-up request. Reference E, S, C, 6, 3, 1, 0. This is a demo, so no live transfer happened. Is there anything else I can help you with today?",
+          "tools": [
+            "request_human_followup"
+          ],
+          "idv": "not_started",
+          "ms": 2384
+        },
+        {
+          "caller": "Just bloody do it. Yes, log it, whatever.",
+          "agent": "It\u2019s already recorded. Reference E, S, C, 6, 3, 1, 0. This is a demo, so no live transfer will happen, but the follow-up request is in. What else can I help with today?",
+          "spoken": "It\u2019s already recorded. Reference E, S, C, 6, 3, 1, 0. This is a demo, so no live transfer will happen, but the follow-up request is in. What else can I help with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1850
+        },
+        {
+          "caller": "So when will they call me?",
+          "agent": "This is a demo, so I can\u2019t promise a call back time or that anyone will ring. If you want, I can record a human follow-up for a specific issue next, what\u2019s the main thing you need help with?",
+          "spoken": "This is a demo, so I can\u2019t promise a call back time or that anyone will ring. If you want, I can record a human follow-up for a specific issue next, what\u2019s the main thing you need help with?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1268
+        }
+      ]
+    },
+    {
+      "id": "conv-small-talk-human-goodbye",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Hi! How are you going today?",
+          "agent": "I\u2019m going well, thanks. How can I help today?",
+          "spoken": "[warm] I\u2019m going well, thanks. How can I help today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1094
+        },
+        {
+          "caller": "Ha, good. Wait, am I talking to a real person?",
+          "agent": "I\u2019m an AI voice assistant, not a bank employee, and this is a demo call with fictional records. What can I help with today?",
+          "spoken": "[warm] I\u2019m an AI voice assistant, not a bank employee, and this is a demo call with fictional records. What can I help with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1051
+        },
+        {
+          "caller": "Is this actually Westpac?",
+          "agent": "No, this is not an actual Westpac call. It\u2019s an independent demo assistant using fictional records, and I\u2019m an AI, not a bank employee. What would you like help with today?",
+          "spoken": "No, this is not an actual Westpac call. It\u2019s an independent demo assistant using fictional records, and I\u2019m an AI, not a bank employee. What would you like help with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1248
+        },
+        {
+          "caller": "Okay, that's all I wanted. Thanks, bye!",
+          "agent": "Is there anything else I can help you with today?",
+          "spoken": "Is there anything else I can help you with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 990
+        }
+      ]
+    },
+    {
+      "id": "conv-short-replies",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "um",
+          "agent": "Hi. What can I help you with today?",
+          "spoken": "Hi. What can I help you with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1004
+        },
+        {
+          "caller": "yeah",
+          "agent": "Okay. What would you like help with today?",
+          "spoken": "Okay. What would you like help with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 935
+        },
+        {
+          "caller": "ok",
+          "agent": "What can I help you with today?",
+          "spoken": "What can I help you with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 896
+        },
+        {
+          "caller": "credit cards",
+          "agent": "Good question\u2026 let me check. I can help with general credit card info. The demo policy I found only says credit balances on credit cards aren\u2019t covered by the Financial Claims Scheme. What would you like to know about credit cards?",
+          "spoken": "I can help with general credit card info. The demo policy I found only says credit balances on credit cards aren\u2019t covered by the Financial Claims Scheme. What would you like to know about credit cards?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2230
+        }
+      ]
+    },
+    {
+      "id": "conv-rambling-caller",
+      "run": 1,
+      "passed": false,
+      "problems": [
+        "expected tool get_case_status was not called",
+        "verification ended paused",
+        "unexpected records: ['complaint']",
+        "agent never said anything matching /under review|11 November|C,? ?M,? ?P,? ?2,? ?7,? ?4,? ?1/"
+      ],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "complaint",
+          "ref": "CMP-5607"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Yeah, hi, so, look, sorry, this is a bit of a long story. Um, my wife usually handles all the banking stuff but she's away visiting her mum in Perth this week, and I was going through the mail and there was this letter, I think it was about the credit card, or maybe it was the home loan, I'm not sure, anyway it mentioned a fee, and I remember I asked someone weeks ago to downgrade the card because we're trying to cut back a bit, the kids' school fees went up and everything, and I just want to know if that complaint I made about the annual fee has gone anywhere, because honestly it's been doing my head in.",
+          "agent": "That sounds frustrating. I can check the complaint for you.  It\u2019s recorded. The reference is C M P 5 6 0 7, and they\u2019ll respond within 30 days.\n\nThis is a demo record only, so no real bank staff will act on it. What was the fee letter about, the credit card or the home loan?",
+          "spoken": "That sounds frustrating. I can check the complaint for you. It\u2019s recorded. The reference is C M P 5 6 0 7, and they\u2019ll respond within 30 days.\n\nThis is a demo record only, so no real bank staff will act on it. What was the fee letter about, the credit card or the home loan?",
+          "tools": [
+            "lodge_complaint"
+          ],
+          "idv": "not_started",
+          "ms": 2861
+        },
+        {
+          "caller": "Minji Kim",
+          "agent": "Okay. I\u2019ll need to check your own records for that. What\u2019s the first thing you\u2019d like me to verify, the card fee or the home loan letter?\n",
+          "spoken": "Okay. I\u2019ll need to check your own records for that. What\u2019s the first thing you\u2019d like me to verify, the card fee or the home loan letter?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1194
+        },
+        {
+          "caller": "24th of October 1998",
+          "agent": "Thanks. What\u2019s your full name?",
+          "spoken": "Thanks. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1994
+        },
+        {
+          "caller": "17 Kooyong Road, Caulfield North VIC 3161",
+          "agent": "I\u2019d rather you don\u2019t read out personal details like that here. What\u2019s your full name?",
+          "spoken": "I\u2019d rather you don\u2019t read out personal details like that here. What\u2019s your full name?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1014
+        },
+        {
+          "caller": "Okay, good to know. That's all, thanks.",
+          "agent": "Understood. The complaint reference is C M P 5 6 0 7, and it should be responded to within 30 days. Is there anything else I can help you with today?\n",
+          "spoken": "Understood. The complaint reference is C M P 5 6 0 7, and it should be responded to within 30 days. Is there anything else I can help you with today?",
+          "tools": [],
+          "idv": "paused",
+          "ms": 1177
+        }
+      ]
+    }
+  ]
+}

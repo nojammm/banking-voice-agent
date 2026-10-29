@@ -188,6 +188,16 @@ class AddressMatchingTests(unittest.TestCase):
             with self.subTest(spoken): self.assertEqual(self.match(spoken).outcome, 'pass')
         self.assertEqual(self.match('seventeen Kooyong Rd Caulfield North Victoria three one six one', ARJUN).outcome, 'pass')
 
+    def test_a_street_name_that_sounds_right_gets_a_second_opinion(self):
+        alice = {'address': {'unit': None, 'number': '50', 'street': 'Alice', 'street_type': 'Street', 'suburb': 'Newtown',
+                             'state': 'NSW', 'postcode': '2020'}}
+        for verdict, outcome in [('same', 'pass'), ('different', 'fail')]:
+            judge = Judge({'verdict': verdict, 'evidence': 'Ellis and Alice sound alike.'})
+            result = self.match('Fifty. Ellis Street Newtown New South Wales twenty twenty.', alice, judge)
+            with self.subTest(verdict): self.assertEqual((result.outcome, result.method), (outcome, 'llm'))
+        self.assertEqual(self.match('50 Ellis Street Newtown NSW 2020', alice).outcome, 'fail')  # No second opinion: fail closed.
+        self.assertEqual(self.match('50 Ellis Street Newtown NSW 2042', alice, Judge({'verdict': 'same', 'evidence': 'x'})).outcome, 'fail')
+
     def test_exact_components_must_match(self):
         for spoken in ['unit 5 56 Harbour Street Wollongong NSW 2500', 'unit 4 58 Harbour Street Wollongong NSW 2500',
                        'unit 4 56 Harbour Street Wollongong VIC 2500', 'unit 4 56 Harbour Street Wollongong NSW 2000']:

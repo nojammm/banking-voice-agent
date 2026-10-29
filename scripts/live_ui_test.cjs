@@ -73,11 +73,11 @@ const base=process.env.TEST_BASE_URL||'http://127.0.0.1:8766';
   checks.push('agent replies stream on the left with their sources, response time and code-enforced guard marker');
 
   await page.waitForFunction(()=>document.querySelectorAll('#customer-cards .customer').length===2);
-  await page.locator('#scenario').selectOption('hardship');
+  assert.equal(await page.locator('#test-cards .test-card').count(),4);
+  await page.locator('.test-card button',{hasText:'Hardship'}).click();
   assert.equal(await page.locator('.customer[data-customer="CUS-20917"]').evaluate(n=>n.open),true);
   assert.equal(await page.locator('.customer[data-customer="CUS-10482"]').evaluate(n=>n.open),false);
-  assert.match(await page.locator('#scenario-lines').innerText(),/hours got cut/);
-  checks.push('inspector shows both mock customers from the backend and a scenario opens the matching record');
+  checks.push('inspector shows both mock customers from the backend and a test card opens the matching record');
   await page.evaluate(()=>__data({type:'auth',state:'in_progress',step:'full name'}));
   assert.equal(await page.locator('#auth-state').innerText(),'Verifying identity');
   await page.evaluate(()=>{__data({type:'auth',state:'verified',step:null});__data({type:'case',kind:'complaint',ref:'CMP-1234'});});

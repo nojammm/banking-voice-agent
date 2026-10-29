@@ -43,12 +43,14 @@ STORED = ['Wonderland', 'Kim', '1999', '1998', 'Alice Street', 'Kooyong', '2020'
 
 class TextAgent(live_agent.VoiceAgent):
     """Typed input skips the voice turn hook, so apply it here exactly once per user message."""
+    spoken = ''  # What went to the voice this turn, audio tags included; the history only keeps the tag-free text.
 
     async def llm_node(self, chat_ctx, tools, model_settings):
         last = live_agent._last_user(chat_ctx)
         if last is not None and last.id not in self.seen:
             await self.on_user_turn_completed(llm.ChatContext(), last)
         async for piece in super().llm_node(chat_ctx, tools, model_settings):
+            if isinstance(piece, str): self.spoken += piece
             yield piece
 
 
@@ -74,8 +76,9 @@ async def converse(scenario):
                 await session.generate_reply(instructions=instructions)
             said = ' '.join(i.text_content for i in session.history.items[before:] if getattr(i, 'role', None) == 'assistant')
             calls = [i.name for i in session.history.items[before:] if isinstance(i, llm.FunctionCall)]
-            transcript.append({'caller': text if text is not None else label, 'agent': said, 'tools': calls,
+            transcript.append({'caller': text if text is not None else label, 'agent': said, 'spoken': agent.spoken.strip(), 'tools': calls,
                                'idv': workflow.idv.status, 'ms': round((time.monotonic() - started) * 1000)})
+            agent.spoken = ''
 
         for step in scenario['turns']:
             if isinstance(step, str):

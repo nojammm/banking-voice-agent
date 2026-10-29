@@ -32,7 +32,7 @@ DEFAULTS = {
     'name_match': {'high_threshold': 0.55, 'low_threshold': 0.15, 'component_floor': 0.5,
                    'llm_fallback_enabled': True, 'max_attempts': 3},
     'dob_match': {'two_digit_year_pivot': 8, 'llm_fallback_enabled': True, 'max_attempts': 2},
-    'address_match': {'high_threshold': 0.8, 'low_threshold': 0.5,
+    'address_match': {'high_threshold': 0.75, 'low_threshold': 0.4,
                       'llm_fallback_enabled': True, 'max_attempts': 2},
 }
 
@@ -224,8 +224,11 @@ LLM_INSTRUCTIONS = {
             "If the words can't be read as a single date, use status unclear and an empty date."),
     'address': ("You are a constrained second-opinion check inside a bank's identity verification. Decide whether a "
                 "spoken address component, transcribed by speech-to-text, is plausibly the same place name as the "
-                "record despite transcription or pronunciation differences. A different place is different. If you "
-                "cannot tell, answer uncertain. Give one short sentence of evidence."),
+                "record despite transcription or pronunciation differences. Speech-to-text often turns a name into a "
+                "similar-sounding word or name ('Alice' written as 'Ellis'), so compare how the words sound, not how "
+                "they're spelled. The spoken text can include the street type and suburb; compare only the part that "
+                "corresponds to the component. A name that sounds clearly different, or has an extra or missing syllable ('Alison' for 'Alice'), is different. If you cannot tell, "
+                "answer uncertain. Give one short sentence of evidence."),
 }
 
 
@@ -685,13 +688,23 @@ def _candidates(group):
     return {''.join(group[i:j]) for i in range(len(group)) for j in range(i + 1, min(len(group), i + 4) + 1)}
 
 
+SOUNDS_ALIKE = 0.6  # Inside the address band: a place name that sounds right gets the LLM's second opinion, never a pass.
+
+
+def sounds_alike(a, b):
+    """Soundex ignoring the opening vowel, which speech-to-text often swaps ("Alice" heard as "Ellis")."""
+    def key(word): return ('a' if word[0] in 'aeiouy' else word[0]) + soundex(word)[1:]
+    return len(a) > 2 and len(b) > 2 and key(a) == key(b)
+
+
 def _gram_score(words, target):
     target = target.lower().split()
     if not words: return 0.0
     best = 0.0
     for size in {max(1, len(target) - 1), len(target), len(target) + 1}:
         for i in range(len(words) - size + 1):
-            best = max(best, similarity(''.join(words[i:i + size]), ''.join(target)))
+            spoken, stored = ''.join(words[i:i + size]), ''.join(target)
+            best = max(best, similarity(spoken, stored), SOUNDS_ALIKE if sounds_alike(spoken, stored) else 0.0)
     return round(best, 3)
 
 

@@ -52,20 +52,20 @@
       cards.append(card);
     }
   }
-  function renderScenarios() {
-    const select = el('scenario'), current = select.value;
-    select.replaceChildren(make('option', 'Choose a scenario'));
-    select.firstChild.value = '';
-    for(const s of overview.scenarios) { const o = make('option', s.title); o.value = s.id; select.append(o); }
-    select.value = current;
-    showScenario();
+  function renderTests() {
+    el('test-cards').replaceChildren(...overview.scenarios.map(s => {
+      const card = make('li', undefined, 'test-card');
+      const button = make('button', s.title);
+      button.type = 'button';
+      button.addEventListener('click', () => showCustomer(s.customer));
+      card.append(button);
+      return card;
+    }));
   }
-  function showScenario() {
-    const s = overview?.scenarios.find(x => x.id === el('scenario').value);
-    el('scenario-lines').replaceChildren(...(s ? s.lines.map(line => make('li', line)) : []));
-    document.querySelectorAll('.customer').forEach(card => { card.open = !!s && card.dataset.customer === s.customer; card.classList.toggle('selected', !!s && card.dataset.customer === s.customer); });
+  function showCustomer(id) {
+    el('tab-customers').click();
+    document.querySelectorAll('.customer').forEach(card => { card.open = card.dataset.customer === id; card.classList.toggle('selected', card.dataset.customer === id); });
   }
-  el('scenario').addEventListener('change', showScenario);
 
   function renderCases(cases) {
     const list = el('case-list'); list.replaceChildren();
@@ -74,7 +74,7 @@
     else list.append(table(['Ref', 'Type', 'Customer', 'Status', 'Summary'], fresh.map(c => [c.ref, c.type, c.customer_id || 'Unverified caller', c.status, c.summary])));
   }
   async function loadOverview() {
-    try { overview = await window.evidenceApp.api('/api/demo/overview'); renderCustomers(); renderScenarios(); renderCases(overview.cases); }
+    try { overview = await window.evidenceApp.api('/api/demo/overview'); renderCustomers(); renderTests(); renderCases(overview.cases); }
     catch(e) { el('customer-cards').replaceChildren(make('p', e.message, 'error-message')); }
   }
 
@@ -167,5 +167,6 @@
       el('idv-summary').replaceChildren(make('p', 'Start a call to see verification, tools and events.', 'empty')); await loadOverview(); }
     catch(e) { alert(e.message); }
   });
-  window.addEventListener('service-status', () => { if(!overview) { loadOverview(); poll(); } }, {once: true});
+  const start = () => { if(!overview) { loadOverview(); poll(); } };
+  if(window.serviceStatus) start(); else window.addEventListener('service-status', start, {once: true});
 })();

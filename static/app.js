@@ -22,6 +22,7 @@ async function api(path, body, timeout = 55000) {
 async function refreshStatus() {
   try {
     const data = await api('/api/status'); token = data.csrf_token;
+    window.serviceStatus = data;  // Scripts that load later read this instead of waiting for an event they missed.
     window.dispatchEvent(new CustomEvent('service-status', {detail:data}));
     $('provider-status').textContent = data.provider.configured ? 'OpenAI key set · unverified' : 'OpenAI key not set · Evidence mode ready';
   } catch(e) { $('provider-status').textContent = 'Server unavailable. Start server.py, then refresh.'; }

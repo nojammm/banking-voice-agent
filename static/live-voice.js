@@ -254,9 +254,9 @@
   el('start-live').addEventListener('click',start);
   el('end-live').addEventListener('click',() => end());
   el('enable-live-audio').addEventListener('click',() => room?.startAudio().catch(() => status('Allow audio playback in your browser, then try again.')));
-  window.addEventListener('service-status',event => {
-    if(!busy) status(event.detail.live_voice?.configured ? '' : 'Not configured. Run python3 scripts/start_live.py --port 8766');
-  });
+  const serviceStatus = detail => { if(!busy) status(detail.live_voice?.configured ? '' : 'Not configured. Run python3 scripts/start_live.py --port 8766'); };
+  window.addEventListener('service-status',event => serviceStatus(event.detail));
+  if(window.serviceStatus) serviceStatus(window.serviceStatus);
   document.querySelectorAll('.nav').forEach(button => button.addEventListener('click',() => { if(button.dataset.view !== 'voice' && busy) end(); }));
   el('reset').addEventListener('click',() => { if(busy) end(); });
   window.addEventListener('pagehide',() => { if(busy) end(); });
