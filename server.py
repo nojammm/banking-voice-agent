@@ -174,7 +174,7 @@ def main():
     parser.add_argument('--port', type=int, default=8765)
     args = parser.parse_args()
     server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
-    print(f'Banking Evidence Assistant: http://127.0.0.1:{server.server_port}', flush=True)
+    print(f'Banking Voice Assistant: http://127.0.0.1:{server.server_port}', flush=True)
     print('Independent localhost prototype. OpenAI API is used only when explicitly selected. Ctrl+C to stop.', flush=True)
     try: server.serve_forever()
     except KeyboardInterrupt: pass
