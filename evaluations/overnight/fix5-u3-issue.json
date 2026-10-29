@@ -1,0 +1,1915 @@
+{
+  "executed_at": "2026-10-29T13:52:51+11:00",
+  "model": "gpt-5.4-mini",
+  "limits": "Typed caller turns through the real agent, tools, ID&V, LLM fallback and guards; no STT, TTS or audio timing.",
+  "results": [
+    {
+      "id": "balance-and-duplicate",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-9080"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Of course. I need to quickly verify it\u2019s you before I can check your accounts, just to protect your details.  Alright, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2246
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1098
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1436
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is 2,418 dollars and 76 cents, and the available amount is 2,368 dollars and 76 cents. Would you like the balance on your other account as well?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2365
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Sure thing. I\u2019ll pull up the recent transactions now. Yep, here are the last few I can see. On 27 October there was Uber Eats Sydney for 42 dollars and 35 cents. On 26 October there was Paypal Gamevault for 249 dollars. There\u2019s also a pending Shell Coles Express Fairy Meadow charge for 50 dollars on 25 October. Would you like me to read out a couple more?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2469
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Ah, right. Let me check those Coles charges and see which transaction matches what you\u2019re describing. Yep, that does look like a duplicate charge.  Done. I\u2019ve lodged that dispute for the duplicate Coles charge, and the reference is D S P 9 0 8 0. It usually takes up to 45 days to investigate, and I can\u2019t promise the outcome, but it\u2019s in the system now. Is there anything else you want me to check?",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 3710
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "It\u2019s already been lodged, so that part\u2019s sorted. The reference is D S P 9 0 8 0, and it\u2019s under review now. Is there anything else you\u2019d like me to look at?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1289
+        }
+      ]
+    },
+    {
+      "id": "balance-and-duplicate",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-8980"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "I can check that for you, but I\u2019ll need to verify it first to protect your account.  Could I get your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2373
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s matched up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1218
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Nice, that\u2019s all looking good so far. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 942
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. For your Everyday Choice account, the balance is $2,418.76 and the available amount is $2,368.76.\n\nWould you like the balance on your savings or credit card as well?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2167
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "I can do that. I\u2019ll pull up your recent transactions now. Yep. Your last few are Uber Eats Sydney for $42.35 on 27 October, Paypal Gamevault for $249 on 26 October, Shell Coles Express Fairy Meadow for $50 pending on 25 October, and two Coles Wollongong Central transactions for $84.20 each on 24 October.\n\nWould you like me to check one of those in more detail?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2489
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "Right, I can help with that. Let me check those Coles transactions first. That does look like the same charge twice.  That\u2019s lodged for you. The reference is D, S, P, 8, 9, 8, 0, and the investigation usually takes up to 45 days.\n\nThis is a demo, so no real bank staff will act on it, but the dispute is recorded here. Is there anything else you want me to look at?",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4421
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "Already done \u2014 that dispute is lodged, and the reference is D, S, P, 8, 9, 8, 0.\n\nIs there anything else I can help with?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1065
+        }
+      ]
+    },
+    {
+      "id": "balance-and-duplicate",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [
+        {
+          "type": "dispute",
+          "ref": "DSP-4000"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Hi, can you tell me my account balance?",
+          "agent": "Sure \u2014 I just need your full name to protect your account. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2129
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 959
+        },
+        {
+          "caller": "one four, oh three, ninety one",
+          "agent": "Great, that\u2019s all matching. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1384
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76. Is there anything else you\u2019d like to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2499
+        },
+        {
+          "caller": "And what were my last few transactions?",
+          "agent": "Sure. Your last 5 transactions were Uber Eats Sydney for $42.35, Paypal Gamevault for $249, Shell Coles Express Fairy Meadow for $50 pending, and 2 Coles Wollongong Central purchases for $84.20 each. Do you want me to check any of those in more detail?",
+          "tools": [
+            "get_recent_transactions"
+          ],
+          "idv": "verified",
+          "ms": 2743
+        },
+        {
+          "caller": "Coles charged me twice for the same shop on the 24th. Can you sort that out?",
+          "agent": "I\u2019ve lodged that duplicate card dispute for you. The reference is D, S, P, 4, 0, 0, 0, and the investigation is usually up to 45 days.\n\nThis is a demo record only, so no real bank staff will act on it. Would you like me to check anything else for you?",
+          "tools": [
+            "get_transaction_details",
+            "lodge_dispute"
+          ],
+          "idv": "verified",
+          "ms": 4752
+        },
+        {
+          "caller": "Yes, that one, please lodge it.",
+          "agent": "It\u2019s already lodged, so you\u2019re sorted there. The reference is D, S, P, 4, 0, 0, 0.\n\nWhat else would you like me to look at?",
+          "tools": [],
+          "idv": "verified",
+          "ms": 1248
+        }
+      ]
+    },
+    {
+      "id": "new-loan-callback",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "callback",
+          "ref": "CBK-3599"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'm thinking about buying my first place. What's the difference between a fixed and a variable rate?",
+          "agent": "One sec, I'll find that for you. A variable rate can go up or down over the life of the loan, and it usually lets you make extra repayments, use redraw, and have an offset account. A fixed rate stays the same for the fixed term, usually 1 to 5 years, so your repayments are more predictable, but extra repayments are limited and breaking it early can trigger break costs.\n\nA split loan lets you have part fixed and part variable. Want me to explain which one tends to suit different situations?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2695
+        },
+        {
+          "caller": "What would repayments roughly be on 500,000 dollars over 30 years at your variable rate?",
+          "agent": "Sure, let me just check that. Roughly $3,026.75 a month, based on the indicative demo variable rate of 6.09 percent. That\u2019s only an estimate, though, and the actual rate on a real loan can be different.\n\nWould you like me to work out weekly or fortnightly repayments as well?",
+          "tools": [
+            "search_banking_knowledge",
+            "estimate_loan_repayment"
+          ],
+          "idv": "not_started",
+          "ms": 3530
+        },
+        {
+          "caller": "That sounds good. Could someone help me with an application?",
+          "agent": "Yes, the callback form is open on your screen now for your details and consent. Once you send it through, I\u2019ll pick up from there.",
+          "tools": [
+            "open_callback_form"
+          ],
+          "idv": "not_started",
+          "ms": 3363
+        },
+        {
+          "caller": "Yes please.",
+          "agent": "Perfect. I\u2019ll wait for that to come through. Is there anything else you wanted to ask while we\u2019re here?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1239
+        },
+        {
+          "caller": "[frontend: form submitted]",
+          "agent": "Great, that\u2019s come through. The callback request is recorded, and the reference is C, B, K, 3, 5, 9, 9. It\u2019s a demo request, so nobody will actually call, but the form is saved. \n\nIs there anything else I can help with?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1862
+        },
+        {
+          "caller": "Great, thanks. That was everything.",
+          "agent": "You\u2019re welcome. Take care.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 922
+        }
+      ]
+    },
+    {
+      "id": "new-loan-callback",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "callback",
+          "ref": "CBK-6893"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'm thinking about buying my first place. What's the difference between a fixed and a variable rate?",
+          "agent": "Good question\u2026 let me check. A variable rate can go up or down over time, so your repayments can change. It usually lets you make extra repayments, use redraw, and have an offset account.\n\nA fixed rate stays the same for the fixed term, usually 1 to 5 years, so your repayments are more predictable. The trade-off is extra repayments are usually limited, and breaking the loan early can mean break costs.\n\nAt the end of a fixed term, it usually rolls back to the variable rate unless you fix it again. Would you like me to explain which one suits different first home buyer situations?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2553
+        },
+        {
+          "caller": "What would repayments roughly be on 500,000 dollars over 30 years at your variable rate?",
+          "agent": "Roughly $3,026.75 a month, using the demo variable rate of 6.09 percent. That\u2019s only an estimate, and the rate could change over time.\n\nIf you want, I can also give you a fortnightly or weekly estimate, or compare it with the fixed rate?",
+          "tools": [
+            "estimate_loan_repayment"
+          ],
+          "idv": "not_started",
+          "ms": 2405
+        },
+        {
+          "caller": "That sounds good. Could someone help me with an application?",
+          "agent": "Absolutely. I\u2019ve opened the callback form on your screen for a lending specialist. Just pop in your name, number and consent, and if it goes through, I\u2019ll let you know what happens next. Can I help with anything else while you\u2019re there?",
+          "tools": [
+            "open_callback_form"
+          ],
+          "idv": "not_started",
+          "ms": 2073
+        },
+        {
+          "caller": "Yes please.",
+          "agent": "Of course. I\u2019m here if you need anything else while you fill that in.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1050
+        },
+        {
+          "caller": "[frontend: form submitted]",
+          "agent": "All set. The callback request is in, and the reference is C, B, K, 6, 8, 9, 3. This is a demo request, so nobody will actually call. Is there anything else you\u2019d like help with?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1170
+        },
+        {
+          "caller": "Great, thanks. That was everything.",
+          "agent": "You\u2019re welcome. Take care.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 869
+        }
+      ]
+    },
+    {
+      "id": "new-loan-callback",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "callback",
+          "ref": "CBK-2213"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'm thinking about buying my first place. What's the difference between a fixed and a variable rate?",
+          "agent": "Let me look that up for you. A variable rate can go up or down over the life of the loan, so your repayments can change. A fixed rate stays the same for the fixed term, usually 1 to 5 years, so your repayments are more predictable.\n\nWith this demo bank, variable loans allow unlimited extra repayments, redraw and an offset account. Fixed loans usually limit extra repayments to 10,000 dollars a year, and breaking the loan early can trigger break costs. Would you like me to explain split loans as well?",
+          "tools": [
+            "search_banking_knowledge"
+          ],
+          "idv": "not_started",
+          "ms": 2718
+        },
+        {
+          "caller": "What would repayments roughly be on 500,000 dollars over 30 years at your variable rate?",
+          "agent": "Roughly 3,026 dollars and 75 cents a month, based on the demo variable rate of 6.09 percent and the rate staying the same for the whole term. It\u2019s only an estimate, not an offer or approval. Would you like me to work out weekly or fortnightly as well?",
+          "tools": [
+            "estimate_loan_repayment"
+          ],
+          "idv": "not_started",
+          "ms": 2910
+        },
+        {
+          "caller": "That sounds good. Could someone help me with an application?",
+          "agent": "Absolutely \u2014 I\u2019ve opened the callback form for a home loan enquiry on your screen. It just needs your name, number and consent if you\u2019d like to go ahead. Is there anything else you want to know while you\u2019re here?",
+          "tools": [
+            "open_callback_form"
+          ],
+          "idv": "not_started",
+          "ms": 2693
+        },
+        {
+          "caller": "Yes please.",
+          "agent": "Of course. If you want, I can help with what to put in the form or answer any loan questions you\u2019ve got. What would you like to sort out?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1652
+        },
+        {
+          "caller": "[frontend: form submitted]",
+          "agent": "That\u2019s all come through. The demo callback request is recorded, and the reference is C, B, K, 2, 2, 1, 3.\n\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1174
+        },
+        {
+          "caller": "Great, thanks. That was everything.",
+          "agent": "You\u2019re welcome. Take care.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 940
+        }
+      ]
+    },
+    {
+      "id": "idv-wrong-dob-then-right",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "fail",
+          "method": "exact",
+          "score": null,
+          "normalized": "1992-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you tell me my credit card balance?",
+          "agent": "Sure, I can check that for you. I just need to verify it\u2019s you first, then I\u2019ll look up the balance.  Alright. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2299
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s lined up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1004
+        },
+        {
+          "caller": "14 March 1992",
+          "agent": "Sorry, I didn\u2019t catch that clearly. Could you say your date of birth again, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1146
+        },
+        {
+          "caller": "Oh sorry, I meant 14 March 1991",
+          "agent": "Great, that\u2019s checked out. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1153
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your Low Rate Visa is owing $1,284.60, and your available credit is $3,715.40. Is there anything else you\u2019d like me to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 1994
+        }
+      ]
+    },
+    {
+      "id": "idv-wrong-dob-then-right",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "fail",
+          "method": "exact",
+          "score": null,
+          "normalized": "1992-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you tell me my credit card balance?",
+          "agent": "Sure. What\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1971
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1119
+        },
+        {
+          "caller": "14 March 1992",
+          "agent": "Sorry, I may have misheard that. Could you say your date of birth again?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1541
+        },
+        {
+          "caller": "Oh sorry, I meant 14 March 1991",
+          "agent": "Great, that\u2019s come through. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1038
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set, Emily. Your Low Rate Visa is owing 1,284 dollars and 60 cents, and the available credit is 3,715 dollars and 40 cents. Is there anything else you\u2019d like me to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2186
+        }
+      ]
+    },
+    {
+      "id": "idv-wrong-dob-then-right",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "fail",
+          "method": "exact",
+          "score": null,
+          "normalized": "1992-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Can you tell me my credit card balance?",
+          "agent": "Sure \u2014 I can check that for you.  Okay, what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2109
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s lined up. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1078
+        },
+        {
+          "caller": "14 March 1992",
+          "agent": "Sorry, I might have caught that wrong. Could you say your date of birth again, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1395
+        },
+        {
+          "caller": "Oh sorry, I meant 14 March 1991",
+          "agent": "Great, that all checked out. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1120
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. Your Low Rate Visa has 1,284.60 owing, and 3,715.40 available credit. Is there anything else you\u2019d like me to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2043
+        }
+      ]
+    },
+    {
+      "id": "loan-callback-bad-phone",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "callback",
+          "ref": "CBK-1519"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'd like to talk to someone about a personal loan for a car.",
+          "agent": "The form\u2019s up on your screen now for your name, number and consent. Once you\u2019ve filled it in, I can help from there. Is there anything else you wanted to ask while that\u2019s open?",
+          "tools": [
+            "open_callback_form"
+          ],
+          "idv": "not_started",
+          "ms": 2586
+        },
+        {
+          "caller": "Yes, a callback would be great.",
+          "agent": "Perfect. The form\u2019s there for your details and consent, so just fill that in and submit it when you\u2019re ready. Is there anything else I can help with while you\u2019ve got it open?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1217
+        },
+        {
+          "caller": "[frontend: form error]",
+          "agent": "It looks like the phone number needs a quick fix before that can go through. If you want, you can update it on the form and try again, or I can help with anything else about the loan now.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1564
+        },
+        {
+          "caller": "Oh, I think I typed my number wrong. Fixing it now.",
+          "agent": "No worries, take your time. Let me know once you\u2019ve updated it, and I\u2019ll pick it up from there.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1015
+        },
+        {
+          "caller": "[frontend: form submitted]",
+          "agent": "Great, that\u2019s come through. Your callback request reference is C, B, K, 1, 5, 1, 9. It\u2019s a demo request, so nobody will actually call, but it\u2019s been saved here. Is there anything else you\u2019d like to sort out about the car loan?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1180
+        },
+        {
+          "caller": "Thanks, that's all.",
+          "agent": "You\u2019re welcome. Take care.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 923
+        }
+      ]
+    },
+    {
+      "id": "loan-callback-bad-phone",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "callback",
+          "ref": "CBK-7783"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'd like to talk to someone about a personal loan for a car.",
+          "agent": "Absolutely, I can help with that. Would you like me to set up a callback with a lending specialist about a personal loan for a car?\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1094
+        },
+        {
+          "caller": "Yes, a callback would be great.",
+          "agent": "Great, the form\u2019s open on your screen now for your name, number and consent. Once you submit it, I can pick up from there. Is there anything else you\u2019d like to ask about the loan while that\u2019s open?",
+          "tools": [
+            "open_callback_form"
+          ],
+          "idv": "not_started",
+          "ms": 2180
+        },
+        {
+          "caller": "[frontend: form error]",
+          "agent": "Oh, no worries. The form\u2019s still open, and it looks like the phone number needs a quick fix before it can go through. If you want, you can update that on the form and try again.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1116
+        },
+        {
+          "caller": "Oh, I think I typed my number wrong. Fixing it now.",
+          "agent": "No problem at all. Go ahead and update it, and I\u2019ll wait here. Do you want anything else about the loan while you\u2019re doing that?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1153
+        },
+        {
+          "caller": "[frontend: form submitted]",
+          "agent": "Lovely, that\u2019s come through. Your demo callback request is recorded, and the reference is C, B, K, 7, 7, 8, 3. Because this is a demo, nobody will actually call you back\u2026 is there anything else I can help with on the loan?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1442
+        },
+        {
+          "caller": "Thanks, that's all.",
+          "agent": "You\u2019re welcome. Take care.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 880
+        }
+      ]
+    },
+    {
+      "id": "loan-callback-bad-phone",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "callback",
+          "ref": "CBK-7229"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "I'd like to talk to someone about a personal loan for a car.",
+          "agent": "Of course. I can get a lending specialist callback form up for you about a personal loan for a car. Would you like me to do that?\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1200
+        },
+        {
+          "caller": "Yes, a callback would be great.",
+          "agent": "Great, the form\u2019s up on your screen now for your name, number and consent. Once you submit it, I\u2019ll keep going from there. Is there anything else you\u2019d like help with meanwhile?",
+          "tools": [
+            "open_callback_form"
+          ],
+          "idv": "not_started",
+          "ms": 2383
+        },
+        {
+          "caller": "[frontend: form error]",
+          "agent": "Hmm, it looks like there\u2019s a problem with the phone field on the form. You can try it again on screen, or I can help with anything else while you sort that out \u2014 what would you like to do?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1134
+        },
+        {
+          "caller": "Oh, I think I typed my number wrong. Fixing it now.",
+          "agent": "No worries, that should do it. I\u2019ll wait for the form to come through. Anything else you want to sort while you\u2019re there?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1321
+        },
+        {
+          "caller": "[frontend: form submitted]",
+          "agent": "Perfect, that\u2019s come through. The reference is C, B, K, 7, 2, 2, 9. It\u2019s a demo request, so nobody will actually call, but it\u2019s been recorded. Is there anything else you\u2019d like help with?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1420
+        },
+        {
+          "caller": "Thanks, that's all.",
+          "agent": "You\u2019re welcome. Take care.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1190
+        }
+      ]
+    },
+    {
+      "id": "conv-small-talk-human-goodbye",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Hi! How are you going today?",
+          "agent": "Hi, I\u2019m good thanks. How can I help you today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 979
+        },
+        {
+          "caller": "Ha, good. Wait, am I talking to a real person?",
+          "agent": "No, I\u2019m an AI assistant, not a real bank employee. This is a demo call, and the customer records are fictional demo data. What can I help with?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1005
+        },
+        {
+          "caller": "Is this actually Westpac?",
+          "agent": "No, this is not actually Westpac. It\u2019s a demo interview prototype styled like a Westpac customer service call, and I\u2019m an AI rather than a bank employee. What would you like to talk about?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1078
+        },
+        {
+          "caller": "Okay, that's all I wanted. Thanks, bye!",
+          "agent": "No worries at all. Take care, bye.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1067
+        }
+      ]
+    },
+    {
+      "id": "conv-small-talk-human-goodbye",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Hi! How are you going today?",
+          "agent": "I\u2019m going well, thanks. How can I help today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 979
+        },
+        {
+          "caller": "Ha, good. Wait, am I talking to a real person?",
+          "agent": "No, I\u2019m an AI voice assistant, not a bank employee. This is a demo call, and the customer records here are fictional demo data. What would you like to sort out?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1383
+        },
+        {
+          "caller": "Is this actually Westpac?",
+          "agent": "No, this isn\u2019t a real Westpac call. I\u2019m an AI in an interview demo styled like Westpac customer service, and the records are fictional demo data. What can I help you with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1263
+        },
+        {
+          "caller": "Okay, that's all I wanted. Thanks, bye!",
+          "agent": "No worries at all. Take care and goodbye.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 942
+        }
+      ]
+    },
+    {
+      "id": "conv-small-talk-human-goodbye",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Hi! How are you going today?",
+          "agent": "I\u2019m doing well, thanks. How can I help you today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 871
+        },
+        {
+          "caller": "Ha, good. Wait, am I talking to a real person?",
+          "agent": "No, I\u2019m an AI assistant, not a bank employee. This is a demo call, and the customer records here are fictional. What would you like help with?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1021
+        },
+        {
+          "caller": "Is this actually Westpac?",
+          "agent": "No, this isn\u2019t Westpac itself. It\u2019s a demo interview prototype styled after Westpac customer service, and I\u2019m an AI assistant, not a bank employee. What can I help you with today?",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1114
+        },
+        {
+          "caller": "Okay, that's all I wanted. Thanks, bye!",
+          "agent": "No worries at all. Take care, and goodbye.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1150
+        }
+      ]
+    },
+    {
+      "id": "idv-volunteered-name",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Hi, it's Emily Carter here. Can you check my account balance for me?",
+          "agent": "Perfect, thanks. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2198
+        },
+        {
+          "caller": "I just told you, it's Emily Carter.",
+          "agent": "Right, I\u2019ve got the name side of it. I still need your date of birth to check the balance \u2014 what is it?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1316
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "That\u2019s matched, thanks. What\u2019s your residential address?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1115
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set. Your Everyday Choice account balance is $2,418.76, and the available amount is $2,368.76.\n\nIs there anything else you\u2019d like me to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2084
+        }
+      ]
+    },
+    {
+      "id": "idv-volunteered-name",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Hi, it's Emily Carter here. Can you check my account balance for me?",
+          "agent": "Perfect, that matches. What\u2019s your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1899
+        },
+        {
+          "caller": "I just told you, it's Emily Carter.",
+          "agent": "Right, I\u2019ve got that part already. I still need your date of birth to check the account balance, what\u2019s that please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1152
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that lines up. What\u2019s your residential address?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1060
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your Everyday Choice account balance is 2,418 dollars and 76 cents, and the available amount is 2,368 dollars and 76 cents. Is there anything else you\u2019d like me to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2442
+        }
+      ]
+    },
+    {
+      "id": "idv-volunteered-name",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Hi, it's Emily Carter here. Can you check my account balance for me?",
+          "agent": "Perfect, thanks Emily. Can you tell me your date of birth?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2267
+        },
+        {
+          "caller": "I just told you, it's Emily Carter.",
+          "agent": "I\u2019ve got your name, thanks. I still need your date of birth to check the balance, and it protects your account. Can you give me that?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1561
+        },
+        {
+          "caller": "14 March 1991",
+          "agent": "Great, that\u2019s matched. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1021
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set. Your Everyday Choice account has a balance of $2,418.76 and available funds of $2,368.76. Is there anything else you\u2019d like me to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2269
+        }
+      ]
+    },
+    {
+      "id": "hardship-goodbye-midway",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-5137"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Things have been really tight since my business closed, and I'm not sure I can keep up with the home loan.",
+          "agent": "I\u2019m sorry, that sounds really heavy. Let\u2019s get this down properly so the right support can look at it.  Your hardship notice is recorded. The reference is H, D, S, 5, 1, 3, 7.\n\nA hardship specialist will assess the options. This is just a demo record, so no one will actually call back, but I can record a follow-up request if you want. The National Debt Helpline on 1800 007 007 also offers free, confidential financial counselling.\n\nWould you like me to request a specialist follow-up?",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2740
+        },
+        {
+          "caller": "Sorry, I've got to go, my kid's calling me. Bye.",
+          "agent": "No worries. Take care, and I hope everything\u2019s alright.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1143
+        }
+      ]
+    },
+    {
+      "id": "hardship-goodbye-midway",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [],
+      "records": [
+        {
+          "type": "hardship",
+          "ref": "HDS-2538"
+        }
+      ],
+      "transcript": [
+        {
+          "caller": "Things have been really tight since my business closed, and I'm not sure I can keep up with the home loan.",
+          "agent": "I\u2019m sorry, that\u2019s a lot to be carrying.  I\u2019ve recorded that hardship notice for you. The reference is H, D, S, 2, 5, 3, 8.\n\nA specialist would assess any options from here, and this is a demo so no one will actually call back. If you\u2019d like, I can also record a follow-up request for a hardship specialist.",
+          "tools": [
+            "record_hardship_notice"
+          ],
+          "idv": "not_started",
+          "ms": 2630
+        },
+        {
+          "caller": "Sorry, I've got to go, my kid's calling me. Bye.",
+          "agent": "No worries. Take care, and I hope everything settles down for you soon.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1177
+        }
+      ]
+    },
+    {
+      "id": "hardship-goodbye-midway",
+      "run": 3,
+      "passed": false,
+      "problems": [
+        "expected tool record_hardship_notice was not called",
+        "expected a hardship record"
+      ],
+      "idv": [],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "Things have been really tight since my business closed, and I'm not sure I can keep up with the home loan.",
+          "agent": "I\u2019m sorry, that sounds really tough. We can get this recorded as a hardship notice, and I just need a couple of details to do that. What\u2019s the main thing that\u2019s happened for you?\n",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 1307
+        },
+        {
+          "caller": "Sorry, I've got to go, my kid's calling me. Bye.",
+          "agent": "No worries at all. Take care, and if you want to pick this up later, I\u2019ll be here.",
+          "tools": [],
+          "idv": "not_started",
+          "ms": 969
+        }
+      ]
+    },
+    {
+      "id": "idv-dob-split-tail",
+      "run": 1,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "incomplete",
+          "method": "deterministic",
+          "score": null,
+          "normalized": null,
+          "missing": [
+            "year"
+          ],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": "previous_step"
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What's the balance on my everyday account?",
+          "agent": "I can check that for you.  Could I have your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2448
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that\u2019s matched. What\u2019s your date of birth?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1175
+        },
+        {
+          "caller": "fourteenth of March",
+          "agent": "Just the year, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 896
+        },
+        {
+          "caller": "1991.",
+          "agent": "Great, that lines up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1013
+        },
+        {
+          "caller": "March fourteenth",
+          "agent": "What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1092
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76. Is there anything else I can check for you?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 1961
+        }
+      ]
+    },
+    {
+      "id": "idv-dob-split-tail",
+      "run": 2,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "incomplete",
+          "method": "deterministic",
+          "score": null,
+          "normalized": null,
+          "missing": [
+            "year"
+          ],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": "previous_step"
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What's the balance on my everyday account?",
+          "agent": "Sure \u2014 what\u2019s your full name?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 1993
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that matched up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1045
+        },
+        {
+          "caller": "fourteenth of March",
+          "agent": "What\u2019s your year of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1083
+        },
+        {
+          "caller": "1991.",
+          "agent": "Lovely, that lines up. What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1091
+        },
+        {
+          "caller": "March fourteenth",
+          "agent": "What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 963
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "You\u2019re all set. Your everyday account balance is $2,418.76, and the available amount is $2,368.76. Is there anything else you\u2019d like to check, Emily?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2484
+        }
+      ]
+    },
+    {
+      "id": "idv-dob-split-tail",
+      "run": 3,
+      "passed": true,
+      "problems": [],
+      "idv": [
+        {
+          "step": "full_name",
+          "field": "full_name",
+          "outcome": "pass",
+          "method": "exact",
+          "score": 1.0,
+          "normalized": "emily carter",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "incomplete",
+          "method": "deterministic",
+          "score": null,
+          "normalized": null,
+          "missing": [
+            "year"
+          ],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "dob",
+          "field": "dob",
+          "outcome": "pass",
+          "method": "exact",
+          "score": null,
+          "normalized": "1991-03-14",
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": null
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "no_answer",
+          "method": "none",
+          "score": null,
+          "normalized": null,
+          "missing": [],
+          "components": {},
+          "llm": null,
+          "reason": "previous_step"
+        },
+        {
+          "step": "address",
+          "field": "address",
+          "outcome": "pass",
+          "method": "fuzzy",
+          "score": null,
+          "normalized": "numbers 456 2500 \u00b7 state NSW \u00b7 words harbour street wollongong",
+          "missing": [],
+          "components": {
+            "unit": "match",
+            "street_number": "match",
+            "postcode": "match",
+            "state": "match",
+            "street_name": "match (1.0)",
+            "suburb": "match (1.0)"
+          },
+          "llm": null,
+          "reason": null
+        }
+      ],
+      "records": [],
+      "transcript": [
+        {
+          "caller": "What's the balance on my everyday account?",
+          "agent": "I can help with that. I just need to verify it\u2019s you first, to protect your account.  Could I get your full name, please?",
+          "tools": [
+            "begin_identity_verification"
+          ],
+          "idv": "in_progress",
+          "ms": 2918
+        },
+        {
+          "caller": "Emily Carter",
+          "agent": "Perfect, that all lines up. What\u2019s your date of birth?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1198
+        },
+        {
+          "caller": "fourteenth of March",
+          "agent": "Just the year, please?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 954
+        },
+        {
+          "caller": "1991.",
+          "agent": "Great, that matched. What\u2019s your residential address?\n",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1011
+        },
+        {
+          "caller": "March fourteenth",
+          "agent": "What\u2019s your residential address?",
+          "tools": [],
+          "idv": "in_progress",
+          "ms": 1132
+        },
+        {
+          "caller": "Unit 4, 56 Harbour Street, Wollongong NSW 2500",
+          "agent": "All set, Emily. Your Everyday Choice account balance is $2,418.76, and the available balance is $2,368.76. Is there anything else you\u2019d like me to check?",
+          "tools": [
+            "get_account_summary"
+          ],
+          "idv": "verified",
+          "ms": 2227
+        }
+      ]
+    }
+  ]
+}
