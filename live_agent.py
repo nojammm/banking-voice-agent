@@ -156,6 +156,8 @@ FOLLOWUP_OFFER = re.compile(r"\b(?:would you like|do you want|want me to|if you(
                             r"[^.?!]*\b(?:follow[- ]?up|specialist|a (?:person|human)|someone)\b", re.I)
 OFFERED = ("You've already offered a human or specialist follow-up in this call. Don't offer it again unless the caller asks "
            "for one or brings it up.")
+VERIFIED_NOW = ("Verification has just finished, but no tool was called. Call the tool for what they asked, as they last put it, "
+                "now, saying nothing before the call.")
 RECORD_TOOLS = {'record_hardship_notice', 'lodge_complaint', 'request_human_followup', 'lodge_dispute'}
 UNBACKED = ("Nothing was recorded or updated in this turn: no record tool has been called since the caller last spoke. "
             "If what they just said needs recording, call the tool now, saying nothing before the call: a new complaint or hardship "
@@ -222,6 +224,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
         return out
 
     def unclaimed(pieces):
+        if flags is not None and flags.get('verified_now'): return []  # The retry acts instead of asking first.
         if backed or not any(claims_record(p) for p in pieces): return pieces
         if flags is not None:
             flags['unbacked'] = True
@@ -269,6 +272,7 @@ async def guarded(stream, allowed, publish, audio_tags=None, said=None, seen=Non
         out, blocked = speak(take(pending) + (salvage(held) if tool_called else unclaimed(held)))
         if blocked: await publish({'type': 'guard', 'reason': 'unsupported_number'})
         for piece in out: yield piece
+    if flags is not None: flags['no_tool'] = not tool_called
     if blocked and not tool_called: yield (' ' if spoken else '') + UNSUPPORTED
 
 
@@ -292,11 +296,11 @@ def _last_user(chat_ctx):
     return next((item for item in reversed(chat_ctx.items) if isinstance(item, llm.ChatMessage) and item.role == 'user'), None)
 
 
-def recorded_this_turn(chat_ctx):
-    """Whether a record tool has been called since the caller last spoke."""
+def recorded_this_turn(chat_ctx, names=RECORD_TOOLS):
+    """Whether a record tool (or, with names=None, any tool) has been called since the caller last spoke."""
     for item in reversed(chat_ctx.items):
         if isinstance(item, llm.ChatMessage) and item.role == 'user': return False
-        if isinstance(item, llm.FunctionCall) and item.name in RECORD_TOOLS: return True
+        if isinstance(item, llm.FunctionCall) and (names is None or item.name in names): return True
     return False
 
 
@@ -363,14 +367,19 @@ class VoiceAgent(Agent):
         turn_id = last.id if last is not None else None
         if self.turn_seen[0] != turn_id: self.turn_seen = (turn_id, set())  # Sentences said so far this turn.
         seen = self.turn_seen[1]
-        backed, flags = recorded_this_turn(chat_ctx), {}
+        fresh = self.fresh.get(last.id) if last is not None else None
+        just_verified = (bool(fresh) and fresh.get('outcome') == 'pass' and self.workflow.idv.status == 'verified'
+                         and not recorded_this_turn(chat_ctx, None))
+        backed, flags = recorded_this_turn(chat_ctx), {'verified_now': just_verified}
         try:
             async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen,
                                        backed=backed, flags=flags):
                 yield piece
-            if flags.get('unbacked'):  # Claimed a record changed with no tool: one retry, told to call the tool or not claim it.
+            # One retry: a record change claimed with no tool, or verification just finished and nothing was looked up.
+            retry = UNBACKED if flags.get('unbacked') else VERIFIED_NOW if just_verified and flags.get('no_tool') else None
+            if retry:
                 already = ' '.join(AUDIO_TAG.sub('', ''.join(said)).split())
-                ctx.add_message(role='system', content=UNBACKED + (f' You already said this turn: "{already}" Carry on from there '
+                ctx.add_message(role='system', content=retry + (f' You already said this turn: "{already}" Carry on from there '
                                                                    "without repeating or rephrasing it." if already else ''))
                 async for piece in guarded(Agent.default.llm_node(self, ctx, tools, model_settings), allowed, self.publish, said=said, seen=seen,
                                            backed=backed):

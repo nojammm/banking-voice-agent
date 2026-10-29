@@ -204,7 +204,7 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         ok = ["The complaint's already on file. ", "I've got that. ", "I can add that in now. ", "Once it's recorded, a specialist looks at it. ",
               "Your complaint was lodged last week."]
         flags = {}
-        self.assertEqual((await run(ok, backed=False, flags=flags), flags), (''.join(ok), {}))
+        self.assertEqual((await run(ok, backed=False, flags=flags), 'unbacked' in flags), (''.join(ok), False))
 
         ctx = llm.ChatContext()
         ctx.add_message(role='user', content="It's the home loan.")
@@ -266,6 +266,35 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(Agent.default, 'llm_node', fake_llm):
             [p async for p in agent.llm_node(ctx, [], None)]
         self.assertNotIn(OFFERED, notes[-1])  # Once a follow-up exists, the note isn't needed.
+
+    async def test_the_turn_that_finishes_verification_looks_up_what_they_asked(self):
+        from livekit.agents import Agent, llm
+        from live_agent import VERIFIED_NOW
+        agent, wf = self.agent()
+        wf.idv.status, wf.idv.customer_id = 'verified', wf.idv.customers[0]['id']
+        ctx = llm.ChatContext()
+        ctx.add_message(role='user', content='[The caller answered the address question. The Worker withheld the answer.]')
+        agent.fresh[ctx.items[-1].id] = {'step': 'address', 'outcome': 'pass'}
+        prompts = []
+        async def fake_llm(self, chat_ctx, tools, settings):
+            prompts.append(chat_ctx.items[-1].text_content)
+            if len(prompts) == 1:
+                for piece in ["You're all set. ", 'I can check that for you now. ', 'Which account did you mean?']: yield piece
+            else:
+                yield llm.ChatChunk(id='a', delta=llm.ChoiceDelta(role='assistant', tool_calls=[llm.FunctionToolCall(
+                    name='get_account_summary', arguments='{}', call_id='c1')]))
+        with patch.object(Agent.default, 'llm_node', fake_llm):
+            out = [p async for p in agent.llm_node(ctx, [], None)]
+        self.assertEqual(''.join(p for p in out if isinstance(p, str)), "You're all set. I can check that for you now. ")
+        self.assertTrue(prompts[1].startswith(VERIFIED_NOW))  # No question first: the retry looks it up.
+        self.assertEqual(out[-1].delta.tool_calls[0].name, 'get_account_summary')
+        ctx.items.append(llm.FunctionCall(name='get_account_summary', arguments='{}', call_id='c1'))
+        prompts.clear()
+        async def answer(self, chat_ctx, tools, settings):
+            prompts.append(1); yield 'Your balance is fine.'
+        with patch.object(Agent.default, 'llm_node', answer):
+            [p async for p in agent.llm_node(ctx, [], None)]
+        self.assertEqual(len(prompts), 1)  # After the lookup, no retry.
 
     async def test_audio_tags_reach_a_tag_capable_voice_only(self):
         pieces = ['[sym', 'pathetic] Oh no, that sounds stressful. ', 'Let me [short ', 'pause] check.']
