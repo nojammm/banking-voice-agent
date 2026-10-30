@@ -55,6 +55,15 @@ LOAN_PURPOSE = [('first home', re.compile(r"\bfirst (?:home|place|house)\b", re.
                 ('used car', re.compile(r"\bused car\b", re.I)), ('refinance', re.compile(r"\brefinanc", re.I))]
 
 
+LOAN_HELP = re.compile(r"\b(?:someone|somebody|a person|a specialist|call me|call back|callback)\b", re.I)
+
+
+def loan_request(text):
+    """They want to apply or be helped with one, not just know something: "What documents do I need to apply?" is a
+    knowledge question unless it also asks for a person."""
+    return bool(LOAN_INTENT.search(text)) and (not idv.is_question(text) or bool(LOAN_HELP.search(text)))
+
+
 def loan_kind(text):
     """The kind of loan a caller names, if any."""
     return next((kind for kind, pattern in LOAN_KIND if pattern.search(text)), None)

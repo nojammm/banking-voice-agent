@@ -508,6 +508,8 @@ class LiveAgentTests(unittest.IsolatedAsyncioTestCase):
             return ctx
         await turn("I'm thinking about buying my first place. What's the difference between fixed and variable?")
         self.assertIsNone(wf.loan_stage)  # A rates question, not an application.
+        await turn('What documents do I need to apply for a home loan?')
+        self.assertIsNone(wf.loan_stage)  # A knowledge question, even with "apply" in it.
         await turn("I want to apply for a loan, but I don't know how.")
         self.assertIsNone(wf.loan_stage)  # No kind yet: the agent asks.
         agent.asked_loan_kind = True  # It asked "a home loan, a car loan or a personal loan?"

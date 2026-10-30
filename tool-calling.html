@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tool Calling</title>
+<style>
+:root {
+  --bg: #f5f5f6;
+  --surface: #fff;
+  --text: #161619;
+  --muted: #5b5b6a;
+  --line: #dedee1;
+  --line-strong: #b6b6bc;
+  --ink: #1f1c4f;
+  --ink-faint: #f1f0fa;
+  --red: #da1710;
+  --red-faint: #fff0f0;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111116; --surface: #1b1b22; --text: #ececf1; --muted: #a3a3b0; --line: #2e2e38; --line-strong: #4a4a56;
+    --ink: #b9b5ff; --ink-faint: #24223f; --red: #ff5a52; --red-faint: #3a1a1a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111116; --surface: #1b1b22; --text: #ececf1; --muted: #a3a3b0; --line: #2e2e38; --line-strong: #4a4a56;
+  --ink: #b9b5ff; --ink-faint: #24223f; --red: #ff5a52; --red-faint: #3a1a1a;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--sans); }
+main { max-width: 1120px; margin: 0 auto; padding: 40px 16px 56px; display: flex; flex-direction: column; gap: 24px; }
+h1, h2 { margin: 0; color: var(--ink); letter-spacing: -.01em; }
+h1 { font-size: 28px; line-height: 1.2; }
+h2 { font-size: 19px; margin-bottom: 20px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
+.scroll { overflow-x: auto; }
+
+svg.flow { display: block; width: 100%; min-width: 760px; height: auto; }
+.lane { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+.lane.dashed { stroke-dasharray: 4 4; }
+.head { fill: var(--line-strong); }
+.node { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; }
+.node.caller { fill: var(--ink-faint); stroke: var(--ink); }
+.node.model { fill: var(--ink); stroke: var(--ink); }
+.node.chip { fill: var(--ink-faint); stroke: none; }
+.worker { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: 6 5; }
+.t { font: 600 13px var(--sans); fill: var(--text); }
+.t.inv { fill: var(--surface); }
+.t.ink { fill: var(--ink); font-size: 14px; font-weight: 700; }
+.t.small { font-size: 11px; font-weight: 500; fill: var(--muted); }
+.icon { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.dot { fill: var(--ink); }
+.legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.legend svg { width: 18px; height: 18px; }
+
+.pipe { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pnode { padding: 9px 12px; border-radius: 6px; border: 1.5px solid var(--line-strong); font: 600 13px var(--mono); white-space: nowrap; }
+.pnode.model { border-color: var(--ink); background: var(--ink); color: var(--surface); font-family: var(--sans); }
+.pnode.guard { border-color: var(--red); background: var(--red-faint); color: var(--red); }
+.arrow { width: 14px; height: 10px; flex: none; }
+.arrow path { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tool calling</h1>
+
+  <section class="card">
+    <h2>Each turn</h2>
+    <div class="scroll">
+      <svg class="flow" viewBox="0 20 1000 330" role="img" aria-label="The caller's turn passes a turn check, which sends identity answers to the Worker, then reaches the language model. The model also gets the prompt rules and the tool definitions, attached once at call start. It sends tool calls to the Worker, which owns identity, account tools, knowledge and records, and gets tool results back. The Worker also adds a note before every reply with the verification status. Its reply is spoken to the caller.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path class="head" d="M0,0 L10,5 L0,10 Z"/>
+          </marker>
+        </defs>
+
+        <!-- Lanes -->
+        <path id="pIn" class="lane" d="M90,60 H328" marker-end="url(#ah)"/>
+        <path id="pDown" class="lane" d="M400,80 V138" marker-end="url(#ah)"/>
+        <path id="pIdent" class="lane dashed" d="M470,60 H682 V138" marker-end="url(#ah)"/>
+        <path class="lane" d="M270,150 H328" marker-end="url(#ah)"/>
+        <path class="lane" d="M270,210 H328" marker-end="url(#ah)"/>
+        <path id="pCall" class="lane" d="M472,158 H578" marker-end="url(#ah)"/>
+        <path id="pResult" class="lane" d="M578,184 H472" marker-end="url(#ah)"/>
+        <path id="pNote" class="lane" d="M578,210 H472" marker-end="url(#ah)"/>
+        <path id="pReply" class="lane" d="M400,222 V288" marker-end="url(#ah)"/>
+        <path id="pBack" class="lane" d="M330,310 H78 Q60,310 60,292 V90" marker-end="url(#ah)"/>
+
+        <g id="dots"></g>
+
+        <!-- Caller -->
+        <circle class="node caller" cx="60" cy="60" r="28"/>
+        <text class="t ink" x="60" y="65" text-anchor="middle">Caller</text>
+
+        <!-- Turn check -->
+        <g>
+          <title>Code reads the caller's words before the model runs and can start ID&amp;V or a loan enquiry itself</title>
+          <rect class="node" x="330" y="40" width="140" height="40" rx="8"/>
+          <text class="t" x="400" y="65" text-anchor="middle">Turn check</text>
+        </g>
+        <text class="t small" x="576" y="52" text-anchor="middle"><title>The Worker checks them; the model only sees the outcome</title>identity answers</text>
+
+        <!-- Model inputs -->
+        <g>
+          <title>prompts/banking-agent.md: when to use each tool</title>
+          <rect class="node" x="110" y="130" width="160" height="40" rx="8"/>
+          <text class="t" x="190" y="155" text-anchor="middle">Prompt rules</text>
+        </g>
+        <g>
+          <title>The @function_tool methods on VoiceAgent: name, docstring and typed parameters</title>
+          <rect class="node" x="110" y="190" width="160" height="40" rx="8"/>
+          <text class="t" x="190" y="215" text-anchor="middle">Tool definitions</text>
+        </g>
+        <text class="t small" x="190" y="250" text-anchor="middle">attached at call start</text>
+
+        <!-- Model -->
+        <g>
+          <title>Picks a tool from the definitions, the prompt rules and the Worker's note</title>
+          <rect class="node model" x="330" y="140" width="140" height="80" rx="10"/>
+          <text class="t inv" x="400" y="185" text-anchor="middle">Language model</text>
+        </g>
+        <text class="t small" x="525" y="151" text-anchor="middle">tool call</text>
+        <text class="t small" x="525" y="177" text-anchor="middle">tool result</text>
+        <text class="t small" x="525" y="203" text-anchor="middle"><title>Added before every reply: ID&amp;V status and the next item to ask for, loan progress, records made</title>Worker note</text>
+
+        <!-- Worker -->
+        <rect class="worker" x="580" y="120" width="380" height="150" rx="12"/>
+        <rect class="node chip" x="600" y="140" width="164" height="36" rx="6"/>
+        <text class="t" x="682" y="163" text-anchor="middle">Identity</text>
+        <g>
+          <title>Blocked until verified: a call before then starts ID&amp;V instead</title>
+          <rect class="node chip" x="776" y="140" width="164" height="36" rx="6"/>
+          <g class="icon" transform="translate(810,158)">
+            <rect x="-5.5" y="-2" width="11" height="8" rx="1.5"/><path d="M-3.2,-2 V-4.5 A3.2,3.2 0 0 1 3.2,-4.5 V-2"/>
+          </g>
+          <text class="t" x="866" y="163" text-anchor="middle">Account tools</text>
+        </g>
+        <rect class="node chip" x="600" y="188" width="164" height="36" rx="6"/>
+        <text class="t" x="682" y="211" text-anchor="middle">Knowledge</text>
+        <rect class="node chip" x="776" y="188" width="164" height="36" rx="6"/>
+        <text class="t" x="858" y="211" text-anchor="middle">Records</text>
+        <text class="t ink" x="600" y="254">Worker</text>
+
+        <!-- Reply -->
+        <rect class="node" x="330" y="290" width="140" height="40" rx="8"/>
+        <text class="t" x="400" y="315" text-anchor="middle">Spoken reply</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <svg viewBox="-9 -9 18 18" aria-hidden="true"><g class="icon"><rect x="-5.5" y="-2" width="11" height="8" rx="1.5"/><path d="M-3.2,-2 V-4.5 A3.2,3.2 0 0 1 3.2,-4.5 V-2"/></g></svg>
+      Opens after verification
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>One tool call</h2>
+    <div class="pipe">
+      <div class="pnode model">Language model</div>
+      <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+      <div class="pnode" title="live_agent.py">VoiceAgent.get_loans</div>
+      <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+      <div class="pnode" title="banking.py: audit, then dispatch by name">Workflow.call</div>
+      <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+      <div class="pnode guard" title="banking.py: verification check">_guard</div>
+      <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+      <div class="pnode" title="banking.py">Workflow.get_loans</div>
+      <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+      <div class="pnode" title="Back to the model, with a next-step hint">JSON + next</div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  dot.setAttribute('r', 5);
+  dot.setAttribute('class', 'dot');
+  dot.style.opacity = 0;
+  document.getElementById('dots').appendChild(dot);
+
+  const SPEED = 0.12;  // px per ms
+  const pause = ms => new Promise(ok => setTimeout(ok, ms));
+  function trip(id) {
+    const p = document.getElementById(id), end = p.getTotalLength(), dur = Math.max(900, end / SPEED);
+    return new Promise(done => {
+      const t0 = performance.now();
+      dot.style.opacity = 1;
+      (function step(now) {
+        const d = Math.min(1, (now - t0) / dur) * end, pt = p.getPointAtLength(d);
+        dot.setAttribute('cx', pt.x);
+        dot.setAttribute('cy', pt.y);
+        if (d < end) return requestAnimationFrame(step);
+        dot.style.opacity = 0;
+        done();
+      })(t0);
+    });
+  }
+
+  const turns = [
+    ['pIn', 'pDown', 'pCall', 'pResult', 'pReply', 'pBack'],
+    ['pIn', 'pIdent', 'pNote', 'pReply', 'pBack'],
+  ];
+  (async () => {
+    for (;;) for (const turn of turns) {
+      for (const id of turn) { await trip(id); await pause(350); }
+      await pause(1600);
+    }
+  })();
+})();
+</script>
+</body>
+</html>

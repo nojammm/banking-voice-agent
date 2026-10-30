@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Agent Architecture</title>
+<style>
+:root {
+  --bg: #f5f5f6;
+  --surface: #fff;
+  --text: #161619;
+  --muted: #5b5b6a;
+  --line: #dedee1;
+  --line-strong: #b6b6bc;
+  --ink: #1f1c4f;
+  --ink-faint: #f1f0fa;
+  --red: #da1710;
+  --red-faint: #fff0f0;
+  --green: #008000;
+  --green-faint: #f2f9f2;
+  --amber: #c53b00;
+  --amber-faint: #fcf5f2;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111116; --surface: #1b1b22; --text: #ececf1; --muted: #a3a3b0; --line: #2e2e38; --line-strong: #4a4a56;
+    --ink: #b9b5ff; --ink-faint: #24223f; --red: #ff5a52; --red-faint: #3a1a1a; --green: #4cc27a; --green-faint: #15291d;
+    --amber: #f08a4b; --amber-faint: #33221a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111116; --surface: #1b1b22; --text: #ececf1; --muted: #a3a3b0; --line: #2e2e38; --line-strong: #4a4a56;
+  --ink: #b9b5ff; --ink-faint: #24223f; --red: #ff5a52; --red-faint: #3a1a1a; --green: #4cc27a; --green-faint: #15291d;
+  --amber: #f08a4b; --amber-faint: #33221a;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--sans); }
+main { max-width: 1120px; margin: 0 auto; padding: 0 16px 56px; }
+.screen { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; gap: 24px; padding: 40px 0 24px; }
+.screen .card { flex: 1; display: flex; flex-direction: column; }
+.screen .scroll { flex: 1; display: flex; align-items: center; }
+h1, h2, h3 { margin: 0; color: var(--ink); letter-spacing: -.01em; }
+h1 { font-size: 28px; line-height: 1.2; }
+h2 { font-size: 19px; }
+h3 { font-size: 14px; font-weight: 600; color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.scroll { overflow-x: auto; }
+
+/* Call flow */
+svg.flow { display: block; width: 100%; min-width: 760px; height: auto; }
+.lane { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+.lane.dashed { stroke-dasharray: 4 4; }
+.head { fill: var(--line-strong); }
+.node { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; }
+.node.caller { fill: var(--ink-faint); stroke: var(--ink); }
+.node.model { fill: var(--ink); stroke: var(--ink); }
+.node.chip { fill: var(--ink-faint); stroke: none; }
+.worker { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: 6 5; }
+.t { font: 600 13px var(--sans); fill: var(--text); }
+.t.inv { fill: var(--surface); }
+.t.ink { fill: var(--ink); font-size: 14px; font-weight: 700; }
+.t.small { font-size: 11px; font-weight: 500; fill: var(--muted); }
+.gate circle { fill: var(--surface); stroke: var(--red); stroke-width: 1.5; transition: fill .4s; }
+.gate path, .gate use { fill: none; stroke: var(--red); stroke-width: 1.5; stroke-linejoin: round; }
+.gate text { font: 600 11.5px var(--sans); fill: var(--red); }
+.gate.hit circle { fill: var(--red-faint); }
+.gate { transform-box: fill-box; }
+.icon { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.dot { fill: var(--ink); }
+.legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.legend svg { width: 18px; height: 18px; }
+
+/* Identity verification */
+.seg { display: inline-flex; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 3px; }
+.seg button { font: 600 13px var(--sans); color: var(--muted); background: none; border: 0; border-radius: 4px; padding: 6px 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.seg button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+.track { display: flex; align-items: center; min-width: 760px; }
+.step { flex: 0 0 150px; border: 1.5px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--surface);
+  transition: border-color .25s, background .25s, opacity .25s; opacity: .55; }
+.step-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; white-space: nowrap; }
+.step-title svg { width: 16px; height: 16px; flex: none; }
+.pips { display: flex; gap: 5px; margin-top: 10px; }
+.pip { width: 18px; height: 6px; border-radius: 3px; background: var(--line); transition: background .25s; }
+.pip.used { background: var(--red); }
+.step.is-active { opacity: 1; border-color: var(--ink); }
+.step.is-paused { opacity: 1; border-color: var(--amber); border-style: dashed; }
+.step.is-passed { opacity: 1; border-color: var(--green); background: var(--green-faint); }
+.step.is-failed { opacity: 1; border-color: var(--red); background: var(--red-faint); }
+.step.flash { animation: nudge .45s; }
+@keyframes nudge { 30% { transform: translateX(-3px); } 60% { transform: translateX(3px); } }
+.link { flex: 1 1 16px; min-width: 16px; height: 2px; background: var(--line); position: relative; overflow: hidden; }
+.link::after { content: ''; position: absolute; inset: 0; background: var(--green); transform: scaleX(0); transform-origin: left; transition: transform .4s; }
+.link.done::after { transform: scaleX(1); }
+.access-wrap { flex: 0 0 150px; position: relative; }
+.access { display: flex; align-items: center; justify-content: center; gap: 8px; height: 56px; border-radius: 28px; font-weight: 600; font-size: 14px;
+  border: 1.5px solid var(--line-strong); color: var(--muted); transition: all .3s; }
+.access svg { width: 16px; height: 16px; }
+.access .open { display: none; }
+.access[data-state="open"] { border-color: var(--green); background: var(--green-faint); color: var(--green); }
+.access[data-state="open"] .open { display: block; }
+.access[data-state="open"] .shut { display: none; }
+.access[data-state="blocked"] { border-color: var(--red); background: var(--red-faint); color: var(--red); }
+.callback { position: absolute; left: 0; right: 0; top: calc(100% + 10px); text-align: center; font-size: 13px; font-weight: 600; color: var(--ink);
+  opacity: 0; transform: translateY(-4px); transition: all .3s; }
+.callback.show { opacity: 1; transform: none; }
+
+.panels { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-top: 16px; }
+.panel { display: flex; flex-direction: column; }
+.panel-body { margin: auto 0; }
+.panel { border: 1px solid var(--line); border-radius: 8px; padding: 18px; }
+.panel h3 { margin-bottom: 16px; }
+.pipe { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pnode { padding: 9px 12px; border-radius: 6px; border: 1.5px solid var(--line); font-size: 13px; font-weight: 600; white-space: nowrap;
+  color: var(--muted); transition: all .2s; }
+.pnode.on { border-color: var(--ink); color: var(--ink); background: var(--ink-faint); }
+.arrow { width: 14px; height: 10px; flex: none; }
+.arrow path { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+.outcomes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.outcome { display: flex; align-items: baseline; gap: 8px; padding: 5px 10px; border-radius: 6px; font-size: 13px; transition: background .2s; }
+.outcome b { font-weight: 600; }
+.outcome span { color: var(--muted); }
+.outcome::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; align-self: center; }
+.outcome[data-o="pass"] { color: var(--green); }
+.outcome[data-o="unclear"] { color: var(--amber); }
+.outcome[data-o="fail"] { color: var(--red); }
+.outcome[data-o="pass"].on { background: var(--green-faint); }
+.outcome[data-o="unclear"].on { background: var(--amber-faint); }
+.outcome[data-o="fail"].on { background: var(--red-faint); }
+
+svg.states { display: block; width: 100%; max-width: 440px; height: auto; margin: auto; }
+.st rect { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; transition: all .25s; }
+.st text { font: 600 13.5px var(--sans); fill: var(--muted); transition: fill .25s; }
+.st.on rect { stroke-width: 2; }
+.st.on[data-s="progress"] rect { stroke: var(--ink); fill: var(--ink-faint); }
+.st.on[data-s="progress"] text { fill: var(--ink); }
+.st.on[data-s="paused"] rect { stroke: var(--amber); fill: var(--amber-faint); }
+.st.on[data-s="paused"] text { fill: var(--amber); }
+.st.on[data-s="verified"] rect { stroke: var(--green); fill: var(--green-faint); }
+.st.on[data-s="verified"] text { fill: var(--green); }
+.st.on[data-s="locked"] rect { stroke: var(--red); fill: var(--red-faint); }
+.st.on[data-s="locked"] text { fill: var(--red); }
+.st.on[data-s="idle"] rect { stroke: var(--ink); }
+.st.on[data-s="idle"] text { fill: var(--ink); }
+
+@media (max-width: 860px) {
+  .panels { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="screen">
+  <h1>Voice agent architecture</h1>
+
+  <section class="card">
+    <div class="card-head"><h2>Call flow</h2></div>
+    <div class="scroll">
+      <svg class="flow" viewBox="0 40 1000 345" role="img" aria-label="Caller speech flows through speech to text, redaction, end of turn detection and an override check to the language model. The model calls the Worker, which owns identity, tools, knowledge and records. Replies pass a fact check and text to speech back to the caller. On-screen forms reach the Worker through the server only.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path class="head" d="M0,0 L10,5 L0,10 Z"/>
+          </marker>
+          <g id="shield"><path d="M0,-7 L6,-4.5 V0.5 C6,4 3.4,6.4 0,7.5 C-3.4,6.4 -6,4 -6,0.5 V-4.5 Z"/></g>
+        </defs>
+
+        <!-- Lanes -->
+        <path id="pIn" class="lane" d="M70,172 V118 Q70,90 98,90 H852 Q880,90 880,118 V168" marker-end="url(#ah)"/>
+        <path id="pOut" class="lane" d="M880,250 V302 Q880,330 852,330 H98 Q70,330 70,302 V250" marker-end="url(#ah)"/>
+        <path id="pScreen" class="lane" d="M108,210 H298" marker-end="url(#ah)"/>
+        <path id="pIdent" class="lane dashed" d="M250,110 V132 Q250,144 262,144 H351 Q363,144 363,156 V178" marker-end="url(#ah)"/>
+        <path id="pCalls" class="lane" d="M815,198 H742" marker-end="url(#ah)"/>
+        <path id="pState" class="lane" d="M740,222 H813" marker-end="url(#ah)"/>
+
+        <!-- Moving packets render here, under the nodes -->
+        <g id="dots"></g>
+
+        <!-- Caller -->
+        <circle class="node caller" cx="70" cy="210" r="38"/>
+        <text class="t ink" x="70" y="215" text-anchor="middle">Caller</text>
+
+        <!-- Inbound -->
+        <rect class="node" x="182" y="70" width="136" height="40" rx="8"/>
+        <text class="t" x="250" y="95" text-anchor="middle">Speech to text</text>
+        <rect class="node" x="495" y="70" width="120" height="40" rx="8"/>
+        <text class="t" x="555" y="95" text-anchor="middle">End of turn</text>
+
+        <!-- Outbound -->
+        <rect class="node" x="182" y="310" width="136" height="40" rx="8"/>
+        <text class="t" x="250" y="335" text-anchor="middle">Text to speech</text>
+
+        <!-- Model -->
+        <rect class="node model" x="815" y="170" width="130" height="80" rx="10"/>
+        <text class="t inv" x="880" y="215" text-anchor="middle">Language model</text>
+        <text class="t small" x="778" y="190" text-anchor="middle">tool calls</text>
+        <text class="t small" x="778" y="240" text-anchor="middle">state</text>
+
+        <!-- Worker -->
+        <rect class="worker" x="300" y="160" width="440" height="110" rx="12"/>
+        <rect class="node chip" x="316" y="180" width="94" height="36" rx="6"/>
+        <text class="t" x="363" y="203" text-anchor="middle">Identity</text>
+        <g>
+          <title>Account tools open only after verification</title>
+          <rect class="node chip" x="422" y="180" width="94" height="36" rx="6"/>
+          <g class="icon" transform="translate(444,198)">
+            <rect x="-5.5" y="-2" width="11" height="8" rx="1.5"/><path d="M-3.2,-2 V-4.5 A3.2,3.2 0 0 1 3.2,-4.5 V-2"/>
+          </g>
+          <text class="t" x="478" y="203" text-anchor="middle">Tools</text>
+        </g>
+        <rect class="node chip" x="528" y="180" width="94" height="36" rx="6"/>
+        <text class="t" x="575" y="203" text-anchor="middle">Knowledge</text>
+        <rect class="node chip" x="634" y="180" width="94" height="36" rx="6"/>
+        <text class="t" x="681" y="203" text-anchor="middle">Records</text>
+        <text class="t ink" x="316" y="252">Worker</text>
+
+        <!-- Side channels -->
+        <text class="t small" x="240" y="134" text-anchor="end"><title>Raw answers go to the Worker only; the model sees the outcome</title>Identity answers</text>
+        <text class="t small" x="204" y="186" text-anchor="middle">On-screen forms</text>
+
+        <!-- Guardrails -->
+        <g class="gate" id="gRedact" transform="translate(410,90)">
+          <title>Sensitive data replaced before the model sees it</title>
+          <circle r="15"/><use href="#shield"/><text y="32" text-anchor="middle">Redact</text>
+        </g>
+        <g class="gate" id="gOverride" transform="translate(700,90)">
+          <title>Attempts to change the agent's rules are refused before the model runs</title>
+          <circle r="15"/><use href="#shield"/><text y="32" text-anchor="middle">Override block</text>
+        </g>
+        <g class="gate" id="gFact" transform="translate(700,330)">
+          <title>Figures not backed by a tool result are held back</title>
+          <circle r="15"/><use href="#shield"/><text y="32" text-anchor="middle">Fact check</text>
+        </g>
+        <g class="gate" id="gServer" transform="translate(200,210)">
+          <title>Form results are accepted from the server only, never the browser</title>
+          <circle r="15"/><use href="#shield"/><text y="32" text-anchor="middle">Server only</text>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <svg viewBox="-9 -9 18 18" aria-hidden="true"><g class="gate"><circle r="8.5"/><path d="M0,-4.5 L4,-3 V0.3 C4,2.6 2.2,4.2 0,5 C-2.2,4.2 -4,2.6 -4,0.3 V-3 Z"/></g></svg>
+      Enforced in code
+    </div>
+  </section>
+  </div>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Identity verification</h2>
+      <div class="seg" role="group" aria-label="Scenario">
+        <button type="button" data-run="verified" aria-pressed="true">Verified</button>
+        <button type="button" data-run="locked" aria-pressed="false">Locked</button>
+      </div>
+    </div>
+
+    <div class="scroll" style="padding-bottom: 36px;">
+      <div class="track">
+        <div class="step" data-attempts="3">
+          <div class="step-title">
+            <svg viewBox="0 0 16 16" class="icon" aria-label="Typed"><rect x="1.5" y="4" width="13" height="8.5" rx="1.5"/><path d="M4 7h1M7.5 7h1M11 7h1M5 10h6"/></svg>
+            Customer number
+          </div>
+          <div class="pips"></div>
+        </div>
+        <div class="link"></div>
+        <div class="step" data-attempts="3">
+          <div class="step-title">
+            <svg viewBox="0 0 16 16" class="icon" aria-label="Spoken"><rect x="5.5" y="1.5" width="5" height="8.5" rx="2.5"/><path d="M3 8a5 5 0 0 0 10 0M8 13v1.8"/></svg>
+            Full name
+          </div>
+          <div class="pips"></div>
+        </div>
+        <div class="link"></div>
+        <div class="step" data-attempts="2">
+          <div class="step-title">
+            <svg viewBox="0 0 16 16" class="icon" aria-label="Spoken"><rect x="5.5" y="1.5" width="5" height="8.5" rx="2.5"/><path d="M3 8a5 5 0 0 0 10 0M8 13v1.8"/></svg>
+            Date of birth
+          </div>
+          <div class="pips"></div>
+        </div>
+        <div class="link"></div>
+        <div class="step" data-attempts="2">
+          <div class="step-title">
+            <svg viewBox="0 0 16 16" class="icon" aria-label="Spoken"><rect x="5.5" y="1.5" width="5" height="8.5" rx="2.5"/><path d="M3 8a5 5 0 0 0 10 0M8 13v1.8"/></svg>
+            Address
+          </div>
+          <div class="pips"></div>
+        </div>
+        <div class="link"></div>
+        <div class="access-wrap">
+          <div class="access" data-state="locked">
+            <svg viewBox="0 0 16 16" class="shut" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="7" width="10" height="7.5" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>
+            <svg viewBox="0 0 16 16" class="open" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="7" width="10" height="7.5" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 5.8-1"/></svg>
+            Account tools
+          </div>
+          <div class="callback">Call-back form</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <h3>Each answer</h3>
+        <div class="panel-body">
+        <div class="pipe">
+          <div class="pnode" data-k="norm">Normalise</div>
+          <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+          <div class="pnode" data-k="exact">Exact match</div>
+          <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+          <div class="pnode" data-k="sim">Similarity</div>
+          <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+          <div class="pnode" data-k="model" title="Only for borderline scores; its answer is checked by the Worker">Model check</div>
+        </div>
+        <div class="outcomes">
+            <div class="outcome" data-o="pass"><b>Match</b><span>next step</span></div>
+            <div class="outcome" data-o="unclear"><b>Unclear</b><span>ask again</span></div>
+            <div class="outcome" data-o="fail"><b>Mismatch</b><span>uses an attempt</span></div>
+        </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>State</h3>
+        <svg class="states" viewBox="0 0 420 190" role="img" aria-label="Not started leads to in progress. In progress can pause and resume with attempts kept, and ends verified or locked.">
+          <path class="lane" d="M112,95 H146" marker-end="url(#ah)"/>
+          <path class="lane" d="M262,88 Q282,88 282,70 V56 Q282,44 296,44" marker-end="url(#ah)"/>
+          <path class="lane" d="M262,102 Q282,102 282,120 V134 Q282,146 296,146" marker-end="url(#ah)"/>
+          <path class="lane" d="M196,113 V146" marker-end="url(#ah)"/>
+          <path class="lane" d="M216,150 V117" marker-end="url(#ah)"/>
+          <text class="t small" x="140" y="137" text-anchor="end">attempts kept</text>
+          <g class="st" data-s="idle"><rect x="10" y="77" width="100" height="36" rx="8"/><text x="60" y="99.5" text-anchor="middle">Not started</text></g>
+          <g class="st" data-s="progress"><rect x="150" y="77" width="112" height="36" rx="8"/><text x="206" y="99.5" text-anchor="middle">In progress</text></g>
+          <g class="st" data-s="paused"><rect x="150" y="150" width="112" height="36" rx="8"/><text x="206" y="172.5" text-anchor="middle">Paused</text></g>
+          <g class="st" data-s="verified"><rect x="300" y="26" width="110" height="36" rx="8"/><text x="355" y="48.5" text-anchor="middle">Verified</text></g>
+          <g class="st" data-s="locked"><rect x="300" y="128" width="110" height="36" rx="8"/><text x="355" y="150.5" text-anchor="middle">Locked</text></g>
+        </svg>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Call flow packets ---------- */
+(() => {
+  if (reduceMotion) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const layer = document.getElementById('dots');
+  const path = id => document.getElementById(id);
+
+  // Distance along a path to the point nearest (x, y).
+  function lengthAt(p, x, y) {
+    const L = p.getTotalLength();
+    let best = 0, dist = Infinity;
+    for (let l = 0; l <= L; l += 1) {
+      const pt = p.getPointAtLength(l), d = Math.hypot(pt.x - x, pt.y - y);
+      if (d < dist) { dist = d; best = l; }
+    }
+    return best;
+  }
+
+  // One packet at a time, walking one turn of the call.
+  const dot = document.createElementNS(NS, 'circle');
+  dot.setAttribute('r', 5);
+  dot.setAttribute('class', 'dot');
+  dot.style.opacity = 0;
+  layer.appendChild(dot);
+
+  const red = getComputedStyle(document.documentElement).getPropertyValue('--red').trim();
+  const pIn = path('pIn'), pOut = path('pOut');
+  const at = {
+    redact: lengthAt(pIn, 410, 90),
+    override: lengthAt(pIn, 680, 90),
+    fact: lengthAt(pOut, 720, 330),
+    server: lengthAt(path('pScreen'), 200, 210),
+  };
+  const SPEED = 0.12;  // px per ms
+  const pause = ms => new Promise(ok => setTimeout(ok, ms));
+
+  function flash(id) {
+    const g = document.getElementById(id);
+    g.classList.add('hit');
+    setTimeout(() => g.classList.remove('hit'), 1100);
+  }
+
+  // red: starts red; cleanAt: turns clean there; stopAt: halted there; passAt: gate lights as it passes.
+  function trip(id, { red: isRed = false, cleanAt, stopAt, passAt, gate } = {}) {
+    const p = path(id), end = stopAt ?? p.getTotalLength(), dur = Math.max(1600, end / SPEED);
+    const mark = cleanAt ?? passAt;
+    return new Promise(done => {
+      const t0 = performance.now();
+      let flashed = false;
+      dot.style.opacity = 1;
+      (function step(now) {
+        const d = Math.min(1, (now - t0) / dur) * end, pt = p.getPointAtLength(d);
+        dot.setAttribute('cx', pt.x);
+        dot.setAttribute('cy', pt.y);
+        dot.style.fill = isRed && !(cleanAt != null && d >= cleanAt) ? red : '';
+        if (mark != null && d >= mark && !flashed) { flashed = true; flash(gate); }
+        if (d < end) return requestAnimationFrame(step);
+        if (stopAt == null) { dot.style.opacity = 0; return done(); }
+        flash(gate);
+        dot.style.transition = 'opacity .9s';
+        dot.style.opacity = 0;
+        setTimeout(() => { dot.style.transition = ''; done(); }, 1000);
+      })(t0);
+    });
+  }
+
+  const turns = [
+    [['pIn'], ['pCalls'], ['pState'], ['pOut']],
+    [['pIn', { red: true, cleanAt: at.redact, gate: 'gRedact' }], ['pCalls'], ['pState'], ['pOut']],
+    [['pIdent'], ['pState'], ['pOut']],
+    [['pScreen', { passAt: at.server, gate: 'gServer' }], ['pState'], ['pOut']],
+    [['pIn', { red: true, stopAt: at.override, gate: 'gOverride' }]],
+    [['pIn'], ['pCalls'], ['pState'], ['pOut', { red: true, stopAt: at.fact, gate: 'gFact' }]],
+  ];
+  (async () => {
+    for (;;) for (const turn of turns) {
+      for (const [id, opts] of turn) { await trip(id, opts); await pause(450); }
+      await pause(1800);
+    }
+  })();
+})();
+
+/* ---------- Identity verification ---------- */
+(() => {
+  const steps = [...document.querySelectorAll('.step')];
+  const links = [...document.querySelectorAll('.link')];
+  const access = document.querySelector('.access');
+  const callback = document.querySelector('.callback');
+  const pnodes = Object.fromEntries([...document.querySelectorAll('.pnode')].map(n => [n.dataset.k, n]));
+  const outcomes = Object.fromEntries([...document.querySelectorAll('.outcome')].map(n => [n.dataset.o, n]));
+  const states = [...document.querySelectorAll('.st')];
+  const buttons = [...document.querySelectorAll('.seg button')];
+
+  steps.forEach(s => {
+    const pips = s.querySelector('.pips');
+    for (let i = 0; i < +s.dataset.attempts; i++) pips.appendChild(Object.assign(document.createElement('span'), { className: 'pip' }));
+  });
+
+  let run = 0;
+  const pace = reduceMotion ? 2 : 1.5;
+
+  function reset() {
+    steps.forEach(s => {
+      s.className = 'step';
+      s.querySelectorAll('.pip').forEach(p => p.classList.remove('used'));
+    });
+    links.forEach(l => l.classList.remove('done'));
+    access.dataset.state = 'locked';
+    callback.classList.remove('show');
+    clearPipe();
+    setState('idle');
+  }
+  function clearPipe() {
+    Object.values(pnodes).forEach(n => n.classList.remove('on'));
+    Object.values(outcomes).forEach(n => n.classList.remove('on'));
+  }
+  function setState(s) { states.forEach(n => n.classList.toggle('on', n.dataset.s === s)); }
+  function activate(i) { steps[i].classList.add('is-active'); }
+
+  async function play(name) {
+    const id = ++run;
+    buttons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.run === name)));
+    const wait = ms => new Promise((ok, stop) => setTimeout(() => (id === run ? ok() : stop()), ms * pace));
+
+    async function answer(i, route, outcome) {
+      clearPipe();
+      for (const k of route) { pnodes[k].classList.add('on'); await wait(380); }
+      outcomes[outcome].classList.add('on');
+      const step = steps[i];
+      if (outcome === 'pass') {
+        step.classList.remove('is-active');
+        step.classList.add('is-passed');
+        links[i].classList.add('done');
+        if (steps[i + 1]) activate(i + 1);
+      } else if (outcome === 'unclear') {
+        step.classList.remove('flash'); void step.offsetWidth; step.classList.add('flash');
+      } else {
+        step.classList.remove('flash'); void step.offsetWidth; step.classList.add('flash');
+        const pip = step.querySelector('.pip:not(.used)');
+        pip.classList.add('used');
+        if (!step.querySelector('.pip:not(.used)')) {
+          step.classList.remove('is-active');
+          step.classList.add('is-failed');
+          await wait(500);
+          setState('locked');
+          access.dataset.state = 'blocked';
+          callback.classList.add('show');
+        }
+      }
+      await wait(900);
+      clearPipe();
+      await wait(250);
+    }
+
+    try {
+      reset();
+      await wait(900);
+      setState('progress');
+      activate(0);
+      await wait(500);
+      await answer(0, ['norm', 'exact'], 'pass');
+
+      if (name === 'verified') {
+        await answer(1, ['norm', 'exact', 'sim'], 'fail');
+        await answer(1, ['norm', 'exact', 'sim'], 'pass');
+        await answer(2, ['norm'], 'unclear');
+        await answer(2, ['norm', 'exact'], 'pass');
+        await answer(3, ['norm', 'exact', 'sim', 'model'], 'pass');
+        setState('verified');
+        access.dataset.state = 'open';
+      } else {
+        await answer(1, ['norm', 'exact', 'sim'], 'fail');
+        setState('paused');
+        steps[1].classList.replace('is-active', 'is-paused');
+        await wait(1800);
+        setState('progress');
+        steps[1].classList.replace('is-paused', 'is-active');
+        await wait(500);
+        await answer(1, ['norm', 'exact', 'sim'], 'fail');
+        await answer(1, ['norm', 'exact', 'sim', 'model'], 'fail');
+      }
+      await wait(3800);
+      play(name === 'verified' ? 'locked' : 'verified');
+    } catch { /* superseded by a newer run */ }
+  }
+
+  buttons.forEach(b => b.addEventListener('click', () => play(b.dataset.run)));
+  // Starts when scrolled into view.
+  new IntersectionObserver((entries, obs) => {
+    if (entries.some(e => e.isIntersecting)) { obs.disconnect(); play('verified'); }
+  }, { threshold: 0.4 }).observe(document.querySelector('.track'));
+})();
+</script>
+</body>
+</html>

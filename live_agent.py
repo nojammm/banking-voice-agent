@@ -446,7 +446,7 @@ class VoiceAgent(Agent):
         verification = self.workflow.idv
         kind = banking.loan_kind(raw)
         if (kind and verification.status != 'in_progress' and self.workflow.loan_stage is None
-                and (self.asked_loan_kind or banking.LOAN_INTENT.search(raw))):
+                and (self.asked_loan_kind or banking.loan_request(raw))):
             # They named the kind of loan they want: start finding out what it's for, so the first question is the Worker's.
             await self.workflow.call('note_loan_needs', loan_type=kind, **banking.loan_details(redact(raw)))
             turn_ctx.add_message(role='system', content='The Worker started the loan enquiry for this turn.')

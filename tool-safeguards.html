@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tool Call Safeguards</title>
+<style>
+:root {
+  --bg: #f5f5f6;
+  --surface: #fff;
+  --text: #161619;
+  --muted: #5b5b6a;
+  --line: #dedee1;
+  --line-strong: #b6b6bc;
+  --ink: #1f1c4f;
+  --ink-faint: #f1f0fa;
+  --red: #da1710;
+  --red-faint: #fff0f0;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111116; --surface: #1b1b22; --text: #ececf1; --muted: #a3a3b0; --line: #2e2e38; --line-strong: #4a4a56;
+    --ink: #b9b5ff; --ink-faint: #24223f; --red: #ff5a52; --red-faint: #3a1a1a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111116; --surface: #1b1b22; --text: #ececf1; --muted: #a3a3b0; --line: #2e2e38; --line-strong: #4a4a56;
+  --ink: #b9b5ff; --ink-faint: #24223f; --red: #ff5a52; --red-faint: #3a1a1a;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--sans); }
+main { max-width: 1120px; margin: 0 auto; padding: 40px 16px 56px; display: flex; flex-direction: column; gap: 24px; }
+h1, h2 { margin: 0; color: var(--ink); letter-spacing: -.01em; }
+h1 { font-size: 28px; line-height: 1.2; }
+h2 { font-size: 19px; margin-bottom: 20px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
+.scroll { overflow-x: auto; }
+
+svg.flow { display: block; width: 100%; min-width: 760px; height: auto; }
+.lane { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+.lane.dashed { stroke-dasharray: 4 4; }
+.head { fill: var(--line-strong); }
+.node { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; }
+.node.caller { fill: var(--ink-faint); stroke: var(--ink); }
+.node.model { fill: var(--ink); stroke: var(--ink); }
+.node.chip { fill: var(--ink-faint); stroke: none; }
+.worker { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: 6 5; }
+.t { font: 600 13px var(--sans); fill: var(--text); }
+.t.inv { fill: var(--surface); }
+.t.ink { fill: var(--ink); font-size: 14px; font-weight: 700; }
+.t.small { font-size: 11px; font-weight: 500; fill: var(--muted); }
+.gate circle { fill: var(--surface); stroke: var(--red); stroke-width: 1.5; transition: fill .4s; }
+.gate path, .gate use { fill: none; stroke: var(--red); stroke-width: 1.5; stroke-linejoin: round; }
+.gate text { font: 600 11.5px var(--sans); fill: var(--red); }
+.gate.hit circle { fill: var(--red-faint); }
+.dot { fill: var(--ink); }
+.legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.legend svg { width: 18px; height: 18px; }
+
+.pipe { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pnode { padding: 9px 12px; border-radius: 6px; border: 1.5px solid var(--line-strong); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.pnode.model { border-color: var(--ink); background: var(--ink); color: var(--surface); }
+.arrow { width: 14px; height: 10px; flex: none; }
+.arrow path { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tool call safeguards</h1>
+
+  <section class="card">
+    <h2>Each turn</h2>
+    <div class="scroll">
+      <svg class="flow" viewBox="0 20 1000 330" role="img" aria-label="The turn check starts identity verification in code, before the model runs. The model gets the prompt rules, the tool definitions and the Worker's note. Its tool calls pass a verification gate on the way to the Worker. Its reply passes a claim check, which retries once when it claims a record no tool made, and a fact check, which stops figures no tool supplied, before it is spoken.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path class="head" d="M0,0 L10,5 L0,10 Z"/>
+          </marker>
+          <g id="shield"><path d="M0,-7 L6,-4.5 V0.5 C6,4 3.4,6.4 0,7.5 C-3.4,6.4 -6,4 -6,0.5 V-4.5 Z"/></g>
+        </defs>
+
+        <!-- Lanes -->
+        <path id="pIn" class="lane" d="M90,60 H328" marker-end="url(#ah)"/>
+        <path id="pDown" class="lane" d="M400,80 V138" marker-end="url(#ah)"/>
+        <path id="pIdent" class="lane dashed" d="M470,60 H726 V138" marker-end="url(#ah)"/>
+        <path class="lane" d="M270,150 H328" marker-end="url(#ah)"/>
+        <path class="lane" d="M270,210 H328" marker-end="url(#ah)"/>
+        <path id="pCall" class="lane" d="M472,158 H638" marker-end="url(#ah)"/>
+        <path id="pResult" class="lane" d="M638,205 H472" marker-end="url(#ah)"/>
+        <path id="pOut" class="lane" d="M400,222 V292 Q400,310 382,310 H78 Q60,310 60,292 V90" marker-end="url(#ah)"/>
+        <path id="pRetry" class="lane dashed" d="M415,262 H446 Q458,262 458,250 V224" marker-end="url(#ah)"/>
+
+        <g id="dots"></g>
+
+        <!-- Caller -->
+        <circle class="node caller" cx="60" cy="60" r="28"/>
+        <text class="t ink" x="60" y="65" text-anchor="middle">Caller</text>
+
+        <!-- Turn check -->
+        <g>
+          <title>Code starts ID&amp;V or a loan enquiry from the caller's words, so it never depends on the model</title>
+          <rect class="node" x="330" y="40" width="140" height="40" rx="8"/>
+          <text class="t" x="400" y="65" text-anchor="middle">Turn check</text>
+        </g>
+        <text class="t small" x="598" y="52" text-anchor="middle">starts ID&amp;V</text>
+
+        <!-- Model inputs -->
+        <g>
+          <title>prompts/banking-agent.md: when to use each tool</title>
+          <rect class="node" x="110" y="130" width="160" height="40" rx="8"/>
+          <text class="t" x="190" y="155" text-anchor="middle">Prompt rules</text>
+        </g>
+        <g>
+          <title>The @function_tool methods on VoiceAgent: name, docstring and typed parameters</title>
+          <rect class="node" x="110" y="190" width="160" height="40" rx="8"/>
+          <text class="t" x="190" y="215" text-anchor="middle">Tool definitions</text>
+        </g>
+
+        <!-- Model -->
+        <rect class="node model" x="330" y="140" width="140" height="80" rx="10"/>
+        <text class="t inv" x="400" y="185" text-anchor="middle">Language model</text>
+        <text class="t small" x="604" y="150" text-anchor="middle">tool call</text>
+        <text class="t small" x="555" y="223" text-anchor="middle"><title>Tool results, and the note the Worker adds before every reply, naming the tool to call next</title>result + note</text>
+        <text class="t small" x="468" y="248">retry once</text>
+
+        <!-- Worker -->
+        <rect class="worker" x="640" y="120" width="320" height="135" rx="12"/>
+        <rect class="node chip" x="656" y="140" width="140" height="36" rx="6"/>
+        <text class="t" x="726" y="163" text-anchor="middle">Identity</text>
+        <rect class="node chip" x="804" y="140" width="140" height="36" rx="6"/>
+        <text class="t" x="874" y="163" text-anchor="middle">Account tools</text>
+        <rect class="node chip" x="656" y="188" width="140" height="36" rx="6"/>
+        <text class="t" x="726" y="211" text-anchor="middle">Knowledge</text>
+        <rect class="node chip" x="804" y="188" width="140" height="36" rx="6"/>
+        <text class="t" x="874" y="211" text-anchor="middle">Records</text>
+        <text class="t ink" x="656" y="244">Worker</text>
+
+        <!-- Gates -->
+        <g class="gate" id="gGuard" transform="translate(555,158)">
+          <title>Account tools called before verification are refused and start ID&amp;V instead</title>
+          <circle r="15"/><use href="#shield"/><text y="32" text-anchor="middle">Verification</text>
+        </g>
+        <g class="gate" id="gClaim" transform="translate(400,262)">
+          <title>"I've recorded it" with no record tool called is held back; the model retries once, told to call the tool</title>
+          <circle r="15"/><use href="#shield"/><text x="-22" y="4" text-anchor="end">Claim check</text>
+        </g>
+        <g class="gate" id="gFact" transform="translate(230,310)">
+          <title>A figure no tool supplied stops the reply: "Sorry, I can't confirm that detail right now."</title>
+          <circle r="15"/><use href="#shield"/><text y="32" text-anchor="middle">Fact check</text>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <svg viewBox="-9 -9 18 18" aria-hidden="true"><g class="gate"><circle r="8.5"/><path d="M0,-4.5 L4,-3 V0.3 C4,2.6 2.2,4.2 0,5 C-2.2,4.2 -4,2.6 -4,0.3 V-3 Z"/></g></svg>
+      Enforced in code
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Evaluation</h2>
+    <div class="pipe">
+      <div class="pnode" title="scripts/eval_scenarios.json">Scripted caller turns</div>
+      <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+      <div class="pnode model" title="scripts/eval_agent.py: the real model, tools, ID&amp;V and guards">Real agent</div>
+      <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+      <div class="pnode">Required tools called</div>
+      <svg class="arrow" viewBox="0 0 14 10"><path d="M0 5h12M8 1l4 4-4 4"/></svg>
+      <div class="pnode">Forbidden tools not called</div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const path = id => document.getElementById(id);
+
+  // Distance along a path to the point nearest (x, y).
+  function lengthAt(p, x, y) {
+    const L = p.getTotalLength();
+    let best = 0, dist = Infinity;
+    for (let l = 0; l <= L; l += 1) {
+      const pt = p.getPointAtLength(l), d = Math.hypot(pt.x - x, pt.y - y);
+      if (d < dist) { dist = d; best = l; }
+    }
+    return best;
+  }
+
+  const dot = document.createElementNS(NS, 'circle');
+  dot.setAttribute('r', 5);
+  dot.setAttribute('class', 'dot');
+  dot.style.opacity = 0;
+  path('dots').appendChild(dot);
+
+  const red = getComputedStyle(document.documentElement).getPropertyValue('--red').trim();
+  const at = {
+    guard: lengthAt(path('pCall'), 555, 158),
+    claim: lengthAt(path('pOut'), 400, 262),
+    fact: lengthAt(path('pOut'), 230, 310),
+  };
+  const SPEED = 0.12;  // px per ms
+  const pause = ms => new Promise(ok => setTimeout(ok, ms));
+
+  function flash(id) {
+    const g = path(id);
+    g.classList.add('hit');
+    setTimeout(() => g.classList.remove('hit'), 1100);
+  }
+
+  // stopAt: halted there, in red; passAt: the gate lights as it passes.
+  function trip(id, { stopAt, passAt, gate } = {}) {
+    const p = path(id), end = stopAt ?? p.getTotalLength(), dur = Math.max(900, end / SPEED);
+    return new Promise(done => {
+      const t0 = performance.now();
+      let flashed = false;
+      dot.style.opacity = 1;
+      dot.style.fill = '';
+      (function step(now) {
+        const d = Math.min(1, (now - t0) / dur) * end, pt = p.getPointAtLength(d);
+        dot.setAttribute('cx', pt.x);
+        dot.setAttribute('cy', pt.y);
+        if (passAt != null && d >= passAt && !flashed) { flashed = true; flash(gate); }
+        if (d < end) return requestAnimationFrame(step);
+        if (stopAt == null) { dot.style.opacity = 0; return done(); }
+        flash(gate);
+        dot.style.fill = red;
+        dot.style.transition = 'opacity .9s';
+        dot.style.opacity = 0;
+        setTimeout(() => { dot.style.transition = ''; done(); }, 1000);
+      })(t0);
+    });
+  }
+
+  const turns = [
+    // A tool call through the verification gate.
+    [['pIn'], ['pDown'], ['pCall', { passAt: at.guard, gate: 'gGuard' }], ['pResult'], ['pOut']],
+    // A record claimed with no tool: held, retried, the tool runs.
+    [['pIn'], ['pDown'], ['pOut', { stopAt: at.claim, gate: 'gClaim' }], ['pRetry'], ['pCall'], ['pResult'], ['pOut']],
+    // A figure no tool supplied.
+    [['pIn'], ['pDown'], ['pOut', { stopAt: at.fact, gate: 'gFact' }]],
+    // Verification started in code.
+    [['pIn'], ['pIdent'], ['pResult'], ['pOut']],
+  ];
+  (async () => {
+    for (;;) for (const turn of turns) {
+      for (const [id, opts] of turn) { await trip(id, opts); await pause(350); }
+      await pause(1600);
+    }
+  })();
+})();
+</script>
+</body>
+</html>
