@@ -15,6 +15,10 @@ import providers
 import server
 import openai_provider
 
+# Pin the date inside the reviewed sources' review window, so results don't depend on the day the tests run.
+TODAY = patch('engine.today', return_value='2026-10-27')
+setUpModule, tearDownModule = TODAY.start, TODAY.stop
+
 class PipelineTests(unittest.TestCase):
     def setUp(self):
         self.corpus = engine.load_corpus()

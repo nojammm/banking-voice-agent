@@ -11,6 +11,10 @@ import engine
 import speech
 from providers import ModelError
 
+# Pin the date inside the reviewed sources' review window, so results don't depend on the day the tests run.
+TODAY = patch('engine.today', return_value='2026-10-27')
+setUpModule, tearDownModule = TODAY.start, TODAY.stop
+
 AUDIO = b'\x1a\x45\xdf\xa3'+b'\0'*100
 ENCODED = base64.b64encode(AUDIO).decode()
 
